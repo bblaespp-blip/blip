@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLIP - Red Social Creativa</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body{
+  margin:0;
+  background:#0f1117;
+  color:white;
+}
+
+header{
+  background: linear-gradient(135deg,#6a00ff,#00e5ff);
+  padding:20px;
+  text-align:center;
+}
+
+header h1{
+  margin:0;
+  font-size:2.5rem;
+}
+
+.container{
+  max-width:700px;
+  margin:auto;
+  padding:15px;
+}
+
+.post-box{
+  background:#161b22;
+  padding:15px;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.post-box textarea{
+  resize:none;
+  min-height:90px;
+  border:none;
+  border-radius:10px;
+  padding:10px;
+  font-size:1rem;
+}
+
+.post-box input{
+  background:#0f1117;
+  border-radius:10px;
+  padding:10px;
+  border:1px solid #333;
+  color:white;
+}
+
+.post-box button{
+  background:#6a00ff;
+  color:white;
+  border:none;
+  border-radius:10px;
+  padding:10px;
+  font-size:1rem;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.post-box button:hover{
+  transform:scale(1.03);
+  background:#7d20ff;
+}
+
+.feed{
+  margin-top:20px;
+  display:grid;
+  gap:15px;
+}
+
+.post{
+  background:#161b22;
+  padding:12px;
+  border-radius:12px;
+}
+
+.post img{
+  width:100%;
+  margin-top:10px;
+  border-radius:10px;
+}
+
+footer{
+  text-align:center;
+  padding:15px;
+  opacity:.5;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>BLIP</h1>
+  <p>Red social para artistas</p>
+</header>
+
+<div class="container">
+
+  <div class="post-box">
+    <textarea id="postText" placeholder="¿Qué estás creando hoy?"></textarea>
+    <input type="file" id="postImage" accept="image/*">
+    <button onclick="uploadPost()">Publicar</button>
+  </div>
+
+  <div id="feed" class="feed"></div>
+
+</div>
+
+<footer>
+  BLIP © 2026
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+  authDomain: "almacenamiento-redsocial.firebaseapp.com",
+  projectId: "almacenamiento-redsocial",
+  storageBucket: "almacenamiento-redsocial.appspot.com",
+  messagingSenderId: "562861595597",
+  appId: "1:562861595597:web:f9e5764ea977b72fa9c284"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+window.uploadPost = async () => {
+  const text = document.getElementById("postText").value.trim();
+  const file = document.getElementById("postImage").files[0];
+
+  if(!text && !file) return alert("Escribe algo o sube una imagen");
+
+  let imageUrl = "";
+
+  if(file){
+    const imageRef = ref(storage, `posts/${Date.now()}_${file.name}`);
+    await uploadBytes(imageRef, file);
+    imageUrl = await getDownloadURL(imageRef);
+  }
+
+  await addDoc(collection(db,"posts"),{
+    text,
+    imageUrl,
+    created: Date.now()
+  });
+
+  document.getElementById("postText").value = "";
+  document.getElementById("postImage").value = "";
+};
+
+const feed = document.getElementById("feed");
+
+const q = query(collection(db,"posts"), orderBy("created","desc"));
+
+onSnapshot(q, snapshot => {
+  feed.innerHTML = "";
+  snapshot.forEach(doc => {
+    const p = doc.data();
+    feed.innerHTML += `
+      <div class="post">
+        <p>${p.text || ""}</p>
+        ${p.imageUrl ? `<img src="${p.imageUrl}">` : ""}
+      </div>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>
