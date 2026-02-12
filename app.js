@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+import { getDatabase, ref, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -19,10 +19,36 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- FUNCIONES GLOBALES (Para que funcionen los onclick en el HTML inyectado) ---
-window.darLike = async (id, likes) => {
+// --- FUNCIONES INCORPORADAS (EXPORTADAS A WINDOW PARA EL HTML) ---
+
+window.darLike = async (postId, currentLikes) => {
     if (!userActual) return alert("Inicia sesión para dar like");
-    await update(ref(db, `posts/${id}`), { likes: (likes || 0) + 1 });
+    const postRef = ref(db, `posts/${postId}`);
+    await update(postRef, { likes: (currentLikes || 0) + 1 });
+};
+
+window.enviarComentario = async (postId) => {
+    if (!userActual) return alert("Inicia sesión para comentar");
+    const input = document.getElementById(`input-${postId}`);
+    const texto = input.value;
+    
+    if (!texto.trim()) return;
+    const comentariosRef = ref(db, `posts/${postId}/comentarios`);
+    await push(comentariosRef, {
+        usuario: userActual.email.split('@')[0],
+        texto: texto,
+        timestamp: Date.now()
+    });
+    input.value = "";
+};
+
+window.seguirUsuario = async (uidSeguido) => {
+    if (!userActual) return alert("Inicia sesión para seguir artistas");
+    if (userActual.uid === uidSeguido) return alert("No puedes seguirte a ti mismo");
+    
+    const seguimientoRef = ref(db, `users/${userActual.uid}/siguiendo/${uidSeguido}`);
+    await update(seguimientoRef, { activo: true });
+    alert("¡Ahora sigues a este artista!");
 };
 
 window.toggleComs = (id) => {
@@ -30,30 +56,21 @@ window.toggleComs = (id) => {
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
 };
 
-window.addComentario = async (id) => {
-    const input = document.getElementById(`input-${id}`);
-    if (!userActual || !input.value.trim()) return;
-    await push(ref(db, `posts/${id}/comentarios`), {
-        usuario: userActual.email.split('@')[0],
-        texto: input.value
-    });
-    input.value = "";
-};
-
-// --- CARGAR FEED (Actualizado para mostrar interacciones) ---
+// --- RENDERIZADO DEL FEED ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
+    
     snap.forEach(p => {
         const d = p.val();
         const id = p.key;
-        const autor = d.userEmail.split('@')[0];
-        
-        // Procesar comentarios guardados
+        const autorNombre = d.userEmail ? d.userEmail.split('@')[0] : "artista";
+        const autorUid = d.userId || ""; // Asegúrate de guardar el userId al subir
+
         let comsHtml = "";
         if(d.comentarios) {
             Object.values(d.comentarios).forEach(c => {
-                comsHtml += `<div style="margin-bottom:5px;"><b>${c.usuario}:</b> ${c.texto}</div>`;
+                comsHtml += `<div><b>${c.usuario}:</b> ${c.texto}</div>`;
             });
         }
 
@@ -63,16 +80,17 @@ onValue(ref(db, 'posts'), snap => {
             <img src="${d.url}">
             <div class="info">
                 <h3>${d.title}</h3>
-                <p>@${autor}</p>
+                <p>@${autorNombre}</p>
                 <div class="social-actions">
                     <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
-                    <button onclick="toggleComs('${id}')">💬 Comentar</button>
+                    <button onclick="toggleComs('${id}')">💬</button>
+                    <button onclick="seguirUsuario('${autorUid}')" class="btn-follow">Seguir</button>
                 </div>
                 <div id="box-${id}" class="comments-box" style="display:none;">
-                    <div class="comments-list">${comsHtml || "Sin comentarios"}</div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="input-${id}" placeholder="Escribe..." style="margin:0; padding:5px; font-size:0.8rem;">
-                        <button onclick="addComentario('${id}')" style="background:#7b5cff; border:none; color:white; border-radius:5px; padding:0 10px;">➤</button>
+                    <div class="comments-list">${comsHtml || "Aún no hay comentarios..."}</div>
+                    <div class="com-input-group">
+                        <input type="text" id="input-${id}" placeholder="Escribe un comentario...">
+                        <button onclick="enviarComentario('${id}')">➤</button>
                     </div>
                 </div>
             </div>`;
@@ -80,42 +98,37 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- SUBIDA DE IMAGEN ---
+// --- SUBIDA DE IMAGEN (ACTUALIZADA CON USERID) ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
-    const titleInput = document.getElementById('postTitle');
-    const btn = document.getElementById('btnDoUpload');
-
-    if(!file || !titleInput.value) return alert("Selecciona imagen y pon título");
-    btn.innerText = "Subiendo...";
+    const title = document.getElementById('postTitle').value;
+    if(!file || !title || !userActual) return alert("Completa los datos");
 
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', PRESET);
 
-    try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
-        const data = await res.json();
-        if(data.secure_url) {
-            await push(ref(db, 'posts'), {
-                url: data.secure_url,
-                title: titleInput.value,
-                userEmail: userActual.email,
-                likes: 0,
-                timestamp: Date.now()
-            });
-            document.getElementById('modalUpload').style.display = 'none';
-            titleInput.value = "";
-        }
-    } catch (e) { alert("Error al subir"); }
-    btn.innerText = "Publicar Ahora";
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
+    const data = await res.json();
+
+    if(data.secure_url) {
+        await push(ref(db, 'posts'), {
+            url: data.secure_url,
+            title: title,
+            userId: userActual.uid, // Importante para la función de seguir
+            userEmail: userActual.email,
+            likes: 0,
+            timestamp: serverTimestamp()
+        });
+        document.getElementById('modalUpload').style.display = 'none';
+    }
 };
 
-// --- MANEJO DE SESIÓN ---
-onAuthStateChanged(auth, user => {
-    userActual = user;
-    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
-    document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
+// --- AUTH ---
+onAuthStateChanged(auth, u => {
+    userActual = u;
+    document.getElementById('btnOpenUpload').style.display = u ? 'block' : 'none';
+    document.getElementById('btnLogin').innerText = u ? 'Salir' : 'Entrar';
 });
 
 document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
