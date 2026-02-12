@@ -4,12 +4,14 @@ import { getDatabase, ref, push, onValue, update, remove, serverTimestamp } from
 
 // 1. CONFIGURACIÓN (Siempre al principio)
 const firebaseConfig = {
-    apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
-    authDomain: "almacenamiento-redsocial.firebaseapp.com",
-    databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
-    projectId: "almacenamiento-redsocial",
-    storageBucket: "almacenamiento-redsocial.appspot.com",
-    appId: "1:562861595597:web:a88c0af7d0c8da44a9c284"
+  apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+  authDomain: "almacenamiento-redsocial.firebaseapp.com",
+  databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+  projectId: "almacenamiento-redsocial",
+  storageBucket: "almacenamiento-redsocial.firebasestorage.app",
+  messagingSenderId: "562861595597",
+  appId: "1:562861595597:web:a88c0af7d0c8da44a9c284",
+  measurementId: "G-K8B422VPD9"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -141,3 +143,4 @@ document.getElementById('btnDoUpload').onclick = async () => {
         document.getElementById('modalUpload').style.display = 'none';
     }
 };
+
