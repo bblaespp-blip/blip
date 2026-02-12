@@ -20,7 +20,40 @@ button { cursor:pointer; padding:10px; border-radius:8px; border:none; backgroun
 .loader-bar { width: 100%; height: 4px; background: #333; overflow: hidden; border-radius: 2px; }
 .loader-bar::after { content: ''; display:block; width: 40%; height: 100%; background: #7b5cff; animation: loading 1s infinite linear; }
 @keyframes loading { from { margin-left: -40%; } to { margin-left: 100%; } }
-.list p {
-    background: #2a2a2a;
+/* Estilo de burbujas para comentarios */
+.comments-area {
+    background: #222;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+    border: 1px solid #333;
+}
+
+.comments-area p {
+    background: #333;
     padding: 8px 12px;
-    border-radius: 15px;
+    border-radius: 12px;
+    margin: 6px 0;
+    font-size: 0.85rem;
+    border-bottom-left-radius: 2px; /* Efecto burbuja */
+    border: 1px solid #444;
+    color: #eee;
+    text-align: left;
+}
+
+.comments-area b {
+    color: #7b5cff; /* El nombre del usuario resalta en morado */
+    font-size: 0.75rem;
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* Scrollbar personalizada para que no se vea feo */
+.comments-area div::-webkit-scrollbar {
+    width: 4px;
+}
+.comments-area div::-webkit-scrollbar-thumb {
+    background: #7b5cff;
+    border-radius: 10px;
+}
+
