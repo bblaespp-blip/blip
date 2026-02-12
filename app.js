@@ -47,7 +47,7 @@ document.getElementById('postBtn').onclick = async () => {
     const file = document.getElementById('imgInput').files[0];
     const title = document.getElementById('imgTitle').value || "Arte";
     if(!file) return alert("Selecciona una imagen");
-    if(file.size > 2 * 1024 * 1024) return alert("Máximo 2MB");
+    if(file.size > 2 * 1024 * 1024) return alert("Máximo 5MB");
 
     document.getElementById('uploadLoader').style.display = 'block';
     document.getElementById('postBtn').disabled = true;
@@ -142,3 +142,4 @@ document.getElementById('toggleAuth').onclick = () => {
 
 window.openAuth = () => document.getElementById('authModal').style.display='flex';
 document.getElementById('uploadBtn').onclick = () => document.getElementById('modal').style.display='flex';
+
