@@ -1,57 +1,59 @@
-body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; }
-
-#nav { 
-    display: flex; justify-content: space-between; padding: 15px 5%; 
-    background: #111; align-items: center; border-bottom: 1px solid #222;
-    position: sticky; top: 0; z-index: 100;
+/* CONTENEDOR PRINCIPAL DE COMENTARIOS */
+.comment-container {
+    background: #111;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #333;
 }
 
-.logo { font-size: 1.5rem; font-weight: bold; color: #7b5cff; cursor: pointer; }
-
-.nav-buttons button { 
-    background: #222; color: white; border: none; padding: 8px 15px; 
-    border-radius: 8px; margin-left: 10px; cursor: pointer; font-weight: 500;
+/* LISTA DONDE SE VEN LOS MENSAJES */
+.comments-display {
+    max-height: 150px;
+    overflow-y: auto;
+    text-align: left;
+    margin-bottom: 10px;
 }
 
-#btnOpenUpload { background: #7b5cff; }
-
-.grid { 
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-    gap: 25px; padding: 30px 5%; 
+/* CADA BURBUJA DE COMENTARIO */
+.comment-bubble {
+    background: #222;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
 }
 
-.card { background: #161616; border-radius: 15px; overflow: hidden; border: 1px solid #222; transition: 0.3s; }
-.card:hover { transform: translateY(-5px); border-color: #333; }
-.card img { width: 100%; height: 300px; object-fit: cover; }
-
-.info { padding: 15px; }
-.info h3 { margin: 0; font-size: 1.1rem; }
-.tag { color: #7b5cff; font-weight: bold; font-size: 0.9rem; margin: 5px 0 15px 0; }
-
-.actions { display: flex; gap: 10px; margin-bottom: 15px; }
-.actions button { 
-    background: #222; border: none; color: white; padding: 7px 14px; 
-    border-radius: 20px; cursor: pointer; font-size: 0.85rem; 
+.comment-user {
+    color: #a29bfe;
+    font-weight: bold;
+    margin-right: 5px;
 }
 
-.btn-follow { margin-left: auto; color: #7b5cff !important; border: 1px solid #7b5cff !important; background: transparent !important; }
-
-/* Caja de Comentarios */
-.com-box { background: #0d0d0d; padding: 12px; border-radius: 10px; border: 1px solid #222; }
-.com-list { max-height: 120px; overflow-y: auto; margin-bottom: 12px; }
-.com-item { font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid #1a1a1a; text-align: left; }
-.com-item b { color: #7b5cff; margin-right: 5px; }
-
-.com-input { display: flex; gap: 8px; }
-.com-input input { 
-    flex: 1; background: #1a1a1a; border: 1px solid #333; 
-    color: white; padding: 8px; border-radius: 6px; font-size: 0.85rem;
+.comment-text {
+    color: #efefef;
 }
-.com-input button { background: #7b5cff; border: none; color: white; border-radius: 6px; padding: 0 12px; cursor: pointer; }
 
-/* Modales */
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-content { background: #161616; padding: 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; border: 1px solid #333; }
-.modal-content input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
-#btnDoUpload, #btnDoAuth { width: 100%; background: #7b5cff; border: none; padding: 14px; color: white; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 10px; }
-.btn-sec { background: none; color: #777; border: none; margin-top: 15px; cursor: pointer; width: 100%; }
+/* AREA DE INPUT */
+.comment-input-area {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-input-area input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.comment-input-area button {
+    background: #7b5cff;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
