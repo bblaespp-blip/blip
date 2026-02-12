@@ -95,4 +95,13 @@ document.getElementById('btnDoAuth').onclick = () => {
     const p = document.getElementById('pass').value;
     signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     document.getElementById('modalAuth').style.display = 'none';
+    document.getElementById('userSearch').oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll('.card');
+    
+    cards.forEach(card => {
+        const username = card.querySelector('.info p').innerText.toLowerCase();
+        card.style.display = username.includes(term) ? 'block' : 'none';
+    });
 };
+
