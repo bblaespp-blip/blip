@@ -19,25 +19,23 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- FUNCIONES GLOBALES DE INTERACCIÓN ---
+// --- FUNCIONES SOCIALES (Vinculadas a Window para que el HTML las vea) ---
 window.darLike = async (postId, currentLikes) => {
     if (!userActual) return alert("Inicia sesión para dar like");
-    const postRef = ref(db, `posts/${postId}`);
-    await update(postRef, { likes: (currentLikes || 0) + 1 });
+    await update(ref(db, `posts/${postId}`), { likes: (currentLikes || 0) + 1 });
 };
 
 window.toggleComentarios = (postId) => {
     const box = document.getElementById(`box-${postId}`);
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
 };
 
 window.enviarComentario = async (postId) => {
     if (!userActual) return alert("Inicia sesión para comentar");
     const input = document.getElementById(`input-${postId}`);
-    if (!input.value.trim()) return;
+    if (!input || !input.value.trim()) return;
 
-    const comentariosRef = ref(db, `posts/${postId}/comentarios`);
-    await push(comentariosRef, {
+    await push(ref(db, `posts/${postId}/comentarios`), {
         usuario: userActual.email.split('@')[0],
         texto: input.value,
         timestamp: Date.now()
@@ -49,12 +47,58 @@ window.seguirArtista = async (artistaId, artistaNombre) => {
     if (!userActual) return alert("Inicia sesión para seguir");
     if (userActual.uid === artistaId) return alert("No puedes seguirte a ti mismo");
 
-    const siguiendoRef = ref(db, `users/${userActual.uid}/siguiendo/${artistaId}`);
-    await update(siguiendoRef, { nombre: artistaNombre, fecha: Date.now() });
+    await update(ref(db, `users/${userActual.uid}/siguiendo/${artistaId}`), { 
+        nombre: artistaNombre, 
+        fecha: Date.now() 
+    });
     alert(`¡Ahora sigues a ${artistaNombre}!`);
 };
 
-// --- SUBIDA DE ARTE ---
+// --- RENDERIZADO DEL FEED ---
+onValue(ref(db, 'posts'), snap => {
+    const feed = document.getElementById('feed');
+    if(!feed) return;
+    feed.innerHTML = "";
+    
+    snap.forEach(p => {
+        const d = p.val();
+        const id = p.key;
+        const nombreArtista = d.userEmail ? d.userEmail.split('@')[0] : "artista";
+        
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <img src="${d.url}">
+            <div class="info">
+                <h3>${d.title}</h3>
+                <p class="artist-name">@${nombreArtista}</p>
+                <div class="social-bar">
+                    <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
+                    <button onclick="toggleComentarios('${id}')">💬 Comentar</button>
+                    <button onclick="seguirArtista('${d.userId}', '${nombreArtista}')" class="follow-btn">Seguir</button>
+                </div>
+                <div id="box-${id}" class="comment-section" style="display:none;">
+                    <div id="list-${id}" class="comment-list"></div>
+                    <div class="comment-input">
+                        <input type="text" id="input-${id}" placeholder="Escribe un comentario...">
+                        <button onclick="enviarComentario('${id}')">➤</button>
+                    </div>
+                </div>
+            </div>`;
+        
+        // Cargar comentarios
+        const list = card.querySelector(`#list-${id}`);
+        if(d.comentarios) {
+            Object.values(d.comentarios).forEach(c => {
+                list.innerHTML += `<p style="margin:5px 0;"><b>${c.usuario}:</b> ${c.texto}</p>`;
+            });
+        }
+        
+        feed.prepend(card);
+    });
+});
+
+// --- SUBIDA ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const titleInput = document.getElementById('postTitle');
@@ -86,51 +130,11 @@ document.getElementById('btnDoUpload').onclick = async () => {
             });
             document.getElementById('modalUpload').style.display = 'none';
             titleInput.value = "";
+            alert("¡Publicado!");
         }
-    } catch (e) { alert("Error al subir"); }
-    finally { btn.innerText = "Publicar Ahora"; btn.disabled = false; }
+    } catch (e) { alert("Error de red"); }
+    finally { btn.innerText = "Publicar"; btn.disabled = false; }
 };
-
-// --- FEED EN TIEMPO REAL ---
-onValue(ref(db, 'posts'), snap => {
-    const feed = document.getElementById('feed');
-    feed.innerHTML = "";
-    snap.forEach(p => {
-        const d = p.val();
-        const id = p.key;
-        const nombreArtista = d.userEmail ? d.userEmail.split('@')[0] : "artista";
-        
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <img src="${d.url}">
-            <div class="info">
-                <h3>${d.title}</h3>
-                <p class="artist-name">@${nombreArtista}</p>
-                <div class="social-bar">
-                    <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
-                    <button onclick="toggleComentarios('${id}')">💬</button>
-                    <button onclick="seguirArtista('${d.userId}', '${nombreArtista}')" class="follow-btn">Seguir</button>
-                </div>
-                <div id="box-${id}" class="comment-section" style="display:none;">
-                    <div id="list-${id}" class="comment-list"></div>
-                    <div class="comment-input">
-                        <input type="text" id="input-${id}" placeholder="Comentar...">
-                        <button onclick="enviarComentario('${id}')">➤</button>
-                    </div>
-                </div>
-            </div>`;
-        
-        const list = card.querySelector(`#list-${id}`);
-        if(d.comentarios) {
-            Object.values(d.comentarios).forEach(c => {
-                list.innerHTML += `<p><b>${c.usuario}:</b> ${c.texto}</p>`;
-            });
-        }
-        
-        feed.prepend(card);
-    });
-});
 
 // --- AUTH ---
 onAuthStateChanged(auth, user => {
