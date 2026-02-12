@@ -3,10 +3,9 @@ body {
     font-family: 'Segoe UI', sans-serif;
     background: #0f0f0f;
     color: #fff;
-    text-align: center;
 }
 
-header {
+#nav {
     display: flex;
     justify-content: space-between;
     padding: 15px 5%;
@@ -17,64 +16,75 @@ header {
     z-index: 100;
 }
 
-.nav-buttons { display: flex; gap: 10px; }
-
-button {
-    background: #7b5cff;
+.nav-buttons button {
+    background: #333;
     color: white;
     border: none;
     padding: 8px 15px;
-    border-radius: 20px;
+    border-radius: 5px;
+    margin-left: 10px;
     cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
 }
-
-button:hover { opacity: 0.8; transform: scale(1.05); }
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     padding: 20px 5%;
 }
 
 .card {
     background: #1a1a1a;
-    border-radius: 15px;
+    border-radius: 12px;
     overflow: hidden;
     transition: 0.3s;
-    border: 1px solid #333;
 }
 
-.card img { width: 100%; height: 300px; object-fit: cover; }
+.card:hover { transform: translateY(-5px); }
+
+.card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
 
 .info { padding: 15px; }
+.info h3 { margin: 0; font-size: 1.1rem; }
+.info p { color: #7b5cff; margin: 5px 0 0; }
 
 .modal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
 }
 
 .modal-content {
-    background: #1a1a1a;
+    background: #222;
     padding: 30px;
     border-radius: 15px;
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    width: 90%;
+    max-width: 400px;
 }
 
 input {
+    width: 100%;
     padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #333;
-    background: #222;
+    margin: 10px 0;
+    background: #333;
+    border: 1px solid #444;
     color: white;
+    border-radius: 5px;
+}
+
+#btnDoUpload {
+    background: #7b5cff;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
 }
