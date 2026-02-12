@@ -2,54 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BLIP - Red Social de Arte</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLIP - Arte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <div class="logo">BLIP</div>
+        <nav>
+            <button id="btnHome">Inicio</button>
+            <button id="btnFollows">Siguiendo</button>
+            <button id="btnProfile">Perfil</button>
+            <button id="btnOpenUpload" style="display:none;">Subir</button>
+            <button id="btnLogin">Entrar</button>
+        </nav>
+    </header>
 
-<header id="nav">
-    <div class="logo" style="font-weight:bold; font-size:1.5rem; color:#7b5cff;">BLIP</div>
-    <div class="nav-buttons">
-        <button id="btnParaTi">Para ti</button>
-        <button id="btnSiguiendo">Siguiendo</button>
-        <button id="uploadBtn" style="display:none;">Subir Arte</button>
-        <button id="btnPerfil">Mi Perfil</button>
-        <button id="btnChat">Chat</button>
-        <button id="loginNavBtn">Entrar</button>
-    </div>
-</header>
+    <main id="app-container">
+        <div id="feed" class="grid"></div>
+        <div id="followingFeed" class="grid" style="display:none;"></div>
+        <div id="profile" class="grid" style="display:none;"></div>
+    </main>
 
-<div id="feed" class="grid"></div>
-<div id="followingFeed" class="grid" style="display:none;"></div>
-<div id="profile" style="display:none; padding: 20px;">
-    <h2 style="text-align:center; color:#7b5cff;">Mi Galería</h2>
-    <div id="profileGrid" class="grid"></div>
-</div>
-
-<div id="modal" class="modal" style="display:none;">
-    <div class="modalContent">
-        <h3>Publicar Obra</h3>
-        <input type="file" id="imgInput" accept="image/*">
-        <input type="text" id="imgTitle" placeholder="Título de la obra">
-        <div id="uploadLoader" style="display:none; text-align:center;">
-            <p>Subiendo... 🎨</p>
+    <div id="modalUpload" class="modal" style="display:none;">
+        <div class="modal-content">
+            <input type="file" id="fileInput">
+            <input type="text" id="postTitle" placeholder="Título">
+            <button id="btnDoUpload">Publicar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'">Cerrar</button>
         </div>
-        <button id="postBtn">Publicar</button>
-        <button id="closeModalBtn" style="background:none;">Cancelar</button>
     </div>
-</div>
 
-<div id="authModal" class="modal" style="display:none;">
-    <div class="modalContent">
-        <h3 id="authTitle">Bienvenido</h3>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Contraseña">
-        <button id="authBtn">Confirmar</button>
-        <button id="toggleAuth" style="background:none; color:#7b5cff; font-size: 0.8rem;">Registro / Login</button>
+    <div id="modalAuth" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="authTitle">Login</h3>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button id="btnDoAuth">Confirmar</button>
+            <button id="btnToggleAuth" style="background:none; color:#7b5cff;">¿No tienes cuenta? Regístrate</button>
+        </div>
     </div>
-</div>
 
-<script type="module" src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
