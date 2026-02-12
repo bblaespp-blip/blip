@@ -1,79 +1,131 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Galería de Arte</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header id="nav">
-        <div class="logo" onclick="location.reload()" style="cursor:pointer">BLIP</div>
-        <div class="nav-buttons">
-            <button id="btnParaTi">Para Ti</button>
-            <button id="btnMiPerfil">Mi Perfil</button>
-            <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
-            <button id="btnLogin">Entrar</button>
-        </div>
-    </header>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #080808;
+    color: white;
+}
 
-    <main id="app-container">
-        <!-- Perfil Header (se muestra cuando se abre un perfil) -->
-        <div id="profile-header" class="profile-header" style="display:none;">
-            <button onclick="cerrarPerfil()" class="back-btn">← Volver</button>
-            <div class="profile-info">
-                <h2 id="profile-name">@usuario</h2>
-                <p id="profile-bio">Cargando biografía...</p>
-                <div class="profile-stats">
-                    <span id="profile-stats-posts"><b>0</b> Publicaciones</span>
-                    <span id="profile-stats-followers"><b>0</b> Seguidores</span>
-                </div>
-                <button id="btnFollow" style="display:none;">Seguir</button>
-            </div>
-        </div>
+#nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    background: #141414;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
 
-        <!-- Feed principal -->
-        <div id="feed" class="grid"></div>
-    </main>
+.nav-buttons button {
+    background: #1f1f1f;
+    color: white;
+    border: 1px solid #333;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 8px;
+}
 
-    <!-- Modal Subir -->
-    <div id="modalUpload" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Nueva Obra</h3>
-            <input type="file" id="fileInput" accept="image/*">
-            <input type="text" id="postTitle" placeholder="Título de la obra">
-            <button id="btnDoUpload">Publicar</button>
-            <button onclick="document.getElementById('modalUpload').style.display='none'">Cancelar</button>
-        </div>
-    </div>
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    padding: 30px 5%;
+}
 
-    <!-- Modal Login -->
-    <div id="modalAuth" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Acceso para Artistas</h3>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="pass" placeholder="Contraseña">
-            <button id="btnDoAuth">Iniciar / Registrarse</button>
-            <button onclick="document.getElementById('modalAuth').style.display='none'">Cerrar</button>
-        </div>
-    </div>
+.card {
+    background: #141414;
+    border-radius: 15px;
+    border: 1px solid #222;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
 
-    <script type="module" src="app.js"></script>
-<!-- ... todo tu HTML anterior ... -->
+.card:hover {
+    transform: scale(1.03);
+}
 
-<!-- Modal Upload y Modal Auth aquí -->
+.card img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+}
 
-<script type="module">
-  // Espera a que TODO el HTML esté listo
-  document.addEventListener('DOMContentLoaded', () => {
-    import('./app.js').then(module => {
-      // Tu app.js ya se ejecuta aquí, con todos los elementos disponibles
-      console.log('app.js cargado correctamente después del DOM');
-    }).catch(err => {
-      console.error('Error importando app.js:', err);
-    });
-  });
-</script>
-</body>
-</html>
+.info {
+    padding: 15px;
+}
 
+.info h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+}
+
+.info p {
+    color: #7b5cff;
+    cursor: pointer;
+}
+
+.profile-header {
+    text-align: center;
+    padding: 30px 5%;
+    background: #111;
+    border-bottom: 1px solid #222;
+}
+
+.profile-info h2 {
+    color: #7b5cff;
+    margin: 0;
+}
+
+.profile-stats {
+    margin: 15px 0;
+    font-size: 1.1rem;
+}
+
+.profile-stats span {
+    margin: 0 15px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: #141414;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    border: 1px solid #333;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: #7b5cff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
