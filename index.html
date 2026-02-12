@@ -59,8 +59,8 @@ const storage = firebase.storage();
 
 auth.onAuthStateChanged(user=>{
   if(user){
-    authBox.style.display="none";
-    postBox.style.display="block";
+    document.getElementById("auth").style.display="none";
+    document.getElementById("postBox").style.display="block";
     loadFeed();
   }
 });
@@ -73,6 +73,7 @@ function login(){
 async function publish(){
   const txt=text.value;
   const file=img.files[0];
+
   if(!txt && !file) return alert("Escribe algo o sube una imagen");
 
   let url="";
