@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Red Social de Arte</title>
+    <title>BLIP - Arte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header id="nav">
-    <div class="logo" style="font-weight:bold; font-size:1.5rem; color:#7b5cff; cursor:pointer;" onclick="location.reload()">BLIP</div>
+    <div class="logo" style="color:#7b5cff; font-weight:bold; font-size:1.5rem;">BLIP</div>
     <div class="nav-buttons">
         <button id="btnHome">Inicio</button>
         <button id="btnFollows">Siguiendo</button>
@@ -27,31 +27,21 @@
 
 <div id="modalUpload" class="modal" style="display:none;">
     <div class="modal-content">
-        <h3 style="margin-bottom:15px;">Publicar Nueva Obra</h3>
-        
-        <label style="font-size:0.8rem; color:#aaa; text-align:left; display:block; margin-bottom:5px;">Selecciona tu arte:</label>
-        <input type="file" id="fileInput" accept="image/*" style="margin-bottom:15px;">
-        
-        <label style="font-size:0.8rem; color:#aaa; text-align:left; display:block; margin-bottom:5px;">Título de la obra:</label>
-        <input type="text" id="postTitle" placeholder="Ej: Atardecer en óleo" style="margin-bottom:20px;">
-        
-        <div style="display:flex; gap:10px;">
-            <button id="btnDoUpload" style="flex:1;">Publicar</button>
-            <button onclick="document.getElementById('modalUpload').style.display='none'" style="flex:1; background:#444;">Cancelar</button>
-        </div>
+        <h3>Publicar Nueva Obra</h3>
+        <input type="file" id="fileInput" accept="image/*">
+        <input type="text" id="postTitle" placeholder="Título de la obra">
+        <button id="btnDoUpload">Publicar Ahora</button>
+        <button onclick="document.getElementById('modalUpload').style.display='none'" style="background:#444;">Cancelar</button>
     </div>
 </div>
 
 <div id="modalAuth" class="modal" style="display:none;">
     <div class="modal-content">
-        <h3 id="authTitle">Bienvenido a BLIP</h3>
-        <input type="email" id="email" placeholder="Correo electrónico" style="margin-bottom:10px;">
-        <input type="password" id="pass" placeholder="Contraseña" style="margin-bottom:15px;">
+        <h3 id="authTitle">Bienvenido</h3>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Contraseña">
         <button id="btnDoAuth">Confirmar</button>
-        <button id="btnToggleAuth" style="background:none; color:#7b5cff; margin-top:10px; font-size:0.8rem;">
-            ¿No tienes cuenta? Regístrate gratis
-        </button>
-        <button onclick="document.getElementById('modalAuth').style.display='none'" style="background:none; color:#666; font-size:0.7rem;">Cerrar</button>
+        <button id="btnToggleAuth" style="background:none; color:#7b5cff;">Cambiar Login/Registro</button>
     </div>
 </div>
 
