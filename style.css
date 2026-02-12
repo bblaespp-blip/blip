@@ -1,59 +1,28 @@
-/* CONTENEDOR PRINCIPAL DE COMENTARIOS */
-.comment-container {
-    background: #111;
-    border-radius: 10px;
-    padding: 10px;
-    margin-top: 10px;
-    border: 1px solid #333;
-}
+body { margin: 0; font-family: sans-serif; background: #050505; color: white; }
+#nav { display: flex; justify-content: space-between; padding: 15px 5%; background: #0a0a0a; align-items: center; border-bottom: 1px solid #111; }
+.logo { font-size: 1.4rem; font-weight: bold; color: #7b5cff; cursor: pointer; }
+.nav-buttons button { background: #1a1a1a; color: white; border: none; padding: 8px 15px; border-radius: 6px; margin-left: 10px; cursor: pointer; }
+#btnOpenUpload { background: #7b5cff; }
 
-/* LISTA DONDE SE VEN LOS MENSAJES */
-.comments-display {
-    max-height: 150px;
-    overflow-y: auto;
-    text-align: left;
-    margin-bottom: 10px;
-}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px 5%; }
+.card { background: #111; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
+.card img { width: 100%; height: 280px; object-fit: cover; }
+.info { padding: 15px; }
+.tag { color: #7b5cff; font-weight: bold; font-size: 0.9rem; margin: 5px 0; }
+.bar { display: flex; gap: 10px; margin-top: 10px; }
+.bar button { background: #222; border: none; color: white; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; }
+.btn-follow { margin-left: auto; color: #7b5cff !important; border: 1px solid #7b5cff !important; background: transparent !important; }
 
-/* CADA BURBUJA DE COMENTARIO */
-.comment-bubble {
-    background: #222;
-    padding: 8px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
-}
+.com-box { background: #080808; margin-top: 10px; padding: 10px; border-radius: 8px; }
+.com-list { max-height: 100px; overflow-y: auto; margin-bottom: 10px; }
+.com-item { font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid #1a1a1a; text-align: left; }
+.com-item b { color: #7b5cff; }
+.com-input { display: flex; gap: 5px; }
+.com-input input { flex: 1; background: #1a1a1a; border: 1px solid #333; color: white; padding: 5px; border-radius: 4px; }
+.com-input button { background: #7b5cff; border: none; color: white; border-radius: 4px; padding: 0 10px; }
 
-.comment-user {
-    color: #a29bfe;
-    font-weight: bold;
-    margin-right: 5px;
-}
-
-.comment-text {
-    color: #efefef;
-}
-
-/* AREA DE INPUT */
-.comment-input-area {
-    display: flex;
-    gap: 8px;
-}
-
-.comment-input-area input {
-    flex: 1;
-    background: #1a1a1a;
-    border: 1px solid #444;
-    color: white;
-    padding: 8px;
-    border-radius: 5px;
-}
-
-.comment-input-area button {
-    background: #7b5cff;
-    border: none;
-    color: white;
-    padding: 0 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: #111; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
+input { width: 100%; padding: 10px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box; }
+#btnDoUpload, #btnDoAuth { width: 100%; background: #7b5cff; border: none; padding: 12px; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; }
+.btn-sec { background: none; color: #666; border: none; margin-top: 10px; cursor: pointer; }
