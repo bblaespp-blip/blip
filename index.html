@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Red Arte</title>
+    <title>BLIP - Red de Arte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header id="nav">
-        <div class="logo" onclick="location.reload()" style="cursor:pointer; font-weight:bold; color:#a29bfe;">BLIP</div>
+        <div class="logo" onclick="location.reload()">BLIP</div>
         <div class="nav-buttons">
             <button id="btnOpenUpload" style="display:none;">Subir Arte</button>
             <button id="btnLogin">Entrar</button>
@@ -22,8 +22,8 @@
             <h3>Nueva Obra</h3>
             <input type="file" id="fileInput" accept="image/*">
             <input type="text" id="postTitle" placeholder="Título...">
-            <button id="btnDoUpload">Publicar</button>
-            <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none; color:gray; margin-top:10px;">Cerrar</button>
+            <button id="btnDoUpload">Publicar Ahora</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'" class="btn-sec">Cerrar</button>
         </div>
     </div>
 
@@ -33,7 +33,7 @@
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Password">
             <button id="btnDoAuth">Confirmar</button>
-            <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none; color:gray; margin-top:10px;">Cerrar</button>
+            <button onclick="document.getElementById('modalAuth').style.display='none'" class="btn-sec">Cerrar</button>
         </div>
     </div>
 
