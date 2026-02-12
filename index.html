@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Red Social de Arte</title>
+    <title>BLIP - Galería de Arte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,12 +24,11 @@
 <div id="modalUpload" class="modal" style="display:none;">
     <div class="modal-content">
         <h3>Publicar Nueva Obra</h3>
-        <p style="font-size: 0.8rem; color: #aaa;">Selecciona tu archivo y dale un título</p>
         <input type="file" id="fileInput" accept="image/*">
         <input type="text" id="postTitle" placeholder="Título de la obra...">
-        <div class="modal-actions">
-            <button id="btnDoUpload">Publicar Ahora</button>
-            <button onclick="document.getElementById('modalUpload').style.display='none'" style="background:#444;">Cancelar</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button id="btnDoUpload" style="flex:1; background:#7b5cff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Publicar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'" style="flex:1; background:#444; color:white; border:none; border-radius:5px; cursor:pointer;">Cancelar</button>
         </div>
     </div>
 </div>
@@ -39,8 +38,8 @@
         <h3>Acceso Artistas</h3>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Contraseña">
-        <button id="btnDoAuth">Confirmar</button>
-        <button onclick="document.getElementById('modalAuth').style.display='none'" style="background:none; color:#7b5cff; margin-top:10px;">Cerrar</button>
+        <button id="btnDoAuth" style="width:100%; background:#7b5cff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Confirmar</button>
+        <button onclick="document.getElementById('modalAuth').style.display='none'" style="width:100%; background:none; color:#aaa; border:none; margin-top:10px; cursor:pointer;">Cerrar</button>
     </div>
 </div>
 
