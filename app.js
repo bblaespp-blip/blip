@@ -20,19 +20,25 @@ let currentUser = null;
 let isLogin = true;
 
 // --- NAVEGACIÓN ---
-window.showFeed = () => { 
-    document.getElementById('feed').style.display = 'grid';
-    document.getElementById('profile').style.display = 'none';
+window.showFeed = () => switchView('feed');
+window.showFollowing = () => { 
+    if(!currentUser) return openAuth();
+    switchView('followingFeed');
+    renderFollowingFeed();
 };
-
 window.showProfile = () => { 
     if(!currentUser) return openAuth();
-    document.getElementById('feed').style.display = 'none';
-    document.getElementById('profile').style.display = 'block';
+    switchView('profile');
     renderProfile();
 };
 
-// --- CLOUDINARY + VALIDACIÓN ---
+function switchView(id) {
+    ['feed', 'followingFeed', 'profile'].forEach(v => {
+        document.getElementById(v).style.display = v === id ? 'grid' : 'none';
+    });
+}
+
+// --- CLOUDINARY ---
 async function uploadToCloudinary(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -47,7 +53,7 @@ document.getElementById('postBtn').onclick = async () => {
     const file = document.getElementById('imgInput').files[0];
     const title = document.getElementById('imgTitle').value || "Arte";
     if(!file) return alert("Selecciona una imagen");
-    if(file.size > 2 * 1024 * 1024) return alert("Máximo 5MB");
+    if(file.size > 2 * 1024 * 1024) return alert("Máximo 2MB");
 
     document.getElementById('uploadLoader').style.display = 'block';
     document.getElementById('postBtn').disabled = true;
@@ -70,24 +76,52 @@ document.getElementById('postBtn').onclick = async () => {
 function createCard(id, p, isOwner = false) {
     const div = document.createElement('div');
     div.className = 'card';
+    const isLiked = p.likedBy && p.likedBy[currentUser?.uid];
     div.innerHTML = `
         <img src="${p.url}">
         <div class="info">
             <h3>${p.title}</h3>
-            <p style="color:#7b5cff">@${p.userEmail.split('@')[0]}</p>
-            <button onclick="likePost('${id}')">❤️ ${p.likes || 0}</button>
+            <p style="color:#7b5cff; font-size:0.8rem;">@${p.userEmail.split('@')[0]}</p>
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <button onclick="likePost('${id}')" style="background:${isLiked ? '#ff4b2b' : '#333'}">
+                    ${isLiked ? '❤️' : '🤍'} ${p.likes || 0}
+                </button>
+                ${!isOwner ? `<button id="follow_${p.userId}" onclick="toggleFollow('${p.userId}')" style="background:#444; font-size:0.7rem;">Cargando...</button>` : ''}
+            </div>
             ${isOwner ? `<button class="btn-delete" onclick="deletePost('${id}')">Eliminar</button>` : ''}
         </div>
     `;
+    if(!isOwner && currentUser) checkFollowStatus(p.userId);
     return div;
 }
 
+// FEED GLOBAL
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = '';
-    snap.forEach(s => feed.prepend(createCard(s.key, s.val())));
+    snap.forEach(s => feed.prepend(createCard(s.key, s.val(), s.val().userId === currentUser?.uid)));
 });
 
+// MURO PERSONALIZADO
+async function renderFollowingFeed() {
+    const grid = document.getElementById('followingFeed');
+    const followingSnap = await get(ref(db, `follows/${currentUser.uid}`));
+    const followingIds = followingSnap.exists() ? Object.keys(followingSnap.val()) : [];
+
+    if(followingIds.length === 0) {
+        grid.innerHTML = '<p style="text-align:center; grid-column:1/-1;">No sigues a nadie todavía. ¡Explora el contenido global!</p>';
+        return;
+    }
+
+    onValue(ref(db, 'posts'), snap => {
+        grid.innerHTML = '';
+        snap.forEach(s => {
+            if(followingIds.includes(s.val().userId)) grid.prepend(createCard(s.key, s.val()));
+        });
+    });
+}
+
+// PERFIL
 async function renderProfile() {
     const grid = document.getElementById('profileGrid');
     grid.innerHTML = '';
@@ -97,18 +131,50 @@ async function renderProfile() {
     });
 }
 
-// --- ACCIONES ---
+// --- ACCIONES MEJORADAS ---
+
+// LIKE REVERSIBLE
 window.likePost = async (id) => {
     if(!currentUser) return openAuth();
     const postRef = ref(db, `posts/${id}`);
     const snap = await get(postRef);
     const p = snap.val();
-    if(p.likedBy && p.likedBy[currentUser.uid]) return;
-    const updates = {};
-    updates[`likedBy/${currentUser.uid}`] = true;
-    updates[`likes`] = (p.likes || 0) + 1;
-    update(postRef, updates);
+    const likedBy = p.likedBy || {};
+    
+    if(likedBy[currentUser.uid]) {
+        // Quitar Like
+        delete likedBy[currentUser.uid];
+        update(postRef, { likedBy, likes: (p.likes > 0 ? p.likes - 1 : 0) });
+    } else {
+        // Dar Like
+        likedBy[currentUser.uid] = true;
+        update(postRef, { likedBy, likes: (p.likes || 0) + 1 });
+    }
 };
+
+// SEGUIR / DEJAR DE SEGUIR
+window.toggleFollow = async (artistId) => {
+    if(!currentUser) return openAuth();
+    const followRef = ref(db, `follows/${currentUser.uid}/${artistId}`);
+    const snap = await get(followRef);
+    
+    if(snap.exists()) {
+        await remove(followRef);
+    } else {
+        await set(followRef, true);
+    }
+    // Forzar re-render de botones
+    checkFollowStatus(artistId);
+};
+
+function checkFollowStatus(artistId) {
+    const btn = document.getElementById(`follow_${artistId}`);
+    if(!btn || !currentUser) return;
+    onValue(ref(db, `follows/${currentUser.uid}/${artistId}`), snap => {
+        btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
+        btn.style.borderColor = snap.exists() ? '#7b5cff' : 'transparent';
+    });
+}
 
 window.deletePost = async (id) => {
     if(confirm("¿Borrar esta obra?")) {
@@ -142,4 +208,3 @@ document.getElementById('toggleAuth').onclick = () => {
 
 window.openAuth = () => document.getElementById('authModal').style.display='flex';
 document.getElementById('uploadBtn').onclick = () => document.getElementById('modal').style.display='flex';
-
