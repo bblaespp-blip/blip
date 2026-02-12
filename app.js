@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "388153554154555",
+    apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
     authDomain: "almacenamiento-redsocial.firebaseapp.com",
     databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
     projectId: "almacenamiento-redsocial",
@@ -16,17 +16,17 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 let userActual = null;
 
-// --- CONFIG CLOUDINARY ---
-const CLOUD_NAME = "dbu9v8v7e"; 
-const PRESET = "ml_default"; // <--- VERIFICA ESTE NOMBRE EN TU CLOUDINARY
+// --- CONFIG CLOUDINARY CORREGIDA ---
+const CLOUD_NAME = "dz9s37bk0"; // <--- Este es el tuyo
+const PRESET = "ml_default"; 
 
-// --- SUBIDA ---
+// --- FUNCIÓN PARA PUBLICAR ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const title = document.getElementById('postTitle').value;
     const btn = document.getElementById('btnDoUpload');
 
-    if(!file || !title) return alert("Falta imagen o título");
+    if(!file || !title) return alert("Selecciona una imagen y ponle título");
 
     btn.innerText = "Subiendo...";
     btn.disabled = true;
@@ -46,32 +46,40 @@ document.getElementById('btnDoUpload').onclick = async () => {
             await push(ref(db, 'posts'), {
                 url: data.secure_url,
                 title: title,
-                userEmail: userActual.email
+                userEmail: userActual ? userActual.email : "Anónimo",
+                timestamp: Date.now()
             });
-            alert("¡Publicado!");
+            alert("¡Publicado con éxito!");
             document.getElementById('modalUpload').style.display = 'none';
         } else {
-            alert("Error Cloudinary: " + (data.error ? data.error.message : "Desconocido"));
+            alert("Error: " + (data.error ? data.error.message : "Revisa el preset ml_default"));
         }
     } catch (e) {
-        alert("Error de conexión");
+        alert("Error de red");
     } finally {
-        btn.innerText = "Publicar Ahora";
+        btn.innerText = "Publicar";
         btn.disabled = false;
     }
 };
 
-// --- FEED ---
+// --- MOSTRAR POSTS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
     snap.forEach(p => {
         const d = p.val();
-        feed.innerHTML += `<div class="card"><img src="${d.url}"><div class="info"><h3>${d.title}</h3></div></div>`;
+        feed.innerHTML += `
+            <div class="card">
+                <img src="${d.url}">
+                <div class="info">
+                    <h3>${d.title}</h3>
+                    <p>@${d.userEmail.split('@')[0]}</p>
+                </div>
+            </div>`;
     });
 });
 
-// --- AUTH ---
+// --- SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
@@ -86,4 +94,3 @@ document.getElementById('btnDoAuth').onclick = () => {
     signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     document.getElementById('modalAuth').style.display = 'none';
 };
-
