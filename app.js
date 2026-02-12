@@ -20,7 +20,6 @@ const CLOUD_NAME = "dz9s37bk0";
 const PRESET = "blip_unsigned"; 
 
 // --- FUNCIONES DE INTERACCIÓN ---
-
 window.darLike = async (postId, currentLikes) => {
     if (!userActual) return alert("Inicia sesión para dar like");
     await update(ref(db, `posts/${postId}`), { likes: (currentLikes || 0) + 1 });
@@ -36,18 +35,17 @@ window.enviarComentario = async (postId) => {
     const input = document.getElementById(`input-${postId}`);
     if (!input || !input.value.trim()) return;
 
-    // GUARDAR EN FIREBASE
     const nuevoComentario = {
         usuario: userActual.email.split('@')[0],
         texto: input.value,
-        fecha: Date.now()
+        timestamp: Date.now()
     };
 
     await push(ref(db, `posts/${postId}/comentarios`), nuevoComentario);
-    input.value = ""; // Limpiar input
+    input.value = ""; 
 };
 
-// --- RENDERIZADO DEL FEED (LECTURA DE FIREBASE) ---
+// --- RENDERIZADO DEL FEED (CORREGIDO PARA MOSTRAR COMENTARIOS) ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
@@ -57,14 +55,22 @@ onValue(ref(db, 'posts'), snap => {
         const id = postSnap.key;
         const autor = d.userEmail ? d.userEmail.split('@')[0] : "artista";
 
-        // Construir HTML de comentarios guardados
-        let htmlComentarios = "";
+        // 1. EXTRAER COMENTARIOS DE FIREBASE
+        let listaHTML = "";
         if (d.comentarios) {
+            // Convertimos el objeto de comentarios en un array y lo recorremos
             Object.values(d.comentarios).forEach(c => {
-                htmlComentarios += `<div class="comment"><b>${c.usuario}:</b> ${c.texto}</div>`;
+                listaHTML += `
+                    <div class="comment-bubble">
+                        <span class="comment-user">@${c.usuario}:</span>
+                        <span class="comment-text">${c.texto}</span>
+                    </div>`;
             });
+        } else {
+            listaHTML = `<p style="color:#666; font-size:0.8rem; padding:5px;">Aún no hay comentarios...</p>`;
         }
 
+        // 2. CREAR LA CARTA
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
@@ -74,11 +80,11 @@ onValue(ref(db, 'posts'), snap => {
                 <p class="tag">@${autor}</p>
                 <div class="actions">
                     <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
-                    <button onclick="toggleComentarios('${id}')">💬</button>
+                    <button onclick="toggleComentarios('${id}')">💬 Comentarios</button>
                 </div>
-                <div id="box-${id}" class="comment-box" style="display:none;">
-                    <div class="comment-list">${htmlComentarios}</div>
-                    <div class="comment-form">
+                <div id="box-${id}" class="comment-container" style="display:none;">
+                    <div class="comments-display">${listaHTML}</div>
+                    <div class="comment-input-area">
                         <input type="text" id="input-${id}" placeholder="Escribe un comentario...">
                         <button onclick="enviarComentario('${id}')">➤</button>
                     </div>
@@ -88,48 +94,34 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- SUBIDA DE IMAGEN ---
-document.getElementById('btnDoUpload').onclick = async () => {
-    const file = document.getElementById('fileInput').files[0];
-    const title = document.getElementById('postTitle').value;
-    if(!file || !title) return alert("Selecciona imagen y pon título");
-
-    const btn = document.getElementById('btnDoUpload');
-    btn.innerText = "Subiendo...";
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', PRESET);
-
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
-    const data = await res.json();
-
-    if(data.secure_url) {
-        await push(ref(db, 'posts'), {
-            url: data.secure_url,
-            title: title,
-            userId: userActual.uid,
-            userEmail: userActual.email,
-            likes: 0,
-            timestamp: serverTimestamp()
-        });
-        document.getElementById('modalUpload').style.display = 'none';
-        btn.innerText = "Publicar";
-    }
-};
-
-// --- SESIÓN ---
+// --- EL RESTO DEL CÓDIGO (UPLOAD Y AUTH) SE MANTIENE IGUAL ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
     document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
+document.getElementById('btnDoUpload').onclick = async () => {
+    const file = document.getElementById('fileInput').files[0];
+    const title = document.getElementById('postTitle').value;
+    if(!file || !title) return alert("Falta info");
+    const formData = new FormData();
+    formData.append('file', file); formData.append('upload_preset', PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
+    const data = await res.json();
+    if(data.secure_url) {
+        await push(ref(db, 'posts'), {
+            url: data.secure_url, title: title, userId: userActual.uid,
+            userEmail: userActual.email, likes: 0, timestamp: serverTimestamp()
+        });
+        document.getElementById('modalUpload').style.display = 'none';
+    }
+};
+
 document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
 document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
 document.getElementById('btnDoAuth').onclick = () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
+    const e = document.getElementById('email').value; const p = document.getElementById('pass').value;
     signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     document.getElementById('modalAuth').style.display = 'none';
 };
