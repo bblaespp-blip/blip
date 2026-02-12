@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+import { getDatabase, ref, push, onValue, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -19,71 +19,70 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- 1. BUSCADOR DE PERFILES (LÓGICA) ---
+// --- 1. BUSCADOR DE PERFILES ---
+// Filtra las cards existentes en el DOM basándose en el nombre de usuario
 document.getElementById('userSearch').oninput = (e) => {
     const term = e.target.value.toLowerCase();
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
-        const username = card.getAttribute('data-user').toLowerCase();
+        const username = card.querySelector('.info p').innerText.toLowerCase();
         card.style.display = username.includes(term) ? 'block' : 'none';
     });
 };
 
-// --- 2. FUNCIÓN PARA ENVIAR COMENTARIOS ---
+// --- 2. FUNCIÓN PARA COMENTARIOS (FIREBASE) ---
 window.enviarComentario = async (postId, texto, input) => {
-    if (!userActual) return alert("Inicia sesión para comentar");
+    if (!userActual) return alert("Debes iniciar sesión para comentar");
     if (!texto.trim()) return;
 
-    try {
-        await push(ref(db, `posts/${postId}/comments`), {
-            user: userActual.email.split('@')[0],
-            text: texto,
-            timestamp: Date.now()
-        });
-        input.value = ""; 
-    } catch (e) {
-        console.error("Error al comentar:", e);
-    }
+    const nombreUsuario = userActual.email.split('@')[0];
+    
+    // Guardamos el comentario dentro de una subruta del post
+    await push(ref(db, `posts/${postId}/comments`), {
+        usuario: nombreUsuario,
+        texto: texto,
+        timestamp: serverTimestamp()
+    });
+    
+    input.value = ""; // Limpiar el cuadro de texto
 };
 
-// --- 3. CARGAR FEED CON COMENTARIOS ---
+// --- 3. CARGAR FEED Y RENDERIZAR COMENTARIOS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
     
-    snap.forEach(p => {
-        const postId = p.key;
-        const d = p.val();
+    snap.forEach(child => {
+        const postId = child.key;
+        const d = child.val();
         const autor = d.userEmail ? d.userEmail.split('@')[0] : "artista";
         
         const card = document.createElement('div');
         card.className = 'card';
-        card.setAttribute('data-user', autor); // Atributo para el buscador
-        
         card.innerHTML = `
             <img src="${d.url}">
             <div class="info">
                 <h3>${d.title}</h3>
                 <p onclick="verPerfil('${d.userId}', '${autor}')" style="color:#7b5cff; cursor:pointer;">@${autor}</p>
             </div>
-            <div class="comments-section" style="padding:10px; border-top:1px solid #222; background:#0a0a0a;">
-                <div id="list-${postId}" style="max-height:60px; overflow-y:auto; font-size:0.8rem; margin-bottom:8px; color:#aaa;">
+            <div class="comments-area" style="padding:10px; border-top:1px solid #222; background:#0a0a0a;">
+                <div id="comments-list-${postId}" style="max-height:80px; overflow-y:auto; font-size:0.85rem; margin-bottom:10px;">
                     </div>
-                <input type="text" placeholder="Añadir comentario..." 
-                    style="margin:0; padding:5px; font-size:0.8rem;"
+                <input type="text" placeholder="Escribe un comentario..." 
+                    style="margin:0; padding:8px; font-size:0.8rem; border-radius:5px;"
                     onkeydown="if(event.key==='Enter') enviarComentario('${postId}', this.value, this)">
             </div>`;
         
-        // Listener en tiempo real para los comentarios de ESTA card
-        onValue(ref(db, `posts/${postId}/comments`), cSnap => {
-            const list = document.getElementById(`list-${postId}`);
-            if (list) {
-                list.innerHTML = "";
-                cSnap.forEach(c => {
-                    const com = c.val();
-                    list.innerHTML += `<div><b style="color:#7b5cff">${com.user}:</b> ${com.text}</div>`;
+        // Listener en tiempo real para los comentarios de este post específico
+        onValue(ref(db, `posts/${postId}/comments`), commSnap => {
+            const listDiv = document.getElementById(`comments-list-${postId}`);
+            if (listDiv) {
+                listDiv.innerHTML = "";
+                commSnap.forEach(c => {
+                    const cData = c.val();
+                    listDiv.innerHTML += `<div style="margin-bottom:4px;"><b style="color:#7b5cff;">${cData.usuario}:</b> ${cData.texto}</div>`;
                 });
-                list.scrollTop = list.scrollHeight;
+                listDiv.scrollTop = listDiv.scrollHeight; // Auto-scroll al último comentario
             }
         });
 
@@ -91,13 +90,13 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- 4. SUBIDA DE OBRAS ---
+// --- 4. SUBIDA A CLOUDINARY + REGISTRO EN FIREBASE ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
-    const titleInput = document.getElementById('postTitle');
+    const title = document.getElementById('postTitle').value;
     const btn = document.getElementById('btnDoUpload');
 
-    if(!file || !titleInput.value || !userActual) return alert("Faltan datos o sesión");
+    if(!file || !title || !userActual) return alert("Sube una imagen, pon un título e inicia sesión");
 
     btn.innerText = "Subiendo...";
     btn.disabled = true;
@@ -116,57 +115,58 @@ document.getElementById('btnDoUpload').onclick = async () => {
         if(data.secure_url) {
             await push(ref(db, 'posts'), {
                 url: data.secure_url,
-                title: titleInput.value,
+                title: title,
                 userId: userActual.uid,
                 userEmail: userActual.email,
                 timestamp: serverTimestamp()
             });
             document.getElementById('modalUpload').style.display = 'none';
-            titleInput.value = "";
         }
     } catch (e) {
-        alert("Error al subir");
+        alert("Error en la conexión con Cloudinary");
     } finally {
         btn.innerText = "Publicar";
         btn.disabled = false;
     }
 };
 
-// --- 5. MANEJO DE SESIÓN Y BOTÓN PERFIL ---
+// --- 5. GESTIÓN DE PERFIL Y SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     const btnLogin = document.getElementById('btnLogin');
-    const btnUpload = document.getElementById('btnOpenUpload');
-
-    btnUpload.style.display = user ? 'block' : 'none';
+    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
 
     if (user) {
-        btnLogin.innerText = `@${user.email.split('@')[0]}`;
-        // Al hacer clic en su nombre, abre su propio perfil
-        btnLogin.onclick = () => verPerfil(user.uid, user.email.split('@')[0]);
-        
-        // Creamos un botón de "Salir" pequeño si no existe
-        if(!document.getElementById('btnLogout')) {
-            const logout = document.createElement('button');
-            logout.id = 'btnLogout';
-            logout.innerText = 'Cerrar Sesión';
-            logout.style.background = '#333';
-            logout.onclick = () => signOut(auth);
-            document.querySelector('.nav-buttons').appendChild(logout);
-        }
+        const username = user.email.split('@')[0];
+        btnLogin.innerText = `@${username}`; // Cambia "Entrar" por el perfil del usuario (Flecha Roja)
+        btnLogin.onclick = () => verPerfil(user.uid, username);
     } else {
         btnLogin.innerText = 'Entrar';
         btnLogin.onclick = () => document.getElementById('modalAuth').style.display = 'flex';
-        const logout = document.getElementById('btnLogout');
-        if(logout) logout.remove();
     }
 });
 
-document.getElementById('btnDoAuth').onclick = () => {
+document.getElementById('btnDoAuth').onclick = async () => {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
-    signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
+    try {
+        await signInWithEmailAndPassword(auth, e, p);
+    } catch (err) {
+        const cred = await createUserWithEmailAndPassword(auth, e, p);
+        // Crear perfil inicial en Firebase
+        await set(ref(db, `users/${cred.user.uid}`), { 
+            username: e.split('@')[0], 
+            bio: "¡Nuevo artista en BLIP!", 
+            seguidores: 0 
+        });
+    }
     document.getElementById('modalAuth').style.display = 'none';
 };
 
-document.getElementById('btnHome').onclick = () => location.reload();
+document.getElementById('btnHome').onclick = () => {
+    if (window.isProfileView) {
+        cerrarPerfil();
+    } else {
+        location.reload();
+    }
+};
