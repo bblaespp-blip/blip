@@ -16,17 +16,17 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 let userActual = null;
 
-// DATOS DE TU CLOUDINARY (Extraídos de tus fotos)
+// TUS DATOS DE CLOUDINARY (Verificados)
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- SUBIDA ---
+// --- FUNCIÓN DE SUBIDA ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const titleInput = document.getElementById('postTitle');
     const btn = document.getElementById('btnDoUpload');
 
-    if(!file || !titleInput.value) return alert("Falta imagen o título");
+    if(!file || !titleInput.value) return alert("Selecciona una imagen y escribe un título");
 
     btn.innerText = "Subiendo...";
     btn.disabled = true;
@@ -49,21 +49,21 @@ document.getElementById('btnDoUpload').onclick = async () => {
                 userEmail: userActual.email,
                 timestamp: Date.now()
             });
-            alert("¡Arte publicado!");
+            alert("¡Obra publicada con éxito!");
             document.getElementById('modalUpload').style.display = 'none';
             titleInput.value = "";
         } else {
-            alert("Error: " + (data.error ? data.error.message : "Revisa tu conexión"));
+            alert("Error de Cloudinary: " + (data.error ? data.error.message : "Desconocido"));
         }
     } catch (e) {
-        alert("Error de conexión");
+        alert("Error de conexión al subir");
     } finally {
         btn.innerText = "Publicar Ahora";
         btn.disabled = false;
     }
 };
 
-// --- FEED CUADRÍCULA ---
+// --- CARGAR FEED ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
@@ -81,7 +81,7 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- SESIÓN ---
+// --- MANEJO DE SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
