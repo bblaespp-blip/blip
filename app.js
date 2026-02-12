@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+import { getDatabase, ref, push, onValue, set, update, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -15,118 +15,119 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 let userActual = null;
+let vistaPerfil = false;
 
-const CLOUD_NAME = "dz9s37bk0"; 
-const PRESET = "blip_unsigned"; 
-
-// BUSCADOR
-document.getElementById('userSearch').addEventListener('input', (e) => {
+// --- BUSCADOR ---
+document.getElementById('userSearch').oninput = (e) => {
     const term = e.target.value.toLowerCase();
     document.querySelectorAll('.card').forEach(card => {
         const username = card.querySelector('.info p').innerText.toLowerCase();
         card.style.display = username.includes(term) ? 'block' : 'none';
     });
-});
-
-// COMENTARIOS
-window.enviarComentario = async (postId, texto, input) => {
-    if (!userActual || !texto.trim()) return;
-    await push(ref(db, `posts/${postId}/comments`), {
-        usuario: userActual.email.split('@')[0],
-        texto: texto,
-        timestamp: serverTimestamp()
-    });
-    input.value = ""; 
 };
 
-// FEED
-onValue(ref(db, 'posts'), snap => {
-    const feed = document.getElementById('feed');
-    feed.innerHTML = "";
-    snap.forEach(child => {
-        const postId = child.key;
-        const d = child.val();
-        const autor = d.userEmail ? d.userEmail.split('@')[0] : "artista";
-        
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <img src="${d.url}">
-            <div class="info">
-                <h3>${d.title}</h3>
-                <p>@${autor}</p>
-            </div>
-            <div class="comments-area">
-                <div id="list-${postId}" class="comments-display"></div>
-                <input type="text" placeholder="Añadir comentario..." onkeydown="if(event.key==='Enter') enviarComentario('${postId}', this.value, this)">
-            </div>`;
-        
-        onValue(ref(db, `posts/${postId}/comments`), cSnap => {
-            const list = document.getElementById(`list-${postId}`);
-            if (list) {
-                list.innerHTML = "";
-                cSnap.forEach(c => {
-                    const com = c.val();
-                    list.innerHTML += `<div><b style="color:#7b5cff">${com.usuario}:</b> ${com.texto}</div>`;
-                });
-                list.scrollTop = list.scrollHeight;
-            }
+// --- RENDERIZAR FEED ---
+function renderizar(uidFiltro = null) {
+    onValue(ref(db, 'posts'), snap => {
+        const feed = document.getElementById('feed');
+        feed.innerHTML = "";
+        let count = 0;
+        snap.forEach(p => {
+            const d = p.val();
+            if (uidFiltro && d.userId !== uidFiltro) return;
+            count++;
+            const autor = d.userEmail.split('@')[0];
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <img src="${d.url}">
+                <div class="info">
+                    <h3>${d.title}</h3>
+                    <p onclick="verPerfil('${d.userId}', '${autor}')">@${autor}</p>
+                </div>`;
+            feed.prepend(card);
         });
-        feed.prepend(card);
+        if (uidFiltro) document.getElementById('profile-stats').innerHTML = `<b>${count}</b> Publicaciones`;
     });
-});
+}
 
-// SUBIDA
-document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+// --- FUNCIONES DE PERFIL ---
+window.verPerfil = (uid, nombre) => {
+    vistaPerfil = true;
+    document.getElementById('profile-header').style.display = 'block';
+    document.getElementById('profile-name').innerText = `@${nombre}`;
+    onValue(ref(db, `users/${uid}`), s => {
+        const d = s.val();
+        document.getElementById('profile-bio').innerText = d?.bio || "Sin biografía.";
+        document.getElementById('profile-followers').innerHTML = `<b>${d?.seguidores || 0}</b> Seguidores`;
+    });
+    document.getElementById('btnFollow').onclick = () => {
+        if (!userActual) return alert("Inicia sesión");
+        update(ref(db, `users/${uid}`), { seguidores: increment(1) });
+    };
+    renderizar(uid);
+};
 
+document.getElementById('btnCerrarPerfil').onclick = () => {
+    vistaPerfil = false;
+    document.getElementById('profile-header').style.display = 'none';
+    renderizar();
+};
+
+// --- SUBIDA A CLOUDINARY ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const title = document.getElementById('postTitle').value;
-    if(!file || !title || !userActual) return alert("Faltan datos");
+    if(!file || !userActual) return alert("Faltan datos");
 
     const btn = document.getElementById('btnDoUpload');
-    btn.innerText = "Subiendo..."; btn.disabled = true;
-
+    btn.innerText = "Subiendo...";
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', PRESET);
+    formData.append('upload_preset', 'blip_unsigned');
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
-    const data = await res.json();
-
-    if(data.secure_url) {
-        await push(ref(db, 'posts'), {
-            url: data.secure_url, title: title, userId: userActual.uid, userEmail: userActual.email, timestamp: serverTimestamp()
-        });
-        document.getElementById('modalUpload').style.display = 'none';
-    }
-    btn.innerText = "Publicar"; btn.disabled = false;
+    try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/dz9s37bk0/image/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if(data.secure_url) {
+            await push(ref(db, 'posts'), {
+                url: data.secure_url, title: title, userId: userActual.uid, userEmail: userActual.email, timestamp: serverTimestamp()
+            });
+            document.getElementById('modalUpload').style.display = 'none';
+        }
+    } catch (e) { alert("Error al subir"); }
+    btn.innerText = "Publicar";
 };
 
-// SESIÓN
-onAuthStateChanged(auth, user => {
-    userActual = user;
-    const btnL = document.getElementById('btnLogin');
-    const btnU = document.getElementById('btnOpenUpload');
-    if (user) {
-        btnU.style.display = 'block';
-        btnL.innerText = `@${user.email.split('@')[0]}`;
-    } else {
-        btnU.style.display = 'none';
-        btnL.innerText = 'Entrar';
-    }
+// --- SESIÓN ---
+onAuthStateChanged(auth, u => {
+    userActual = u;
+    document.getElementById('btnOpenUpload').style.display = u ? 'block' : 'none';
+    document.getElementById('btnLogin').innerText = u ? `@${u.email.split('@')[0]}` : 'Entrar';
 });
 
+document.getElementById('btnLogin').onclick = () => {
+    if (userActual) {
+        verPerfil(userActual.uid, userActual.email.split('@')[0]);
+    } else {
+        document.getElementById('modalAuth').style.display = 'flex';
+    }
+};
+
 document.getElementById('btnDoAuth').onclick = async () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
+    const e = document.getElementById('email').value, p = document.getElementById('pass').value;
     try {
         await signInWithEmailAndPassword(auth, e, p);
     } catch {
-        await createUserWithEmailAndPassword(auth, e, p);
+        const c = await createUserWithEmailAndPassword(auth, e, p);
+        await set(ref(db, `users/${c.user.uid}`), { bio: "¡Nuevo artista!", seguidores: 0 });
     }
     document.getElementById('modalAuth').style.display = 'none';
 };
 
-document.getElementById('btnHome').onclick = () => location.reload();
-document.getElementById('btnLogin').onclick = () => { if(!userActual) document.getElementById('modalAuth').style.display = 'flex'; };
+document.getElementById('btnHome').onclick = () => {
+    document.getElementById('profile-header').style.display = 'none';
+    renderizar();
+};
+
+renderizar();
