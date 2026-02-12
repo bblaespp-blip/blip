@@ -50,3 +50,54 @@ input { width: 100%; padding: 12px; margin: 10px 0; background: #1f1f1f; border:
     margin-bottom: 5px;
     color: #ccc;
 }
+/* Ajuste del Header */
+#nav {
+    display: flex;
+    justify-content: space-between; /* Espacia los 3 elementos */
+    align-items: center;
+    padding: 10px 5%;
+    gap: 20px;
+}
+
+/* Contenedor del buscador */
+.search-container {
+    flex: 1; /* Esto hace que el buscador use el espacio del centro */
+    display: flex;
+    justify-content: center;
+}
+
+#userSearch {
+    width: 100%;
+    max-width: 400px; /* Para que no se estire demasiado */
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    outline: none;
+}
+
+#userSearch:focus {
+    border-color: #7b5cff;
+}
+
+/* Asegurar que los botones no se encojan */
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Estilo para los comentarios que inyecta el JS */
+.comments-area {
+    background: #0d0d0d;
+    padding: 10px;
+    border-radius: 0 0 15px 15px;
+}
+
+.comments-area input {
+    margin-top: 10px;
+    height: 35px;
+    font-size: 0.8rem;
+}
+
