@@ -31,9 +31,39 @@ onValue(ref(db, 'posts'), snap => {
         return;
     }
 
+  // ... (Toda tu configuración inicial de Firebase igual)
+
+onValue(ref(db, 'posts'), snap => {
+    const feed = document.getElementById('feed');
+    // Si estamos viendo un perfil, no dejamos que el feed global sobrescriba nada
+    if (window.isProfileView) return; 
+
+    feed.innerHTML = "";
+    if (!snap.exists()) return;
+
     snap.forEach(p => {
         const d = p.val();
         const id = p.key;
+        const autorNombre = d.userEmail ? d.userEmail.split('@')[0] : "artista";
+        const autorUid = d.userId || "";
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <img src="${d.url}">
+            <div class="info">
+                <h3>${d.title}</h3>
+                <p onclick="verPerfil('${autorUid}', '${autorNombre}')" style="color:#7b5cff; cursor:pointer; font-weight:bold;">
+                    @${autorNombre}
+                </p>
+                <div class="social-actions">
+                    <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
+                    <button onclick="toggleComs('${id}')">💬</button>
+                </div>
+            </div>`;
+        feed.prepend(card);
+    });
+});
 
         // PROTECCIÓN: Si el post no tiene URL, lo saltamos para que no de error
         if (!d || !d.url) return;
@@ -132,3 +162,4 @@ document.getElementById('btnDoUpload').onclick = async () => {
     }
     btn.innerText = "Publicar";
 };
+
