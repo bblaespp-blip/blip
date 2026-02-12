@@ -1,11 +1,15 @@
-body{margin:0;font-family:sans-serif;background:#f0f0f0;color:#222;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;padding:10px;}
-.card{border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.2);background:#fff;}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;}
-.modalContent{background:#fff;padding:20px;border-radius:10px;}
-button{padding:5px 10px;border:none;border-radius:6px;cursor:pointer;background:#7b5cff;color:#fff;}
-button:hover{opacity:0.9;}
-#notifIcon{position:fixed;top:80px;right:25px;background:#7b5cff;color:#fff;padding:10px 15px;border-radius:12px;cursor:pointer;z-index:10000;}
-.liked{transform:scale(1.5);transition:0.3s;}
-.commentAnim{animation:fadeIn 0.5s;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+body { margin:0; font-family:'Segoe UI', sans-serif; background:#0f0f0f; color:#fff; }
+header { display:flex; justify-content:space-between; padding:15px 5%; background:#161616; position:sticky; top:0; z-index:100; border-bottom:1px solid #333; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px; padding:20px; max-width:1200px; margin:auto; }
+.card { background:#1a1a1a; border-radius:12px; overflow:hidden; border:1px solid #333; position: relative; }
+.card img { width:100%; height:250px; object-fit:cover; }
+.info { padding:15px; }
+.modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:2000; }
+.modalContent { background:#222; padding:30px; border-radius:15px; width:90%; max-width:350px; display:flex; flex-direction:column; gap:10px; }
+input { background:#333; border:1px solid #444; color:#fff; padding:12px; border-radius:8px; }
+button { cursor:pointer; padding:10px; border-radius:8px; border:none; background:#7b5cff; color:#fff; font-weight:bold; }
+.btn-delete { background:#ff4b2b; font-size: 0.7rem; margin-top: 10px; width: 100%; }
+
+.loader-bar { width: 100%; height: 4px; background: #333; overflow: hidden; border-radius: 2px; }
+.loader-bar::after { content: ''; display:block; width: 40%; height: 100%; background: #7b5cff; animation: loading 1s infinite linear; }
+@keyframes loading { from { margin-left: -40%; } to { margin-left: 100%; } }
