@@ -19,6 +19,10 @@ const db = getDatabase(app);
 let userActual = null;
 let modoLogin = true;
 
+// --- CONFIGURACIÓN CLOUDINARY ---
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dbu9v8v7e/image/upload";
+const CLOUDINARY_UPLOAD_PRESET = "ml_default"; // Asegúrate de que este preset sea el correcto en tu cuenta
+
 // --- NAVEGACIÓN ---
 const mostrarSeccion = (id) => {
     ['feed', 'followingFeed', 'profile'].forEach(s => {
@@ -27,7 +31,6 @@ const mostrarSeccion = (id) => {
     });
 };
 
-// Asignación segura de eventos
 const asignarClick = (id, func) => {
     const el = document.getElementById(id);
     if(el) el.onclick = func;
@@ -41,6 +44,51 @@ asignarClick('btnLogin', () => userActual ? signOut(auth) : abrirAuth());
 
 function abrirAuth() { document.getElementById('modalAuth').style.display = 'flex'; }
 
+// --- FUNCIÓN PARA PUBLICAR (EL BOTÓN QUE NO FUNCIONABA) ---
+asignarClick('btnDoUpload', async () => {
+    const file = document.getElementById('fileInput').files[0];
+    const title = document.getElementById('postTitle').value;
+
+    if (!file || !title) return alert("Por favor, selecciona una imagen y ponle un título.");
+    if (!userActual) return alert("Debes estar conectado para publicar.");
+
+    const btn = document.getElementById('btnDoUpload');
+    btn.innerText = "Subiendo...";
+    btn.disabled = true;
+
+    try {
+        // 1. Subir a Cloudinary
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.secure_url) {
+            // 2. Guardar en Firebase
+            await push(ref(db, 'posts'), {
+                url: data.secure_url,
+                title: title,
+                userId: userActual.uid,
+                userEmail: userActual.email,
+                likes: 0,
+                timestamp: Date.now()
+            });
+
+            alert("¡Arte publicado con éxito!");
+            document.getElementById('modalUpload').style.display = 'none';
+            document.getElementById('postTitle').value = "";
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Hubo un error al subir la imagen.");
+    } finally {
+        btn.innerText = "Publicar";
+        btn.disabled = false;
+    }
+});
+
 // --- RENDERIZAR CARTAS ---
 function crearCarta(id, datos) {
     const box = document.createElement('div');
@@ -53,7 +101,7 @@ function crearCarta(id, datos) {
         <div class="info">
             <h3>${datos.title}</h3>
             <p style="color:#7b5cff; font-size:0.8rem; margin-bottom:10px;">@${datos.userEmail.split('@')[0]}</p>
-            <div class="btns" style="display:flex; gap:5px;">
+            <div class="btns" style="display:flex; gap:5px; justify-content:center;">
                 <button class="like-btn" style="background:${yaLike ? '#ff4b2b' : '#333'}">❤️ ${datos.likes || 0}</button>
                 <button class="comm-toggle" style="background:#444;">💬</button>
                 ${(!esMio && userActual) ? `<button class="follow-btn" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
@@ -82,7 +130,9 @@ function crearCarta(id, datos) {
     return box;
 }
 
-// --- LÓGICA DE FIREBASE (Likes, Follows, Comentarios) ---
+// (Aquí siguen las funciones de darLike, manejarSeguimiento, cargarComentarios y enviarComentario que ya teníamos...)
+// [Mantén el resto del código igual para que no fallen los likes ni comentarios]
+
 async function darLike(id, num) {
     if(!userActual) return abrirAuth();
     const lRef = ref(db, `posts/${id}/likedBy/${userActual.uid}`);
@@ -125,7 +175,6 @@ async function enviarComentario(id) {
     i.value = "";
 }
 
-// --- CARGA DE DATOS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     if(feed) {
@@ -146,7 +195,7 @@ asignarClick('btnDoAuth', () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('pass').value;
     const f = modoLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-    f(auth, email, pass).then(() => document.getElementById('modalAuth').style.display='none').catch(e => alert("Error"));
+    f(auth, email, pass).then(() => document.getElementById('modalAuth').style.display='none').catch(e => alert("Error de acceso"));
 });
 
 asignarClick('btnToggleAuth', () => {
