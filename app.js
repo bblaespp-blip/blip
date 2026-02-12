@@ -19,43 +19,42 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-window.darLike = async (postId, currentLikes) => {
-    if (!userActual) return alert("Inicia sesión");
-    await update(ref(db, `posts/${postId}`), { likes: (currentLikes || 0) + 1 });
+// --- FUNCIONES DE VENTANA ---
+window.darLike = (id, likes) => {
+    if (!userActual) return alert("Inicia sesión para dar like");
+    update(ref(db, `posts/${id}`), { likes: (likes || 0) + 1 });
 };
 
-window.toggleComentarios = (postId) => {
-    const box = document.getElementById(`box-${postId}`);
+window.toggleComentarios = (id) => {
+    const box = document.getElementById(`box-${id}`);
     if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
 };
 
-window.enviarComentario = async (postId) => {
-    if (!userActual) return alert("Inicia sesión para comentar");
-    const input = document.getElementById(`input-${postId}`);
-    if (!input || !input.value.trim()) return;
-
-    await push(ref(db, `posts/${postId}/comentarios`), {
+window.enviarComentario = async (id) => {
+    const input = document.getElementById(`input-${id}`);
+    if (!userActual || !input.value.trim()) return;
+    
+    await push(ref(db, `posts/${id}/comentarios`), {
         usuario: userActual.email.split('@')[0],
         texto: input.value,
-        timestamp: Date.now()
+        fecha: Date.now()
     });
     input.value = "";
 };
 
+// --- RENDER FEED ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
-    snap.forEach(postSnap => {
-        const d = postSnap.val();
-        const id = postSnap.key;
+    snap.forEach(p => {
+        const d = p.val();
+        const id = p.key;
         const autor = d.userEmail ? d.userEmail.split('@')[0] : "artista";
-
+        
         let htmlComs = "";
-        if (d.comentarios) {
+        if(d.comentarios) {
             Object.values(d.comentarios).forEach(c => {
-                htmlComs += `<div style="padding:5px; border-bottom:1px solid #222; font-size:0.85rem;">
-                    <b style="color:#a29bfe;">${c.usuario}:</b> ${c.texto}
-                </div>`;
+                htmlComs += `<div class="comentario"><b>${c.usuario}:</b> ${c.texto}</div>`;
             });
         }
 
@@ -65,16 +64,16 @@ onValue(ref(db, 'posts'), snap => {
             <img src="${d.url}">
             <div class="info">
                 <h3>${d.title}</h3>
-                <p style="color:#a29bfe; font-weight:bold;">@${autor}</p>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button onclick="darLike('${id}', ${d.likes || 0})" style="cursor:pointer; background:#333; color:white; border:none; padding:5px 10px; border-radius:15px;">❤️ ${d.likes || 0}</button>
-                    <button onclick="toggleComentarios('${id}')" style="cursor:pointer; background:#333; color:white; border:none; padding:5px 10px; border-radius:15px;">💬</button>
+                <p class="autor-tag">@${autor}</p>
+                <div class="botones">
+                    <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
+                    <button onclick="toggleComentarios('${id}')">💬</button>
                 </div>
-                <div id="box-${id}" style="display:none; background:#000; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #333;">
-                    <div style="max-height:100px; overflow-y:auto; margin-bottom:10px; text-align:left;">${htmlComs}</div>
-                    <div style="display:flex; gap:5px;">
-                        <input type="text" id="input-${id}" placeholder="Escribe..." style="flex:1; background:#222; color:white; border:none; padding:5px; border-radius:4px;">
-                        <button onclick="enviarComentario('${id}')" style="background:#7b5cff; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">➤</button>
+                <div id="box-${id}" class="caja-comentarios" style="display:none;">
+                    <div class="lista-coms">${htmlComs}</div>
+                    <div class="input-area">
+                        <input type="text" id="input-${id}" placeholder="Comentar...">
+                        <button onclick="enviarComentario('${id}')">➤</button>
                     </div>
                 </div>
             </div>`;
@@ -82,6 +81,7 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
+// --- SESIÓN Y SUBIDA ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
@@ -101,7 +101,7 @@ document.getElementById('btnDoAuth').onclick = () => {
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const title = document.getElementById('postTitle').value;
-    if(!file || !title) return alert("Completa los datos");
+    if(!file || !title) return alert("Falta imagen o título");
     
     const formData = new FormData();
     formData.append('file', file);
