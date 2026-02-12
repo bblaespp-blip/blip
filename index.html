@@ -8,7 +8,7 @@
 </head>
 <body>
     <header id="nav">
-        <div class="logo" onclick="location.reload()" style="cursor:pointer; font-weight:bold; color:#a29bfe;">BLIP</div>
+        <div class="logo" onclick="location.reload()">BLIP</div>
         <div class="nav-buttons">
             <button id="btnOpenUpload" style="display:none;">Subir Arte</button>
             <button id="btnLogin">Entrar</button>
@@ -21,19 +21,19 @@
         <div class="modal-content">
             <h3>Nueva Obra</h3>
             <input type="file" id="fileInput" accept="image/*">
-            <input type="text" id="postTitle" placeholder="Título...">
+            <input type="text" id="postTitle" placeholder="Título de tu obra...">
             <button id="btnDoUpload">Publicar</button>
-            <button onclick="document.getElementById('modalUpload').style.display='none'" style="background:none; color:gray; margin-top:10px; cursor:pointer;">Cerrar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'" class="btn-cancelar">Cerrar</button>
         </div>
     </div>
 
     <div id="modalAuth" class="modal" style="display:none;">
         <div class="modal-content">
             <h3>Acceso</h3>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="pass" placeholder="Password">
+            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="password" id="pass" placeholder="Contraseña">
             <button id="btnDoAuth">Confirmar</button>
-            <button onclick="document.getElementById('modalAuth').style.display='none'" style="background:none; color:gray; margin-top:10px; cursor:pointer;">Cerrar</button>
+            <button onclick="document.getElementById('modalAuth').style.display='none'" class="btn-cancelar">Cerrar</button>
         </div>
     </div>
 
