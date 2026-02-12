@@ -1,42 +1,49 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Red Arte</title>
+    <title>BLIP - Galería de Arte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header id="nav">
-        <div class="logo" onclick="location.reload()">BLIP</div>
-        <div class="nav-buttons">
-            <button id="btnOpenUpload" style="display:none;">Subir Arte</button>
-            <button id="btnLogin">Entrar</button>
-        </div>
-    </header>
 
+<header id="nav">
+    <div class="logo" onclick="location.reload()" style="cursor:pointer; font-weight:bold; color:#7b5cff; font-size:1.6rem;">BLIP</div>
+    <div class="nav-buttons">
+        <button id="btnHome">Inicio</button>
+        <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
+        <button id="btnLogin">Entrar</button>
+    </div>
+</header>
+
+<main id="app-container">
     <div id="feed" class="grid"></div>
+</main>
 
-    <div id="modalUpload" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Nueva Obra</h3>
-            <input type="file" id="fileInput" accept="image/*">
-            <input type="text" id="postTitle" placeholder="Título de tu obra...">
-            <button id="btnDoUpload">Publicar</button>
-            <button onclick="document.getElementById('modalUpload').style.display='none'" class="btn-cancelar">Cerrar</button>
+<div id="modalUpload" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Publicar Nueva Obra</h3>
+        <input type="file" id="fileInput" accept="image/*">
+        <input type="text" id="postTitle" placeholder="Título de la obra...">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button id="btnDoUpload" style="flex:1; background:#7b5cff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Publicar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'" style="flex:1; background:#444; color:white; border:none; border-radius:5px; cursor:pointer;">Cancelar</button>
         </div>
     </div>
+</div>
 
-    <div id="modalAuth" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Acceso</h3>
-            <input type="email" id="email" placeholder="Correo electrónico">
-            <input type="password" id="pass" placeholder="Contraseña">
-            <button id="btnDoAuth">Confirmar</button>
-            <button onclick="document.getElementById('modalAuth').style.display='none'" class="btn-cancelar">Cerrar</button>
-        </div>
+<div id="modalAuth" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Acceso Artistas</h3>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button id="btnDoAuth" style="width:100%; background:#7b5cff; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Confirmar</button>
+        <button onclick="document.getElementById('modalAuth').style.display='none'" style="width:100%; background:none; color:#aaa; border:none; margin-top:10px; cursor:pointer;">Cerrar</button>
     </div>
+</div>
 
-    <script type="module" src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
