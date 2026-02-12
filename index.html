@@ -1,131 +1,57 @@
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #080808;
-    color: white;
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLIP - Red Social de Arte</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-#nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 5%;
-    background: #141414;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
+<header id="nav">
+    <div class="logo" onclick="location.reload()">BLIP</div>
+    <div class="nav-buttons">
+        <button id="btnHome">Inicio</button>
+        <button id="btnForYou">Para ti</button>
+        <button id="btnOpenUpload" style="display:none;background:#7b5cff;">Subir Arte</button>
+        <button id="btnLogin">Entrar</button>
+    </div>
+</header>
 
-.nav-buttons button {
-    background: #1f1f1f;
-    color: white;
-    border: 1px solid #333;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-left: 8px;
-}
+<main id="app-container">
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-    padding: 30px 5%;
-}
+<div id="profile-header" style="display:none;">
+    <h2 id="profile-name">@usuario</h2>
+    <p id="profile-bio">Cargando...</p>
+    <div id="profile-stats"></div>
+    <div id="profile-followers"></div>
+    <button id="btnFollow">Seguir</button>
+    <button onclick="cerrarPerfil()">Volver</button>
+</div>
 
-.card {
-    background: #141414;
-    border-radius: 15px;
-    border: 1px solid #222;
-    overflow: hidden;
-    transition: transform 0.2s;
-}
+<div id="feed" class="grid"></div>
+<div id="forYou" class="grid" style="display:none;"></div>
 
-.card:hover {
-    transform: scale(1.03);
-}
+</main>
 
-.card img {
-    width: 100%;
-    height: 320px;
-    object-fit: cover;
-}
+<div id="modalAuth" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Acceso</h3>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button id="btnDoAuth">Entrar / Crear</button>
+    </div>
+</div>
 
-.info {
-    padding: 15px;
-}
+<div id="modalUpload" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Publicar Obra</h3>
+        <input type="file" id="fileInput" accept="image/*">
+        <input type="text" id="postTitle" placeholder="Título">
+        <button id="btnDoUpload">Publicar</button>
+    </div>
+</div>
 
-.info h3 {
-    margin: 0 0 8px 0;
-    font-size: 1.1rem;
-}
-
-.info p {
-    color: #7b5cff;
-    cursor: pointer;
-}
-
-.profile-header {
-    text-align: center;
-    padding: 30px 5%;
-    background: #111;
-    border-bottom: 1px solid #222;
-}
-
-.profile-info h2 {
-    color: #7b5cff;
-    margin: 0;
-}
-
-.profile-stats {
-    margin: 15px 0;
-    font-size: 1.1rem;
-}
-
-.profile-stats span {
-    margin: 0 15px;
-}
-
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.modal-content {
-    background: #141414;
-    padding: 30px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 420px;
-    text-align: center;
-    border: 1px solid #333;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    background: #1f1f1f;
-    border: 1px solid #333;
-    color: white;
-    border-radius: 8px;
-    box-sizing: border-box;
-}
-
-.back-btn {
-    background: none;
-    border: none;
-    color: #7b5cff;
-    font-size: 1.2rem;
-    cursor: pointer;
-    margin-bottom: 15px;
-}
+<script type="module" src="app.js"></script>
+</body>
+</html>
