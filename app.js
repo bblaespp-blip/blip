@@ -168,12 +168,17 @@ window.toggleFollow = async (artistId) => {
 };
 
 function checkFollowStatus(artistId) {
-    const btn = document.getElementById(`follow_${artistId}`);
-    if(!btn || !currentUser) return;
-    onValue(ref(db, `follows/${currentUser.uid}/${artistId}`), snap => {
-        btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
-        btn.style.borderColor = snap.exists() ? '#7b5cff' : 'transparent';
+    if(!currentUser) return; // Si no hay usuario, no intentamos buscar en 'follows'
+    
+    const followRef = ref(db, `follows/${currentUser.uid}/${artistId}`);
+    onValue(followRef, (snap) => {
+        const btn = document.getElementById(`follow_${artistId}`);
+        if(btn) {
+            btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
+            btn.style.background = snap.exists() ? '#7b5cff' : '#444';
+        }
     });
+}
 }
 
 window.deletePost = async (id) => {
@@ -208,3 +213,4 @@ document.getElementById('toggleAuth').onclick = () => {
 
 window.openAuth = () => document.getElementById('authModal').style.display='flex';
 document.getElementById('uploadBtn').onclick = () => document.getElementById('modal').style.display='flex';
+
