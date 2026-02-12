@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
+// CONFIG FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
     authDomain: "almacenamiento-redsocial.firebaseapp.com",
@@ -12,15 +13,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-let userActual = null;
+export const auth = getAuth(app);
+export const db = getDatabase(app);
+export let userActual = null;
 
-// TUS DATOS DE CLOUDINARY (Verificados)
+// DATOS CLOUDINARY
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- FUNCIÓN DE SUBIDA ---
+// --- SUBIDA DE ARTE ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const titleInput = document.getElementById('postTitle');
@@ -58,7 +59,7 @@ document.getElementById('btnDoUpload').onclick = async () => {
     } catch (e) {
         alert("Error de conexión al subir");
     } finally {
-        btn.innerText = "Publicar Ahora";
+        btn.innerText = "Publicar";
         btn.disabled = false;
     }
 };
@@ -81,7 +82,7 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- MANEJO DE SESIÓN ---
+// --- LOGIN / LOGOUT ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
@@ -93,6 +94,7 @@ document.getElementById('btnOpenUpload').onclick = () => document.getElementById
 document.getElementById('btnDoAuth').onclick = () => {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
-    signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
+    signInWithEmailAndPassword(auth, e, p)
+        .catch(() => createUserWithEmailAndPassword(auth, e, p));
     document.getElementById('modalAuth').style.display = 'none';
 };
