@@ -1,30 +1,59 @@
-.comment-box {
-    background: #0d1117;
-    border-radius: 8px;
+/* CONTENEDOR PRINCIPAL DE COMENTARIOS */
+.comment-container {
+    background: #111;
+    border-radius: 10px;
     padding: 10px;
     margin-top: 10px;
-    border: 1px solid #30363d;
+    border: 1px solid #333;
 }
 
-.comment-list {
-    max-height: 120px;
+/* LISTA DONDE SE VEN LOS MENSAJES */
+.comments-display {
+    max-height: 150px;
     overflow-y: auto;
     text-align: left;
     margin-bottom: 10px;
 }
 
-.comment {
+/* CADA BURBUJA DE COMENTARIO */
+.comment-bubble {
+    background: #222;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 6px;
     font-size: 0.85rem;
-    padding: 4px 0;
-    border-bottom: 1px solid #21262d;
-    color: #c9d1d9;
 }
 
-.comment b { color: #a29bfe; margin-right: 5px; }
-
-.comment-form { display: flex; gap: 5px; }
-.comment-form input { 
-    flex: 1; background: #161b22; border: 1px solid #30363d; 
-    color: white; padding: 6px; border-radius: 4px; font-size: 0.8rem;
+.comment-user {
+    color: #a29bfe;
+    font-weight: bold;
+    margin-right: 5px;
 }
-.comment-form button { background: #7b5cff; border: none; color: white; border-radius: 4px; padding: 0 10px; cursor: pointer; }
+
+.comment-text {
+    color: #efefef;
+}
+
+/* AREA DE INPUT */
+.comment-input-area {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-input-area input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.comment-input-area button {
+    background: #7b5cff;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
