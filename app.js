@@ -1,126 +1,179 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, update, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+// app.js
+console.log("app.js iniciado");
 
-const firebaseConfig = { /* tu config */ };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+import {
+    getDatabase,
+    ref,
+    push,
+    onValue,
+    update,
+    set,
+    serverTimestamp,
+    get
+} from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+    authDomain: "almacenamiento-redsocial.firebaseapp.com",
+    databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+    projectId: "almacenamiento-redsocial",
+    storageBucket: "almacenamiento-redsocial.appspot.com",
+    appId: "1:562861595597:web:a88c0af7d0c8da44a9c284"
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
 let userActual = null;
-let perfilActual = null; // uid del perfil que estamos viendo
+let perfilActual = null;
 
 const CLOUD_NAME = "dz9s37bk0";
 const PRESET = "blip_unsigned";
 
-// ====================== AUTH ======================
-onAuthStateChanged(auth, user => {
-    userActual = user;
-    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
-    document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
+// ────────────────────────────────────────────────
+//  Esperamos DOMContentLoaded (por si acaso)
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM completamente cargado → asignando eventos");
 
-    if (user && !perfilActual) {
-        cargarParaTi(); // mostrar "Para Ti" al iniciar sesión
+    // ─── Botones de navegación ───────────────────────
+    const btnParaTi   = document.getElementById('btnParaTi');
+    const btnMiPerfil = document.getElementById('btnMiPerfil');
+    const btnLogin    = document.getElementById('btnLogin');
+    const btnOpenUpload = document.getElementById('btnOpenUpload');
+
+    if (btnParaTi)   btnParaTi.onclick   = () => { perfilActual = null; document.getElementById('profile-header').style.display = 'none'; cargarParaTi(); };
+    if (btnMiPerfil) btnMiPerfil.onclick = () => { if (!userActual) return alert("Inicia sesión primero"); abrirPerfil(userActual.uid, userActual.email.split('@')[0]); };
+    if (btnLogin)    btnLogin.onclick    = () => userActual ? signOut(auth) : document.getElementById('modalAuth').style.display = 'flex';
+    if (btnOpenUpload) btnOpenUpload.onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+
+    // ─── Modal Auth ──────────────────────────────────
+    const btnDoAuth = document.getElementById('btnDoAuth');
+    if (btnDoAuth) {
+        btnDoAuth.onclick = async () => {
+            const email = document.getElementById('email')?.value;
+            const pass  = document.getElementById('pass')?.value;
+            if (!email || !pass) return alert("Completa email y contraseña");
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await set(ref(db, `users/${cred.user.uid}`), {
+                        username: email.split('@')[0],
+                        bio: "Nuevo artista en BLIP ✨",
+                        seguidores: 0
+                    });
+                } catch (regErr) {
+                    alert("Error al registrar: " + regErr.message);
+                }
+            }
+            document.getElementById('modalAuth').style.display = 'none';
+        };
     }
+
+    // ─── Subir obra ──────────────────────────────────
+    const btnDoUpload = document.getElementById('btnDoUpload');
+    if (btnDoUpload) {
+        btnDoUpload.onclick = async () => {
+            const file  = document.getElementById('fileInput')?.files[0];
+            const title = document.getElementById('postTitle')?.value;
+
+            if (!file || !title) return alert("Falta imagen o título");
+
+            const btn = btnDoUpload;
+            btn.textContent = "Subiendo...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', PRESET);
+
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.secure_url) {
+                    await push(ref(db, 'posts'), {
+                        userId: userActual.uid,
+                        username: userActual.email.split('@')[0],
+                        title,
+                        url: data.secure_url,
+                        timestamp: serverTimestamp()
+                    });
+                    alert("¡Obra publicada!");
+                    document.getElementById('modalUpload').style.display = 'none';
+                    document.getElementById('postTitle').value = '';
+                    cargarParaTi();
+                } else {
+                    alert("Error en Cloudinary: " + (data.error?.message || "desconocido"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error al subir");
+            } finally {
+                btn.textContent = "Publicar";
+                btn.disabled = false;
+            }
+        };
+    }
+
+    // ─── Estado de autenticación ─────────────────────
+    onAuthStateChanged(auth, user => {
+        userActual = user;
+        console.log("Estado de auth cambiado:", user ? user.email : "sin sesión");
+
+        if (btnOpenUpload) {
+            btnOpenUpload.style.display = user ? 'block' : 'none';
+        }
+        if (btnLogin) {
+            btnLogin.textContent = user ? 'Salir' : 'Entrar';
+        }
+
+        if (user && !perfilActual) {
+            cargarParaTi();
+        }
+    });
+
+    // ─── Cargar feed inicial ─────────────────────────
+    cargarParaTi();
 });
 
-document.getElementById('btnLogin').onclick = () => {
-    if (userActual) signOut(auth);
-    else document.getElementById('modalAuth').style.display = 'flex';
-};
+// ────────────────────────────────────────────────
+// Funciones principales
+// ────────────────────────────────────────────────
 
-document.getElementById('btnDoAuth').onclick = async () => {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('pass').value;
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch {
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await set(ref(db, `users/${cred.user.uid}`), {
-            username: email.split('@')[0],
-            bio: "Nuevo artista en BLIP ✨",
-            seguidores: 0
-        });
-    }
-    document.getElementById('modalAuth').style.display = 'none';
-};
-
-// ====================== NAVEGACIÓN ======================
-document.getElementById('btnParaTi').onclick = () => {
-    perfilActual = null;
-    document.getElementById('profile-header').style.display = 'none';
-    cargarParaTi();
-};
-
-document.getElementById('btnMiPerfil').onclick = () => {
-    if (!userActual) return alert("Inicia sesión primero");
-    abrirPerfil(userActual.uid, userActual.email.split('@')[0]);
-};
-
-// ====================== SUBIR OBRA ======================
-document.getElementById('btnOpenUpload').onclick = () => {
-    document.getElementById('modalUpload').style.display = 'flex';
-};
-
-document.getElementById('btnDoUpload').onclick = async () => {
-    const file = document.getElementById('fileInput').files[0];
-    const title = document.getElementById('postTitle').value;
-
-    if (!file || !title) return alert("Falta imagen o título");
-
-    const btn = document.getElementById('btnDoUpload');
-    btn.innerText = "Subiendo...";
-    btn.disabled = true;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', PRESET);
-
-    try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-            method: "POST",
-            body: formData
-        });
-        const data = await res.json();
-
-        if (data.secure_url) {
-            await push(ref(db, 'posts'), {
-                userId: userActual.uid,
-                username: userActual.email.split('@')[0],
-                title: title,
-                url: data.secure_url,
-                timestamp: serverTimestamp()
-            });
-            alert("¡Obra publicada con éxito!");
-            document.getElementById('modalUpload').style.display = 'none';
-            document.getElementById('postTitle').value = '';
-            cargarParaTi(); // recargar feed
-        }
-    } catch (e) {
-        alert("Error al subir la imagen");
-    } finally {
-        btn.innerText = "Publicar";
-        btn.disabled = false;
-    }
-};
-
-// ====================== CARGAR "PARA TI" ======================
 function cargarParaTi() {
     onValue(ref(db, 'posts'), snap => {
         const feed = document.getElementById('feed');
+        if (!feed) return;
+
         feed.innerHTML = "";
 
         const posts = [];
-        snap.forEach(child => posts.push({ id: child.key, ...child.val() }));
+        snap.forEach(child => {
+            posts.push({ id: child.key, ...child.val() });
+        });
 
-        // Ordenar por más reciente
-        posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        posts.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
 
         posts.forEach(d => {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <img src="${d.url}">
+                <img src="${d.url}" alt="${d.title}">
                 <div class="info">
                     <h3>${d.title}</h3>
                     <p onclick="abrirPerfil('${d.userId}', '${d.username}')" style="color:#7b5cff;">
@@ -133,22 +186,29 @@ function cargarParaTi() {
     });
 }
 
-// ====================== ABRIR PERFIL (propio o ajeno) ======================
 window.abrirPerfil = (uid, username) => {
     perfilActual = uid;
-    document.getElementById('profile-header').style.display = 'block';
-    document.getElementById('profile-name').innerText = `@${username}`;
+    const header = document.getElementById('profile-header');
+    if (header) header.style.display = 'block';
 
-    // Cargar datos del usuario
+    const nameEl = document.getElementById('profile-name');
+    if (nameEl) nameEl.textContent = `@${username}`;
+
+    // Datos del usuario
     onValue(ref(db, `users/${uid}`), snap => {
-        const userData = snap.val() || {};
-        document.getElementById('profile-bio').innerText = userData.bio || "Sin biografía";
-        document.getElementById('profile-stats-followers').innerHTML = `<b>${userData.seguidores || 0}</b> Seguidores`;
+        const data = snap.val() || {};
+        const bioEl = document.getElementById('profile-bio');
+        if (bioEl) bioEl.textContent = data.bio || "Sin biografía";
+
+        const followersEl = document.getElementById('profile-stats-followers');
+        if (followersEl) followersEl.innerHTML = `<b>${data.seguidores || 0}</b> Seguidores`;
     });
 
-    // Cargar solo posts de este usuario
+    // Posts del usuario
     onValue(ref(db, 'posts'), snap => {
         const feed = document.getElementById('feed');
+        if (!feed) return;
+
         feed.innerHTML = "";
         let count = 0;
 
@@ -159,7 +219,7 @@ window.abrirPerfil = (uid, username) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
-                    <img src="${post.url}">
+                    <img src="${post.url}" alt="${post.title}">
                     <div class="info">
                         <h3>${post.title}</h3>
                     </div>
@@ -168,23 +228,27 @@ window.abrirPerfil = (uid, username) => {
             }
         });
 
-        document.getElementById('profile-stats-posts').innerHTML = `<b>${count}</b> Publicaciones`;
+        const postsEl = document.getElementById('profile-stats-posts');
+        if (postsEl) postsEl.innerHTML = `<b>${count}</b> Publicaciones`;
     });
 
-    // Botón seguir (solo si no es mi perfil)
+    // Botón seguir
     const btnFollow = document.getElementById('btnFollow');
-    btnFollow.style.display = (userActual && userActual.uid !== uid) ? 'inline-block' : 'none';
-    btnFollow.onclick = async () => {
-        await update(ref(db, `users/${uid}`), { seguidores: (await get(ref(db, `users/${uid}/seguidores`))).val() + 1 || 1 });
-        alert("¡Siguiendo!");
-    };
+    if (btnFollow) {
+        btnFollow.style.display = (userActual && userActual.uid !== uid) ? 'inline-block' : 'none';
+        btnFollow.onclick = async () => {
+            const curr = (await get(ref(db, `users/${uid}/seguidores`))).val() || 0;
+            await update(ref(db, `users/${uid}`), { seguidores: curr + 1 });
+            alert("¡Siguiendo!");
+        };
+    }
 };
 
 window.cerrarPerfil = () => {
     perfilActual = null;
-    document.getElementById('profile-header').style.display = 'none';
+    const header = document.getElementById('profile-header');
+    if (header) header.style.display = 'none';
     cargarParaTi();
 };
 
-// Cargar "Para Ti" al inicio
-cargarParaTi();
+console.log("app.js finalizó definición de funciones");
