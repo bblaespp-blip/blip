@@ -3,44 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BLIP - Galería de Arte</title>
-<link rel="stylesheet" href="style.css">
+<title>BLIP - Red Social</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+<style>
+body{margin:0;font-family:sans-serif;background:#0f0f0f;color:#fff;}
+header{padding:15px;text-align:center;font-size:22px;font-weight:bold;background:#111;}
+#auth,#postBox,#feed{max-width:600px;margin:20px auto;}
+input,textarea,button{width:100%;padding:10px;border-radius:8px;border:none;margin-top:10px;}
+button{background:#ff416c;color:white;font-weight:bold;cursor:pointer;}
+.card{background:#151515;padding:12px;border-radius:12px;margin-bottom:15px;}
+.card img{width:100%;border-radius:10px;margin-top:10px;}
+.del{background:#ff3333;margin-top:10px;}
+</style>
 </head>
+
 <body>
 
-<header id="nav">
-    <div class="logo" onclick="location.reload()">BLIP</div>
-    <div class="nav-buttons">
-        <button id="btnHome">Inicio</button>
-        <button id="btnOpenUpload" style="display:none;background:#7b5cff;">Subir Arte</button>
-        <button id="btnLogin">Entrar</button>
-    </div>
-</header>
+<header>BLIP - Red Social</header>
 
-<main id="app-container">
-    <div id="feed" class="grid"></div>
-</main>
-
-<!-- LOGIN -->
-<div id="modalAuth" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Acceso</h3>
-        <input id="email" type="email" placeholder="Email">
-        <input id="pass" type="password" placeholder="Contraseña">
-        <button id="btnDoAuth">Confirmar</button>
-    </div>
+<div id="auth">
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Contraseña">
+<button onclick="login()">Entrar / Registrarse</button>
 </div>
 
-<!-- UPLOAD -->
-<div id="modalUpload" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Nueva Obra</h3>
-        <input id="fileInput" type="file" accept="image/*">
-        <input id="postTitle" type="text" placeholder="Título">
-        <button id="btnDoUpload">Publicar</button>
-    </div>
+<div id="postBox" style="display:none">
+<textarea id="text" placeholder="¿Qué estás creando hoy?"></textarea>
+<input type="file" id="img">
+<button onclick="publish()">Publicar</button>
 </div>
 
-<script type="module" src="app.js"></script>
+<div id="feed"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "TU_APIKEY",
+  authDomain: "TU_DOMINIO.firebaseapp.com",
+  databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_BUCKET.appspot.com",
+  messagingSenderId: "ID",
+  appId: "APPID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    authBox.style.display="none";
+    postBox.style.display="block";
+    loadFeed();
+  }
+});
+
+function login(){
+  auth.signInWithEmailAndPassword(email.value,pass.value)
+  .catch(()=>auth.createUserWithEmailAndPassword(email.value,pass.value));
+}
+
+async function publish(){
+  const txt=text.value;
+  const file=img.files[0];
+  if(!txt && !file) return alert("Escribe algo o sube una imagen");
+
+  let url="";
+
+  if(file){
+    const ref=storage.ref("posts/"+Date.now()+"_"+file.name);
+    await ref.put(file);
+    url=await ref.getDownloadURL();
+  }
+
+  db.ref("posts").push({
+    text:txt,
+    img:url,
+    uid:auth.currentUser.uid,
+    time:Date.now()
+  });
+
+  text.value="";
+  img.value="";
+}
+
+function loadFeed(){
+  db.ref("posts").on("value",snap=>{
+    feed.innerHTML="";
+    const data=snap.val();
+    for(let id in data){
+      const d=data[id];
+      let html=`<div class="card">
+      <div>${d.text||""}</div>`;
+      if(d.img) html+=`<img src="${d.img}">`;
+      if(d.uid===auth.currentUser.uid){
+        html+=`<button class="del" onclick="delPost('${id}')">Eliminar</button>`;
+      }
+      html+=`</div>`;
+      feed.innerHTML=html+feed.innerHTML;
+    }
+  });
+}
+
+function delPost(id){
+  if(confirm("¿Eliminar publicación?")){
+    db.ref("posts/"+id).remove();
+  }
+}
+</script>
+
 </body>
 </html>
