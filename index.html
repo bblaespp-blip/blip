@@ -189,7 +189,7 @@ main{
 
 </main>
 
-<div class="floating" onclick="openModal()">+</div>
+<div class="floating" id="uploadBtn">+</div>
 
 <div class="modal" id="modal">
     <div class="modal-content">
@@ -281,6 +281,8 @@ document.querySelector('main').appendChild(explore);
 
 (){ feed.style.display='none'; profile.style.display='block'; }
 function showFeed(){ feed.style.display='block'; profile.style.display='none'; }
+
+document.getElementById('uploadBtn').onclick = () => openModal();
 
 loadDemo();
 </script>
