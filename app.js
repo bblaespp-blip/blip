@@ -16,18 +16,17 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 let userActual = null;
 
-// --- DATOS DE TU CLOUDINARY (SACADOS DE TU CAPTURA) ---
+// DATOS DE TU CLOUDINARY (Extraídos de tus fotos)
 const CLOUD_NAME = "dz9s37bk0"; 
-const PRESET = "blip_unsigned"; // Usamos el que creaste hoy
+const PRESET = "blip_unsigned"; 
 
-// --- FUNCIÓN DE PUBLICACIÓN ---
+// --- SUBIDA ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const titleInput = document.getElementById('postTitle');
-    const title = titleInput.value;
     const btn = document.getElementById('btnDoUpload');
 
-    if(!file || !title) return alert("Selecciona una imagen y ponle título");
+    if(!file || !titleInput.value) return alert("Falta imagen o título");
 
     btn.innerText = "Subiendo...";
     btn.disabled = true;
@@ -46,25 +45,25 @@ document.getElementById('btnDoUpload').onclick = async () => {
         if(data.secure_url) {
             await push(ref(db, 'posts'), {
                 url: data.secure_url,
-                title: title,
-                userEmail: userActual ? userActual.email : "Anónimo",
+                title: titleInput.value,
+                userEmail: userActual.email,
                 timestamp: Date.now()
             });
-            alert("¡Publicado con éxito!");
+            alert("¡Arte publicado!");
             document.getElementById('modalUpload').style.display = 'none';
             titleInput.value = "";
         } else {
-            alert("Error: " + (data.error ? data.error.message : "Error en Cloudinary"));
+            alert("Error: " + (data.error ? data.error.message : "Revisa tu conexión"));
         }
     } catch (e) {
-        alert("Error de red: " + e.message);
+        alert("Error de conexión");
     } finally {
-        btn.innerText = "Publicar";
+        btn.innerText = "Publicar Ahora";
         btn.disabled = false;
     }
 };
 
-// --- CARGAR EL FEED ---
+// --- FEED CUADRÍCULA ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
@@ -76,20 +75,20 @@ onValue(ref(db, 'posts'), snap => {
             <img src="${d.url}">
             <div class="info">
                 <h3>${d.title}</h3>
-                <p>@${d.userEmail ? d.userEmail.split('@')[0] : 'artista'}</p>
+                <p>@${d.userEmail.split('@')[0]}</p>
             </div>`;
         feed.prepend(card);
     });
 });
 
-// --- MANEJO DE SESIÓN ---
+// --- SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
     document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
-document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : document.getElementById('modalAuth').style.display = 'flex';
+document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
 document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
 document.getElementById('btnDoAuth').onclick = () => {
     const e = document.getElementById('email').value;
