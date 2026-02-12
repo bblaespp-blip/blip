@@ -1,3 +1,32 @@
+// --- Lógica del Modal (Pon esto al principio de tu app.js para probar) ---
+const modalUpload = document.getElementById('modalUpload');
+const btnOpenUpload = document.getElementById('btnOpenUpload');
+
+// Función única para abrir
+const abrirModal = () => {
+    console.log("Intentando abrir modal..."); // Mira la consola (F12) para ver si esto sale
+    modalUpload.style.display = 'flex';
+};
+
+// Asignación directa
+btnOpenUpload.addEventListener('click', abrirModal);
+
+// --- En tu onAuthStateChanged ---
+onAuthStateChanged(auth, user => {
+    userActual = user;
+    if (user) {
+        btnOpenUpload.style.display = 'block';
+        btnOpenUpload.onclick = abrirModal; // Refuerzo
+        
+        const username = user.email.split('@')[0];
+        document.getElementById('btnLogin').innerText = `@${username}`;
+        document.getElementById('btnLogin').onclick = () => verPerfil(user.uid, username);
+    } else {
+        btnOpenUpload.style.display = 'none';
+        document.getElementById('btnLogin').innerText = 'Entrar';
+        document.getElementById('btnLogin').onclick = () => document.getElementById('modalAuth').style.display = 'flex';
+    }
+});
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, push, onValue, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
@@ -142,3 +171,4 @@ document.getElementById('btnDoAuth').onclick = async () => {
 };
 
 document.getElementById('btnHome').onclick = () => location.reload();
+
