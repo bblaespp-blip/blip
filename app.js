@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, set, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-// Configuración de Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
     authDomain: "almacenamiento-redsocial.firebaseapp.com",
@@ -51,7 +50,7 @@ function crearCarta(id, datos) {
             <div class="btns" style="display:flex; gap:5px;">
                 <button class="like-btn" style="background:${yaLike ? '#ff4b2b' : '#333'}">❤️ ${datos.likes || 0}</button>
                 <button class="comm-toggle" style="background:#444;">💬</button>
-                ${(!esMio && userActual) ? `<button class="follow-btn" id="fbtn-${id}" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
+                ${(!esMio && userActual) ? `<button class="follow-btn" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
             </div>
             
             <div class="comments-area" id="area-${id}" style="display:none; margin-top:10px; background:#1a1a1a; padding:10px; border-radius:8px;">
@@ -64,7 +63,7 @@ function crearCarta(id, datos) {
         </div>
     `;
 
-    // Eventos
+    // Eventos de botones
     box.querySelector('.like-btn').onclick = () => darLike(id, datos.likes || 0);
     box.querySelector('.comm-toggle').onclick = () => {
         const area = document.getElementById(`area-${id}`);
@@ -73,31 +72,14 @@ function crearCarta(id, datos) {
     };
     box.querySelector('.send-btn').onclick = () => enviarComentario(id);
     
+    // Lógica Seguir
     const fbtn = box.querySelector('.follow-btn');
     if(fbtn) manejarSeguimiento(datos.userId, fbtn);
 
     return box;
 }
 
-// --- LÓGICA DE SEGUIDORES ---
-function manejarSeguimiento(artistaId, boton) {
-    if(!userActual) return;
-    const fRef = ref(db, `follows/${userActual.uid}/${artistaId}`);
-    
-    // Escuchar cambios en tiempo real para este botón
-    onValue(fRef, (snap) => {
-        const siguiendo = snap.exists();
-        boton.innerText = siguiendo ? 'Siguiendo' : 'Seguir';
-        boton.style.background = siguiendo ? '#7b5cff' : '#444';
-        
-        boton.onclick = async () => {
-            if(siguiendo) await remove(fRef);
-            else await set(fRef, true);
-        };
-    });
-}
-
-// --- LIKES ---
+// --- LIKES Y SEGUIDORES ---
 async function darLike(id, num) {
     if(!userActual) return abrirAuth();
     const lRef = ref(db, `posts/${id}/likedBy/${userActual.uid}`);
@@ -112,15 +94,27 @@ async function darLike(id, num) {
     }
 }
 
+function manejarSeguimiento(artistaId, boton) {
+    if(!userActual) return;
+    const fRef = ref(db, `follows/${userActual.uid}/${artistaId}`);
+    onValue(fRef, (snap) => {
+        const siguiendo = snap.exists();
+        boton.innerText = siguiendo ? 'Siguiendo' : 'Seguir';
+        boton.style.background = siguiendo ? '#7b5cff' : '#444';
+        boton.onclick = async () => {
+            if(siguiendo) await remove(fRef); else await set(fRef, true);
+        };
+    });
+}
+
 // --- COMENTARIOS ---
 function cargarComentarios(id) {
     onValue(ref(db, `posts/${id}/comments`), snap => {
         const lista = document.getElementById(`list-${id}`);
         lista.innerHTML = "";
         snap.forEach(c => {
-            const dato = c.val();
             lista.innerHTML += `<p style="text-align:left; font-size:0.85rem; margin:5px 0;">
-                <b style="color:#7b5cff;">${dato.user}:</b> ${dato.text}
+                <b style="color:#7b5cff;">${c.val().user}:</b> ${c.val().text}
             </p>`;
         });
         lista.scrollTop = lista.scrollHeight;
@@ -131,13 +125,12 @@ async function enviarComentario(id) {
     const input = document.getElementById(`in-${id}`);
     if(!input.value.trim() || !userActual) return;
     await push(ref(db, `posts/${id}/comments`), {
-        text: input.value,
-        user: userActual.email.split('@')[0]
+        text: input.value, user: userActual.email.split('@')[0]
     });
     input.value = "";
 }
 
-// --- CARGA DE DATOS ---
+// --- CARGA DE POSTS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     if(feed) {
@@ -149,7 +142,8 @@ onValue(ref(db, 'posts'), snap => {
 // --- SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
-    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
+    const upBtn = document.getElementById('btnOpenUpload');
+    if(upBtn) upBtn.style.display = user ? 'block' : 'none';
     document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
@@ -157,13 +151,11 @@ document.getElementById('btnDoAuth').onclick = () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('pass').value;
     const func = modoLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-    func(auth, email, pass).then(() => {
-        document.getElementById('modalAuth').style.display='none';
-    }).catch(e => alert("Error de acceso"));
+    func(auth, email, pass).then(() => document.getElementById('modalAuth').style.display='none').catch(() => alert("Error"));
 };
 
 document.getElementById('btnToggleAuth').onclick = () => {
     modoLogin = !modoLogin;
     document.getElementById('authTitle').innerText = modoLogin ? 'Login' : 'Registro';
-    document.getElementById('btnToggleAuth').innerText = modoLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entra';
+    document.getElementById('btnToggleAuth').innerText = modoLogin ? 'Regístrate' : 'Entra';
 };
