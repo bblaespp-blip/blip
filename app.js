@@ -17,107 +17,103 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 let userActual = null;
-let modoLogin = true;
 
-// --- NAVEGACIÓN SEGURA ---
-const secciones = ['feed', 'followingFeed', 'profile'];
-const mostrarSeccion = (id) => {
-    secciones.forEach(s => {
+// --- CONFIGURACIÓN CLOUDINARY ---
+const CLOUD_NAME = "dbu9v8v7e";
+const UPLOAD_PRESET = "ml_default"; 
+
+// --- NAVEGACIÓN ---
+function mostrarSeccion(id) {
+    ['feed', 'followingFeed', 'profile'].forEach(s => {
         const el = document.getElementById(s);
         if(el) el.style.display = (s === id) ? 'grid' : 'none';
     });
-};
+}
 
-const setupBtn = (id, func) => {
-    const el = document.getElementById(id);
-    if(el) el.onclick = func;
-};
+document.getElementById('btnHome').onclick = () => mostrarSeccion('feed');
+document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : document.getElementById('modalAuth').style.display = 'flex';
 
-setupBtn('btnHome', () => mostrarSeccion('feed'));
-setupBtn('btnFollows', () => userActual ? mostrarSeccion('followingFeed') : document.getElementById('modalAuth').style.display='flex');
-setupBtn('btnProfile', () => userActual ? mostrarSeccion('profile') : document.getElementById('modalAuth').style.display='flex');
-setupBtn('btnOpenUpload', () => document.getElementById('modalUpload').style.display = 'flex');
-setupBtn('btnLogin', () => userActual ? signOut(auth) : document.getElementById('modalAuth').style.display = 'flex');
-
-// --- SUBIR ARTE (Cloudinary) ---
-setupBtn('btnDoUpload', async () => {
+// --- FUNCIÓN DE SUBIDA ---
+document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const title = document.getElementById('postTitle').value;
     const btn = document.getElementById('btnDoUpload');
 
-    if(!file || !title) return alert("Completa los campos");
-    
+    if (!file || !title) return alert("Selecciona una imagen y escribe un título");
+    if (!userActual) return alert("Debes iniciar sesión");
+
     btn.innerText = "Subiendo...";
     btn.disabled = true;
 
     try {
+        // 1. Enviar a Cloudinary
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'ml_default');
+        formData.append('upload_preset', UPLOAD_PRESET);
 
-        const res = await fetch("https://api.cloudinary.com/v1_1/dbu9v8v7e/image/upload", {
-            method: "POST",
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: 'POST',
             body: formData
         });
+
         const data = await res.json();
 
-        if(data.secure_url) {
+        if (data.secure_url) {
+            // 2. Guardar enlace en Firebase
             await push(ref(db, 'posts'), {
                 url: data.secure_url,
                 title: title,
                 userId: userActual.uid,
                 userEmail: userActual.email,
-                likes: 0
+                likes: 0,
+                timestamp: Date.now()
             });
-            alert("¡Publicado!");
+
+            alert("¡Arte publicado!");
             document.getElementById('modalUpload').style.display = 'none';
+            document.getElementById('postTitle').value = "";
+        } else {
+            alert("Error de Cloudinary: " + (data.error ? data.error.message : "No se pudo subir"));
         }
-    } catch (e) {
-        alert("Error al subir");
+    } catch (err) {
+        alert("Error de conexión: " + err.message);
     } finally {
         btn.innerText = "Publicar Ahora";
         btn.disabled = false;
     }
-});
+};
 
-// --- RENDERIZADO ---
-function crearCarta(id, datos) {
-    const box = document.createElement('div');
-    box.className = 'card';
-    box.innerHTML = `
-        <img src="${datos.url}">
-        <div class="info">
-            <h3>${datos.title}</h3>
-            <p style="color:#7b5cff;">@${datos.userEmail.split('@')[0]}</p>
-        </div>
-    `;
-    return box;
-}
-
+// --- MOSTRAR POSTS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
-    if(feed) {
-        feed.innerHTML = "";
-        snap.forEach(p => feed.prepend(crearCarta(p.key, p.val())));
-    }
+    feed.innerHTML = "";
+    snap.forEach(p => {
+        const post = p.val();
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <img src="${post.url}">
+            <div class="info">
+                <h3>${post.title}</h3>
+                <p>@${post.userEmail.split('@')[0]}</p>
+            </div>
+        `;
+        feed.prepend(card);
+    });
 });
 
 onAuthStateChanged(auth, user => {
     userActual = user;
-    const up = document.getElementById('btnOpenUpload');
-    if(up) up.style.display = user ? 'block' : 'none';
-    const log = document.getElementById('btnLogin');
-    if(log) log.innerText = user ? 'Salir' : 'Entrar';
+    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
+    document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
-setupBtn('btnDoAuth', () => {
+// Login simple
+document.getElementById('btnDoAuth').onclick = () => {
     const e = document.getElementById('email').value;
     const p = document.getElementById('pass').value;
-    const f = modoLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-    f(auth, e, p).then(() => document.getElementById('modalAuth').style.display='none').catch(err => alert("Error"));
-});
-
-setupBtn('btnToggleAuth', () => {
-    modoLogin = !modoLogin;
-    document.getElementById('authTitle').innerText = modoLogin ? 'Entrar' : 'Registrarse';
-});
+    signInWithEmailAndPassword(auth, e, p)
+        .then(() => document.getElementById('modalAuth').style.display = 'none')
+        .catch(() => createUserWithEmailAndPassword(auth, e, p));
+};
