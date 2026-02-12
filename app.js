@@ -19,8 +19,7 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- FUNCIONES SOCIALES ---
-
+// --- FUNCIONES GLOBALES DE INTERACCIÓN ---
 window.darLike = async (postId, currentLikes) => {
     if (!userActual) return alert("Inicia sesión para dar like");
     const postRef = ref(db, `posts/${postId}`);
@@ -85,22 +84,21 @@ document.getElementById('btnDoUpload').onclick = async () => {
                 likes: 0,
                 timestamp: serverTimestamp()
             });
-            alert("¡Obra publicada!");
             document.getElementById('modalUpload').style.display = 'none';
             titleInput.value = "";
         }
     } catch (e) { alert("Error al subir"); }
-    finally { btn.innerText = "Publicar"; btn.disabled = false; }
+    finally { btn.innerText = "Publicar Ahora"; btn.disabled = false; }
 };
 
-// --- RENDERIZADO DEL FEED ---
+// --- FEED EN TIEMPO REAL ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
     snap.forEach(p => {
         const d = p.val();
         const id = p.key;
-        const nombreArtista = d.userEmail.split('@')[0];
+        const nombreArtista = d.userEmail ? d.userEmail.split('@')[0] : "artista";
         
         const card = document.createElement('div');
         card.className = 'card';
@@ -108,24 +106,23 @@ onValue(ref(db, 'posts'), snap => {
             <img src="${d.url}">
             <div class="info">
                 <h3>${d.title}</h3>
-                <p>@${nombreArtista}</p>
+                <p class="artist-name">@${nombreArtista}</p>
                 <div class="social-bar">
-                    <button onclick="darLike('${id}', ${d.likes})">❤️ ${d.likes || 0}</button>
+                    <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
                     <button onclick="toggleComentarios('${id}')">💬</button>
-                    <button onclick="seguirArtista('${d.userId}', '${nombreArtista}')">👤 Seguir</button>
+                    <button onclick="seguirArtista('${d.userId}', '${nombreArtista}')" class="follow-btn">Seguir</button>
                 </div>
                 <div id="box-${id}" class="comment-section" style="display:none;">
                     <div id="list-${id}" class="comment-list"></div>
                     <div class="comment-input">
-                        <input type="text" id="input-${id}" placeholder="Escribe algo...">
+                        <input type="text" id="input-${id}" placeholder="Comentar...">
                         <button onclick="enviarComentario('${id}')">➤</button>
                     </div>
                 </div>
             </div>`;
         
-        // Cargar comentarios en tiempo real para este post
+        const list = card.querySelector(`#list-${id}`);
         if(d.comentarios) {
-            const list = card.querySelector(`#list-${id}`);
             Object.values(d.comentarios).forEach(c => {
                 list.innerHTML += `<p><b>${c.usuario}:</b> ${c.texto}</p>`;
             });
@@ -135,7 +132,7 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- SESIÓN ---
+// --- AUTH ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
