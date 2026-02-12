@@ -1,61 +1,26 @@
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #0b0b0b;
-    color: #fff;
-}
-
-#nav {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 5%;
-    background: #141414;
-    align-items: center;
-    position: sticky; top: 0; z-index: 100;
-}
-
+body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0b0b0b; color: #fff; }
+#nav { display: flex; justify-content: space-between; padding: 15px 5%; background: #141414; align-items: center; position: sticky; top: 0; z-index: 100; }
 .logo { font-size: 1.5rem; font-weight: bold; color: #7b5cff; cursor: pointer; }
-
-.nav-buttons button {
-    background: #252525; color: white; border: none;
-    padding: 10px 18px; border-radius: 8px; margin-left: 8px; cursor: pointer;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px; padding: 30px 5%;
-}
-
-.card { background: #1a1a1a; border-radius: 15px; overflow: hidden; }
-.card img { width: 100%; height: 280px; object-fit: cover; }
-
+.nav-buttons button { background: #252525; color: white; border: none; padding: 8px 15px; border-radius: 8px; margin-left: 8px; cursor: pointer; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 30px 5%; }
+.card { background: #1a1a1a; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; }
+.card img { width: 100%; height: 320px; object-fit: cover; }
 .info { padding: 15px; }
-.artist-name { color: #7b5cff; font-weight: bold; margin: 5px 0; }
+.artist-name { color: #7b5cff; font-weight: bold; margin: 5px 0; font-size: 0.9rem; }
 
-.social-bar {
-    display: flex; gap: 10px; margin-top: 12px;
-    border-top: 1px solid #333; padding-top: 10px;
-}
+/* BARRA SOCIAL */
+.social-bar { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #333; padding-top: 10px; align-items: center; }
+.social-bar button { background: #252525; border: 1px solid #444; color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+.follow-btn { margin-left: auto; border-color: #7b5cff !important; color: #7b5cff !important; background: transparent !important; }
 
-.social-bar button {
-    background: #252525; border: 1px solid #333; color: white;
-    padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
-}
+/* SECCIÓN COMENTARIOS */
+.comment-section { background: #111; margin-top: 10px; border-radius: 10px; padding: 12px; border: 1px solid #222; }
+.comment-list { max-height: 120px; overflow-y: auto; font-size: 0.85rem; margin-bottom: 10px; text-align: left; }
+.comment-input { display: flex; gap: 8px; }
+.comment-input input { flex: 1; background: #222; border: 1px solid #333; color: white; padding: 8px; border-radius: 5px; margin: 0; }
+.comment-input button { background: #7b5cff; border: none; padding: 0 12px; border-radius: 5px; color: white; cursor: pointer; }
 
-.follow-btn { margin-left: auto; background: transparent !important; color: #7b5cff !important; border: 1px solid #7b5cff !important; }
-
-.comment-section { background: #111; margin-top: 10px; border-radius: 8px; padding: 10px; }
-.comment-list { max-height: 80px; overflow-y: auto; font-size: 0.8rem; text-align: left; margin-bottom: 8px; }
-.comment-input { display: flex; gap: 5px; }
-.comment-input input { margin: 0; padding: 5px; font-size: 0.8rem; }
-.comment-input button { background: #7b5cff; border: none; padding: 5px 10px; border-radius: 5px; color: white; }
-
-.modal {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000;
-}
-
-.modal-content { background: #1f1f1f; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
-input { width: 100%; padding: 12px; margin: 10px 0; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; border-radius: 8px; box-sizing: border-box;}
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: #1f1f1f; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+input { width: 100%; padding: 12px; margin: 10px 0; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; border-radius: 8px; box-sizing: border-box; }
 #btnDoUpload, #btnDoAuth { width: 100%; background: #7b5cff; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
