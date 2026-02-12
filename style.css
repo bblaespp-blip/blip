@@ -231,3 +231,17 @@ input:focus {
 ::-webkit-scrollbar-thumb:hover {
     background: #444;
 }
+.info h3 {
+    flex: 1;
+}
+
+button[onclick^="borrarPost"] {
+    opacity: 0.5;
+    transition: 0.3s;
+    padding: 5px;
+}
+
+button[onclick^="borrarPost"]:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
