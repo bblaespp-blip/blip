@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BLIP - Red Social de Arte</title>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header id="nav">
     <div class="logo" style="font-weight:bold; font-size:1.5rem; color:#7b5cff;">BLIP</div>
     <div class="nav-buttons">
-        <button onclick="showFeed()">Para ti</button>
-        <button onclick="showFollowing()">Siguiendo</button>
+        <button id="btnParaTi">Para ti</button>
+        <button id="btnSiguiendo">Siguiendo</button>
         <button id="uploadBtn" style="display:none;">Subir Arte</button>
-        <button onclick="showProfile()">Mi Perfil</button>
-        <button onclick="toggleGlobalChat()">Chat</button>
-        <button id="loginNavBtn" onclick="openAuth()">Entrar</button>
+        <button id="btnPerfil">Mi Perfil</button>
+        <button id="btnChat">Chat</button>
+        <button id="loginNavBtn">Entrar</button>
     </div>
 </header>
 
@@ -34,10 +34,9 @@
         <input type="text" id="imgTitle" placeholder="Título de la obra">
         <div id="uploadLoader" style="display:none; text-align:center;">
             <p>Subiendo... 🎨</p>
-            <div class="loader-bar"></div>
         </div>
         <button id="postBtn">Publicar</button>
-        <button onclick="document.getElementById('modal').style.display='none'" style="background:none;">Cancelar</button>
+        <button id="closeModalBtn" style="background:none;">Cancelar</button>
     </div>
 </div>
 
@@ -51,6 +50,6 @@
     </div>
 </div>
 
-<script type="module" src="./app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
