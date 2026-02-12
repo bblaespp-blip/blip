@@ -1,59 +1,14 @@
-/* CONTENEDOR PRINCIPAL DE COMENTARIOS */
-.comment-container {
-    background: #111;
-    border-radius: 10px;
-    padding: 10px;
-    margin-top: 10px;
-    border: 1px solid #333;
-}
+body { margin: 0; font-family: sans-serif; background: #0b0f12; color: white; text-align: center; }
+#nav { display: flex; justify-content: space-between; padding: 15px 5%; background: #1a1e23; align-items: center; position: sticky; top: 0; z-index: 100; }
+.nav-buttons button { background: #2d3436; color: white; border: none; padding: 8px 15px; border-radius: 8px; margin-left: 10px; cursor: pointer; }
+#btnOpenUpload { background: #6c5ce7; }
 
-/* LISTA DONDE SE VEN LOS MENSAJES */
-.comments-display {
-    max-height: 150px;
-    overflow-y: auto;
-    text-align: left;
-    margin-bottom: 10px;
-}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px 5%; }
+.card { background: #1a1e23; border-radius: 12px; overflow: hidden; border: 1px solid #2d3436; }
+.card img { width: 100%; height: 280px; object-fit: cover; }
+.info { padding: 15px; }
 
-/* CADA BURBUJA DE COMENTARIO */
-.comment-bubble {
-    background: #222;
-    padding: 8px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
-}
-
-.comment-user {
-    color: #a29bfe;
-    font-weight: bold;
-    margin-right: 5px;
-}
-
-.comment-text {
-    color: #efefef;
-}
-
-/* AREA DE INPUT */
-.comment-input-area {
-    display: flex;
-    gap: 8px;
-}
-
-.comment-input-area input {
-    flex: 1;
-    background: #1a1a1a;
-    border: 1px solid #444;
-    color: white;
-    padding: 8px;
-    border-radius: 5px;
-}
-
-.comment-input-area button {
-    background: #7b5cff;
-    border: none;
-    color: white;
-    padding: 0 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: #1a1e23; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; }
+input { width: 100%; padding: 10px; margin: 10px 0; background: #2d3436; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+#btnDoUpload, #btnDoAuth { width: 100%; background: #6c5ce7; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
