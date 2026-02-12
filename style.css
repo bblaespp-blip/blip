@@ -1,58 +1,54 @@
-body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #080808; color: white; }
-#nav {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 15px 5%; background: #141414; position: sticky; top: 0; z-index: 1000;
-}
-.nav-buttons button {
-    background: #1f1f1f; color: white; border: 1px solid #333;
-    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;
-    margin-left: 8px;
-}
-.grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-    gap: 25px; 
-    padding: 30px 5%; 
-}
+body{margin:0;font-family:Segoe UI,sans-serif;background:#080808;color:white}
 
-.card { 
-    background: #141414; 
-    border-radius: 15px; 
-    border: 1px solid #222; 
-    overflow: hidden; 
-    transition: transform 0.2s;
-}
-.card:hover { transform: scale(1.03); }
-.card img { width: 100%; height: 320px; object-fit: cover; }
-.info { padding: 15px; }
-.info h3 { margin: 0 0 8px 0; font-size: 1.1rem; }
-.info p { color: #7b5cff; cursor: pointer; }
+#nav{
+display:flex;justify-content:space-between;
+align-items:center;padding:15px 5%;
+background:#111;position:sticky;top:0;z-index:1000}
 
-.profile-header {
-    text-align: center; 
-    padding: 30px 5%; 
-    background: #111; 
-    border-bottom: 1px solid #222;
-}
-.profile-info h2 { color: #7b5cff; margin: 0; }
-.profile-stats { margin: 15px 0; font-size: 1.1rem; }
-.profile-stats span { margin: 0 15px; }
+.logo{font-size:1.5em;font-weight:bold;color:#7b5cff;cursor:pointer}
 
-.modal { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.95); display: flex; align-items: center; 
-    justify-content: center; z-index: 2000; 
-}
-.modal-content { 
-    background: #141414; padding: 30px; border-radius: 20px; 
-    width: 90%; max-width: 420px; text-align: center; border: 1px solid #333; 
-}
-input { 
-    width: 100%; padding: 12px; margin: 10px 0; 
-    background: #1f1f1f; border: 1px solid #333; 
-    color: white; border-radius: 8px; box-sizing: border-box; 
-}
-.back-btn {
-    background: none; border: none; color: #7b5cff; font-size: 1.2rem;
-    cursor: pointer; margin-bottom: 15px;
-}
+.nav-buttons{display:flex;gap:10px}
+
+button{
+background:#1f1f1f;border:1px solid #333;
+color:white;padding:8px 15px;border-radius:8px;
+cursor:pointer;font-weight:bold}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+gap:25px;padding:30px 5%}
+
+.card{
+background:#141414;border-radius:15px;
+border:1px solid #222;overflow:hidden}
+
+.card img{
+width:100%;height:300px;object-fit:cover}
+
+.info{padding:15px}
+
+.info h3{margin:0}
+
+.info p{color:#7b5cff;cursor:pointer}
+
+.modal{
+position:fixed;inset:0;
+background:rgba(0,0,0,.95);
+display:flex;align-items:center;
+justify-content:center;z-index:2000}
+
+.modal-content{
+background:#141414;padding:30px;
+border-radius:20px;width:90%;
+max-width:400px;text-align:center}
+
+input{
+width:100%;padding:12px;margin:10px 0;
+background:#1f1f1f;border:1px solid #333;
+color:white;border-radius:8px}
+
+#profile-header{
+text-align:center;padding:25px;
+background:#111;border-radius:15px;
+margin:20px 5%;border:1px solid #222}
