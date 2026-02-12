@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-// CONFIG FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
     authDomain: "almacenamiento-redsocial.firebaseapp.com",
@@ -13,88 +12,92 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getDatabase(app);
-export let userActual = null;
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-// DATOS CLOUDINARY
-const CLOUD_NAME = "dz9s37bk0"; 
-const PRESET = "blip_unsigned"; 
+let userActual = null;
 
-// --- SUBIDA DE ARTE ---
+const CLOUD_NAME = "dz9s37bk0";
+const PRESET = "blip_unsigned";
+
+// --- SUBIR OBRA ---
 document.getElementById('btnDoUpload').onclick = async () => {
-    const file = document.getElementById('fileInput').files[0];
-    const titleInput = document.getElementById('postTitle');
-    const btn = document.getElementById('btnDoUpload');
 
-    if(!file || !titleInput.value) return alert("Selecciona una imagen y escribe un título");
+    if (!userActual) return alert("Debes iniciar sesión");
 
-    btn.innerText = "Subiendo...";
-    btn.disabled = true;
+    const file = fileInput.files[0];
+    const title = postTitle.value.trim();
+
+    if(!file || !title) return alert("Faltan datos");
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', PRESET);
+    formData.append("file", file);
+    formData.append("upload_preset", PRESET);
 
-    try {
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-            method: "POST",
-            body: formData
-        });
-        const data = await res.json();
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData
+    });
 
-        if(data.secure_url) {
-            await push(ref(db, 'posts'), {
-                url: data.secure_url,
-                title: titleInput.value,
-                userEmail: userActual.email,
-                timestamp: Date.now()
-            });
-            alert("¡Obra publicada con éxito!");
-            document.getElementById('modalUpload').style.display = 'none';
-            titleInput.value = "";
-        } else {
-            alert("Error de Cloudinary: " + (data.error ? data.error.message : "Desconocido"));
-        }
-    } catch (e) {
-        alert("Error de conexión al subir");
-    } finally {
-        btn.innerText = "Publicar";
-        btn.disabled = false;
-    }
+    const data = await res.json();
+
+    if(!data.secure_url) return alert("Error al subir imagen");
+
+    await push(ref(db,'posts'),{
+        url: data.secure_url,
+        title,
+        user: userActual.email,
+        uid: userActual.uid,
+        time: Date.now()
+    });
+
+    modalUpload.style.display = "none";
+    fileInput.value = "";
+    postTitle.value = "";
 };
 
-// --- CARGAR FEED ---
-onValue(ref(db, 'posts'), snap => {
-    const feed = document.getElementById('feed');
+// --- FEED ---
+onValue(ref(db,'posts'), snap => {
     feed.innerHTML = "";
+    if(!snap.exists()){
+        feed.innerHTML = "<p style='text-align:center;opacity:0.6'>No hay publicaciones</p>";
+        return;
+    }
+
     snap.forEach(p => {
         const d = p.val();
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <img src="${d.url}">
-            <div class="info">
-                <h3>${d.title}</h3>
-                <p>@${d.userEmail.split('@')[0]}</p>
-            </div>`;
-        feed.prepend(card);
+        feed.innerHTML = `
+            <div class="card">
+                <img src="${d.url}">
+                <div class="info">
+                    <h3>${d.title}</h3>
+                    <p>@${d.user.split('@')[0]}</p>
+                </div>
+            </div>
+        ` + feed.innerHTML;
     });
 });
 
-// --- LOGIN / LOGOUT ---
+// --- AUTH ---
 onAuthStateChanged(auth, user => {
     userActual = user;
-    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
-    document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
+    btnOpenUpload.style.display = user ? 'block' : 'none';
+    btnLogin.innerText = user ? 'Salir' : 'Entrar';
 });
 
-document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
-document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
-document.getElementById('btnDoAuth').onclick = () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
-    signInWithEmailAndPassword(auth, e, p)
-        .catch(() => createUserWithEmailAndPassword(auth, e, p));
-    document.getElementById('modalAuth').style.display = 'none';
+btnLogin.onclick = () => {
+    userActual ? signOut(auth) : modalAuth.style.display = "flex";
+};
+
+btnOpenUpload.onclick = () => modalUpload.style.display = "flex";
+
+btnDoAuth.onclick = async () => {
+    const e = email.value;
+    const p = pass.value;
+    try{
+        await signInWithEmailAndPassword(auth,e,p);
+    }catch{
+        await createUserWithEmailAndPassword(auth,e,p);
+    }
+    modalAuth.style.display = "none";
 };
