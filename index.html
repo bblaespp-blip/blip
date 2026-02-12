@@ -11,7 +11,8 @@
 <header id="nav">
     <div class="logo" style="font-weight:bold; font-size:1.5rem; color:#7b5cff;">BLIP</div>
     <div class="nav-buttons">
-        <button onclick="showFeed()">Inicio</button>
+        <button onclick="showFeed()">Para ti</button>
+        <button onclick="showFollowing()">Siguiendo</button>
         <button id="uploadBtn" style="display:none;">Subir Arte</button>
         <button onclick="showProfile()">Mi Perfil</button>
         <button onclick="toggleGlobalChat()">Chat</button>
@@ -21,8 +22,10 @@
 
 <div id="feed" class="grid"></div>
 
+<div id="followingFeed" class="grid" style="display:none;"></div>
+
 <div id="profile" style="display:none; padding: 20px;">
-    <h2 id="profileUser" style="text-align:center; color:#7b5cff;">Mi Galería</h2>
+    <h2 style="text-align:center; color:#7b5cff;">Mi Galería</h2>
     <div id="profileGrid" class="grid"></div>
 </div>
 
@@ -31,12 +34,10 @@
         <h3>Publicar Obra</h3>
         <input type="file" id="imgInput" accept="image/*">
         <input type="text" id="imgTitle" placeholder="Título de la obra">
-        
         <div id="uploadLoader" style="display:none; text-align:center;">
             <p>Subiendo... 🎨</p>
             <div class="loader-bar"></div>
         </div>
-
         <button id="postBtn">Publicar</button>
         <button onclick="document.getElementById('modal').style.display='none'" style="background:none;">Cancelar</button>
     </div>
@@ -48,7 +49,7 @@
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Contraseña">
         <button id="authBtn">Confirmar</button>
-        <button id="toggleAuth" style="background:none; color:#7b5cff;">Cambiar Registro/Login</button>
+        <button id="toggleAuth" style="background:none; color:#7b5cff; font-size: 0.8rem;">Cambiar Registro/Login</button>
     </div>
 </div>
 
