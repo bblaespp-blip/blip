@@ -19,9 +19,8 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- FUNCIONES GLOBALES ---
 window.darLike = async (postId, currentLikes) => {
-    if (!userActual) return alert("Inicia sesión primero");
+    if (!userActual) return alert("Inicia sesión");
     await update(ref(db, `posts/${postId}`), { likes: (currentLikes || 0) + 1 });
 };
 
@@ -35,40 +34,29 @@ window.enviarComentario = async (postId) => {
     const input = document.getElementById(`input-${postId}`);
     if (!input || !input.value.trim()) return;
 
-    const data = {
+    await push(ref(db, `posts/${postId}/comentarios`), {
         usuario: userActual.email.split('@')[0],
         texto: input.value,
         timestamp: Date.now()
-    };
-
-    await push(ref(db, `posts/${postId}/comentarios`), data);
-    input.value = ""; // Limpiar tras enviar
+    });
+    input.value = "";
 };
 
-// --- RENDERIZADO EN TIEMPO REAL ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
-    
     snap.forEach(postSnap => {
         const d = postSnap.val();
         const id = postSnap.key;
         const autor = d.userEmail ? d.userEmail.split('@')[0] : "artista";
 
-        // Generar la lista de comentarios para este post
-        let listaComentariosHTML = "";
+        let htmlComs = "";
         if (d.comentarios) {
-            // Convertimos el objeto de FB en array y lo ordenamos por fecha
-            const lista = Object.values(d.comentarios);
-            lista.forEach(c => {
-                listaComentariosHTML += `
-                    <div class="comentario-item" style="padding: 5px 0; border-bottom: 1px solid #333; text-align: left; font-size: 0.85rem;">
-                        <b style="color: #7b5cff;">@${c.usuario}:</b> 
-                        <span style="color: #fff;">${c.texto}</span>
-                    </div>`;
+            Object.values(d.comentarios).forEach(c => {
+                htmlComs += `<div style="padding:5px; border-bottom:1px solid #222; font-size:0.85rem;">
+                    <b style="color:#a29bfe;">${c.usuario}:</b> ${c.texto}
+                </div>`;
             });
-        } else {
-            listaComentariosHTML = `<p style="color: #666; font-size: 0.75rem;">Sé el primero en comentar...</p>`;
         }
 
         const card = document.createElement('div');
@@ -77,18 +65,16 @@ onValue(ref(db, 'posts'), snap => {
             <img src="${d.url}">
             <div class="info">
                 <h3>${d.title}</h3>
-                <p class="tag">@${autor}</p>
-                <div class="social-bar">
-                    <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
-                    <button onclick="toggleComentarios('${id}')">💬</button>
+                <p style="color:#a29bfe; font-weight:bold;">@${autor}</p>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="darLike('${id}', ${d.likes || 0})" style="cursor:pointer; background:#333; color:white; border:none; padding:5px 10px; border-radius:15px;">❤️ ${d.likes || 0}</button>
+                    <button onclick="toggleComentarios('${id}')" style="cursor:pointer; background:#333; color:white; border:none; padding:5px 10px; border-radius:15px;">💬</button>
                 </div>
-                <div id="box-${id}" class="comment-box" style="display:none; background: #111; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                    <div id="list-${id}" class="comment-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;">
-                        ${listaComentariosHTML}
-                    </div>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="text" id="input-${id}" placeholder="Escribe..." style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff;">
-                        <button onclick="enviarComentario('${id}')" style="background: #7b5cff; border: none; color: white; border-radius: 4px; padding: 5px 10px;">➤</button>
+                <div id="box-${id}" style="display:none; background:#000; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #333;">
+                    <div style="max-height:100px; overflow-y:auto; margin-bottom:10px; text-align:left;">${htmlComs}</div>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="input-${id}" placeholder="Escribe..." style="flex:1; background:#222; color:white; border:none; padding:5px; border-radius:4px;">
+                        <button onclick="enviarComentario('${id}')" style="background:#7b5cff; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">➤</button>
                     </div>
                 </div>
             </div>`;
@@ -96,17 +82,26 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- AUTH & UPLOAD ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
     document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
+document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
+document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+
+document.getElementById('btnDoAuth').onclick = () => {
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('pass').value;
+    signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
+    document.getElementById('modalAuth').style.display = 'none';
+};
+
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const title = document.getElementById('postTitle').value;
-    if(!file || !title) return alert("Completa los campos");
+    if(!file || !title) return alert("Completa los datos");
     
     const formData = new FormData();
     formData.append('file', file);
@@ -126,13 +121,4 @@ document.getElementById('btnDoUpload').onclick = async () => {
         });
         document.getElementById('modalUpload').style.display = 'none';
     }
-};
-
-document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
-document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
-document.getElementById('btnDoAuth').onclick = () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
-    signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
-    document.getElementById('modalAuth').style.display = 'none';
 };
