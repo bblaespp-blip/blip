@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, set, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
+// Configuración de Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
     authDomain: "almacenamiento-redsocial.firebaseapp.com",
@@ -40,7 +41,7 @@ function crearCarta(id, datos) {
     const box = document.createElement('div');
     box.className = 'card';
     const yaLike = datos.likedBy && userActual && datos.likedBy[userActual.uid];
-    const isOwner = userActual && datos.userId === userActual.uid;
+    const esMio = userActual && datos.userId === userActual.uid;
     
     box.innerHTML = `
         <img src="${datos.url}">
@@ -50,20 +51,20 @@ function crearCarta(id, datos) {
             <div class="btns" style="display:flex; gap:5px;">
                 <button class="like-btn" style="background:${yaLike ? '#ff4b2b' : '#333'}">❤️ ${datos.likes || 0}</button>
                 <button class="comm-toggle" style="background:#444;">💬</button>
-                ${(!isOwner && userActual) ? `<button class="follow-btn" id="fbtn-${id}" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
+                ${(!esMio && userActual) ? `<button class="follow-btn" id="fbtn-${id}" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
             </div>
             
-            <div class="comments-area" id="area-${id}" style="display:none;">
+            <div class="comments-area" id="area-${id}" style="display:none; margin-top:10px; background:#1a1a1a; padding:10px; border-radius:8px;">
                 <div class="list" id="list-${id}" style="max-height:120px; overflow-y:auto; margin-bottom:8px;"></div>
                 <div style="display:flex; gap:5px;">
-                    <input type="text" id="in-${id}" placeholder="Escribe un comentario..." style="flex:1; padding:5px; font-size:0.8rem;">
-                    <button class="send-btn" style="padding:5px 10px;">></button>
+                    <input type="text" id="in-${id}" placeholder="Escribe algo..." style="flex:1; padding:5px; background:#333; color:white; border:none; border-radius:4px;">
+                    <button class="send-btn" style="padding:5px 10px; background:#7b5cff; border-radius:4px;">></button>
                 </div>
             </div>
         </div>
     `;
 
-    // Eventos de los botones
+    // Eventos
     box.querySelector('.like-btn').onclick = () => darLike(id, datos.likes || 0);
     box.querySelector('.comm-toggle').onclick = () => {
         const area = document.getElementById(`area-${id}`);
@@ -72,38 +73,57 @@ function crearCarta(id, datos) {
     };
     box.querySelector('.send-btn').onclick = () => enviarComentario(id);
     
-    // Lógica del botón seguir (Solo si existe el botón)
     const fbtn = box.querySelector('.follow-btn');
-    if(fbtn) checkFollowStatus(datos.userId, fbtn);
+    if(fbtn) manejarSeguimiento(datos.userId, fbtn);
 
     return box;
 }
 
+// --- LÓGICA DE SEGUIDORES ---
+function manejarSeguimiento(artistaId, boton) {
+    if(!userActual) return;
+    const fRef = ref(db, `follows/${userActual.uid}/${artistaId}`);
+    
+    // Escuchar cambios en tiempo real para este botón
+    onValue(fRef, (snap) => {
+        const siguiendo = snap.exists();
+        boton.innerText = siguiendo ? 'Siguiendo' : 'Seguir';
+        boton.style.background = siguiendo ? '#7b5cff' : '#444';
+        
+        boton.onclick = async () => {
+            if(siguiendo) await remove(fRef);
+            else await set(fRef, true);
+        };
+    });
+}
+
 // --- LIKES ---
-async function darLike(id, numActual) {
+async function darLike(id, num) {
     if(!userActual) return abrirAuth();
     const lRef = ref(db, `posts/${id}/likedBy/${userActual.uid}`);
     const pRef = ref(db, `posts/${id}`);
     const snap = await get(lRef);
     if(snap.exists()) {
         await remove(lRef);
-        await update(pRef, { likes: Math.max(0, numActual - 1) });
+        await update(pRef, { likes: Math.max(0, num - 1) });
     } else {
         await set(lRef, true);
-        await update(pRef, { likes: numActual + 1 });
+        await update(pRef, { likes: num + 1 });
     }
 }
 
 // --- COMENTARIOS ---
 function cargarComentarios(id) {
     onValue(ref(db, `posts/${id}/comments`), snap => {
-        const div = document.getElementById(`list-${id}`);
-        div.innerHTML = "";
+        const lista = document.getElementById(`list-${id}`);
+        lista.innerHTML = "";
         snap.forEach(c => {
-            const com = c.val();
-            div.innerHTML += `<p><b>${com.user}:</b> ${com.text}</p>`;
+            const dato = c.val();
+            lista.innerHTML += `<p style="text-align:left; font-size:0.85rem; margin:5px 0;">
+                <b style="color:#7b5cff;">${dato.user}:</b> ${dato.text}
+            </p>`;
         });
-        div.scrollTop = div.scrollHeight; // Auto-scroll al último comentario
+        lista.scrollTop = lista.scrollHeight;
     });
 }
 
@@ -117,48 +137,29 @@ async function enviarComentario(id) {
     input.value = "";
 }
 
-// --- SEGUIDORES ---
-function checkFollowStatus(artistUid, btn) {
-    if(!userActual) return;
-    const fRef = ref(db, `follows/${userActual.uid}/${artistUid}`);
-    onValue(fRef, snap => {
-        const existe = snap.exists();
-        btn.innerText = existe ? 'Siguiendo' : 'Seguir';
-        btn.style.background = existe ? '#7b5cff' : '#444';
-        
-        btn.onclick = async () => {
-            if(existe) await remove(fRef);
-            else await set(fRef, true);
-        };
-    });
-}
-
-// --- CARGAR FEEDS ---
+// --- CARGA DE DATOS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
-    if(feed && feed.style.display !== 'none') {
+    if(feed) {
         feed.innerHTML = "";
-        snap.forEach(post => {
-            feed.prepend(crearCarta(post.key, post.val()));
-        });
+        snap.forEach(p => feed.prepend(crearCarta(p.key, p.val())));
     }
 });
 
-// --- AUTH LOGIC ---
+// --- SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
-    const uploadBtn = document.getElementById('btnOpenUpload');
-    if(uploadBtn) uploadBtn.style.display = user ? 'block' : 'none';
+    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
     document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
 document.getElementById('btnDoAuth').onclick = () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('pass').value;
-    const f = modoLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-    f(auth, email, pass).then(() => {
+    const func = modoLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
+    func(auth, email, pass).then(() => {
         document.getElementById('modalAuth').style.display='none';
-    }).catch(e => alert("Error: " + e.message));
+    }).catch(e => alert("Error de acceso"));
 };
 
 document.getElementById('btnToggleAuth').onclick = () => {
