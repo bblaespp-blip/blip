@@ -19,16 +19,29 @@
 
     <div class="nav-buttons">
         <button id="btnHome">Inicio</button>
-        <button id="btnOpenUpload" style="display:none;">Subir Arte</button>
+        <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
         <button id="btnLogin">Entrar</button>
     </div>
 </header>
 
 <main id="app-container">
+    <div id="profile-header" style="display:none; text-align:center; padding:30px; background:#111; border-radius:15px; margin-bottom:20px; border:1px solid #222;">
+        <h2 id="profile-name" style="color:#7b5cff; margin:0;">@usuario</h2>
+        <p id="profile-bio" style="color:#aaa; font-style:italic; margin:10px 0;">¡Nuevo artista!</p>
+        <div style="display:flex; gap:20px; justify-content:center; margin-bottom:15px;">
+            <span id="profile-stats"><b>0</b> Publicaciones</span>
+            <span id="profile-followers"><b>0</b> Seguidores</span>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button id="btnFollow" style="background:#7b5cff; border:none; color:white; padding:8px 20px; border-radius:20px; cursor:pointer;">Seguir</button>
+            <button id="btnCerrarPerfil" style="background:#333; border:none; color:white; padding:8px 20px; border-radius:20px; cursor:pointer;">Volver</button>
+        </div>
+    </div>
+
     <div id="feed" class="grid"></div> 
 </main>
 
-<div id="modalAuth" class="modal">
+<div id="modalAuth" class="modal" style="display:none;">
     <div class="modal-content">
         <h3>Acceso Artistas</h3>
         <input type="email" id="email" placeholder="Email">
@@ -38,7 +51,7 @@
     </div>
 </div>
 
-<div id="modalUpload" class="modal">
+<div id="modalUpload" class="modal" style="display:none;">
     <div class="modal-content">
         <h3>Nueva Obra</h3>
         <input type="file" id="fileInput" accept="image/*">
