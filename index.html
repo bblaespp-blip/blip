@@ -5,19 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLIP - Galería de Arte</title>
     <link rel="stylesheet" href="style.css">
-    <input type="text" id="userSearch" placeholder="Buscar artistas...">
 </head>
 <body>
 
 <header id="nav">
     <div class="logo" onclick="location.reload()" style="cursor:pointer">BLIP</div>
     
-    <div class="search-container">
-        <input type="text" id="userSearch" placeholder="Buscar artistas..." style="margin:0; padding:5px 10px;">
+    <div class="search-bar">
+        <input type="text" id="userSearch" placeholder="Buscar artistas por nombre..." 
+               style="width: 250px; background: #1f1f1f; border: 1px solid #333; color: white; padding: 8px; border-radius: 8px;">
     </div>
 
     <div class="nav-buttons">
-        </div>
+        <button id="btnHome">Inicio</button>
+        <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
+        <button id="btnLogin">Entrar</button>
+    </div>
 </header>
 
 <main id="app-container">
@@ -58,7 +61,7 @@
 </div>
 
 <script type="module" src="app.js"></script>
+<script type="module" src="profile.js"></script>
+
 </body>
 </html>
-
-
