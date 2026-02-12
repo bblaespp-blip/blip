@@ -16,14 +16,15 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 let userActual = null;
 
-// --- CONFIG CLOUDINARY CORREGIDA ---
-const CLOUD_NAME = "dz9s37bk0"; // <--- Este es el tuyo
-const PRESET = "ml_default"; 
+// --- DATOS DE TU CLOUDINARY (SACADOS DE TU CAPTURA) ---
+const CLOUD_NAME = "dz9s37bk0"; 
+const PRESET = "blip_unsigned"; // Usamos el que creaste hoy
 
-// --- FUNCIÓN PARA PUBLICAR ---
+// --- FUNCIÓN DE PUBLICACIÓN ---
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
-    const title = document.getElementById('postTitle').value;
+    const titleInput = document.getElementById('postTitle');
+    const title = titleInput.value;
     const btn = document.getElementById('btnDoUpload');
 
     if(!file || !title) return alert("Selecciona una imagen y ponle título");
@@ -51,35 +52,37 @@ document.getElementById('btnDoUpload').onclick = async () => {
             });
             alert("¡Publicado con éxito!");
             document.getElementById('modalUpload').style.display = 'none';
+            titleInput.value = "";
         } else {
-            alert("Error: " + (data.error ? data.error.message : "Revisa el preset ml_default"));
+            alert("Error: " + (data.error ? data.error.message : "Error en Cloudinary"));
         }
     } catch (e) {
-        alert("Error de red");
+        alert("Error de red: " + e.message);
     } finally {
         btn.innerText = "Publicar";
         btn.disabled = false;
     }
 };
 
-// --- MOSTRAR POSTS ---
+// --- CARGAR EL FEED ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
     snap.forEach(p => {
         const d = p.val();
-        feed.innerHTML += `
-            <div class="card">
-                <img src="${d.url}">
-                <div class="info">
-                    <h3>${d.title}</h3>
-                    <p>@${d.userEmail.split('@')[0]}</p>
-                </div>
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <img src="${d.url}">
+            <div class="info">
+                <h3>${d.title}</h3>
+                <p>@${d.userEmail ? d.userEmail.split('@')[0] : 'artista'}</p>
             </div>`;
+        feed.prepend(card);
     });
 });
 
-// --- SESIÓN ---
+// --- MANEJO DE SESIÓN ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
