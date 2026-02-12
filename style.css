@@ -1,134 +1,26 @@
+body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #080808; color: white; }
 
-body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #0b0b0b;
-    color: #ffffff;
-}
-
-#nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 5%;
-    background: #141414;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+#nav { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 15px 5%; background: #141414; position: sticky; top: 0; z-index: 1000; 
 }
 
-.nav-buttons button {
-    background: #252525;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    margin-left: 10px;
-    cursor: pointer;
-    font-weight: 500;
+.nav-buttons { display: flex; gap: 10px; align-items: center; }
+.nav-buttons button { 
+    background: #1f1f1f; color: white; border: 1px solid #333; 
+    padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
-    padding: 30px 5%;
-}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 30px 5%; }
+.card { background: #141414; border-radius: 15px; border: 1px solid #222; overflow: hidden; }
+.card img { width: 100%; height: 320px; object-fit: cover; }
+.info { padding: 15px; }
+.info h3 { margin: 0; font-size: 1.1rem; }
+.info p { color: #7b5cff; margin: 5px 0; font-weight: bold; }
 
-.card {
-    background: #1a1a1a;
-    border-radius: 15px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-}
+.social-actions { display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid #222; padding-top: 10px; align-items: center; }
+.social-actions button { background: #1f1f1f; border: 1px solid #333; color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
 
-.card:hover {
-    transform: translateY(-8px);
-}
-
-.card img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-}
-
-.info {
-    padding: 15px;
-}
-
-.info h3 {
-    margin: 0;
-    font-size: 1.2rem;
-}
-
-.info p {
-    color: #7b5cff;
-    margin: 8px 0 0;
-    font-weight: bold;
-}
-
-.modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 2000;
-}
-
-.modal-content {
-    background: #1f1f1f;
-    padding: 30px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 15px 0;
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    color: white;
-    border-radius: 8px;
-    box-sizing: border-box;
-}
-.social-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    border-top: 1px solid #333;
-    padding-top: 10px;
-}
-
-.social-actions button {
-    background: none;
-    border: 1px solid #444;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: 0.2s;
-}
-
-.social-actions button:hover {
-    background: #7b5cff;
-    border-color: #7b5cff;
-}
-
-.comments-box {
-    margin-top: 10px;
-    background: #252525;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-.comments-list {
-    max-height: 100px;
-    overflow-y: auto;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    text-align: left;
-}
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.modal-content { background: #141414; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
+input { width: 100%; padding: 12px; margin: 10px 0; background: #1f1f1f; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
