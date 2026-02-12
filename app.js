@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, set, push, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+import { getDatabase, ref, set, push, onValue, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -16,141 +16,153 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-let currentUser = null;
-let isLogin = true;
+let userActual = null;
+let modoLogin = true;
 
 // --- NAVEGACIÓN ---
-const switchView = (id) => {
-    ['feed', 'followingFeed', 'profile'].forEach(v => {
-        const el = document.getElementById(v);
-        if(el) el.style.display = (v === id) ? 'grid' : 'none';
+const mostrarSeccion = (id) => {
+    ['feed', 'followingFeed', 'profile'].forEach(s => {
+        const el = document.getElementById(s);
+        if(el) el.style.display = (s === id) ? 'grid' : 'none';
     });
 };
 
-document.getElementById('btnParaTi').onclick = () => switchView('feed');
-document.getElementById('btnSiguiendo').onclick = () => { if(!currentUser) openAuth(); else { switchView('followingFeed'); renderFollowingFeed(); } };
-document.getElementById('btnPerfil').onclick = () => { if(!currentUser) openAuth(); else { switchView('profile'); renderProfile(); } };
-document.getElementById('loginNavBtn').onclick = () => { if(currentUser) signOut(auth); else openAuth(); };
-document.getElementById('uploadBtn').onclick = () => document.getElementById('modal').style.display = 'flex';
-document.getElementById('closeModalBtn').onclick = () => document.getElementById('modal').style.display = 'none';
+document.getElementById('btnHome').onclick = () => mostrarSeccion('feed');
+document.getElementById('btnFollows').onclick = () => userActual ? mostrarSeccion('followingFeed') : abrirAuth();
+document.getElementById('btnProfile').onclick = () => userActual ? mostrarSeccion('profile') : abrirAuth();
+document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : abrirAuth();
 
-function openAuth() { document.getElementById('authModal').style.display = 'flex'; }
+function abrirAuth() { document.getElementById('modalAuth').style.display = 'flex'; }
 
-// --- FUNCIONES DE CARTA ---
-function createCard(id, p, isOwner = false) {
-    const div = document.createElement('div');
-    div.className = 'card';
-    const isLiked = p.likedBy && currentUser && p.likedBy[currentUser.uid];
+// --- RENDERIZAR CARTAS ---
+function crearCarta(id, datos) {
+    const box = document.createElement('div');
+    box.className = 'card';
+    const yaLike = datos.likedBy && userActual && datos.likedBy[userActual.uid];
+    const isOwner = userActual && datos.userId === userActual.uid;
     
-    div.innerHTML = `
-        <img src="${p.url}">
+    box.innerHTML = `
+        <img src="${datos.url}">
         <div class="info">
-            <h3>${p.title}</h3>
-            <p style="color:#7b5cff; font-size:0.8rem;">@${p.userEmail ? p.userEmail.split('@')[0] : 'artista'}</p>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <button class="like-btn" data-id="${id}" style="background:${isLiked ? '#ff4b2b' : '#333'}">
-                    ${isLiked ? '❤️' : '🤍'} ${p.likes || 0}
-                </button>
-                <button class="comm-btn" data-id="${id}" style="background:#444;">💬</button>
-                ${(!isOwner && currentUser) ? `<button class="follow-btn" data-uid="${p.userId}" style="background:#444; font-size:0.7rem;">Cargando...</button>` : ''}
+            <h3>${datos.title}</h3>
+            <p style="color:#7b5cff; font-size:0.8rem; margin-bottom:10px;">@${datos.userEmail.split('@')[0]}</p>
+            <div class="btns" style="display:flex; gap:5px;">
+                <button class="like-btn" style="background:${yaLike ? '#ff4b2b' : '#333'}">❤️ ${datos.likes || 0}</button>
+                <button class="comm-toggle" style="background:#444;">💬</button>
+                ${(!isOwner && userActual) ? `<button class="follow-btn" id="fbtn-${id}" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
             </div>
-            <div id="commentSection_${id}" style="display:none; margin-top:10px;">
-                <div id="commentList_${id}" style="max-height:100px; overflow-y:auto; font-size:0.8rem; text-align:left;"></div>
-                <div style="display:flex; gap:2px; margin-top:5px;">
-                    <input type="text" id="input_${id}" placeholder=".." style="flex:1; font-size:0.7rem;">
-                    <button class="send-comm" data-id="${id}">></button>
+            
+            <div class="comments-area" id="area-${id}" style="display:none;">
+                <div class="list" id="list-${id}" style="max-height:120px; overflow-y:auto; margin-bottom:8px;"></div>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="in-${id}" placeholder="Escribe un comentario..." style="flex:1; padding:5px; font-size:0.8rem;">
+                    <button class="send-btn" style="padding:5px 10px;">></button>
                 </div>
             </div>
-            ${isOwner ? `<button class="del-btn" data-id="${id}" style="background:#ff4b2b; width:100%; margin-top:5px; font-size:0.6rem;">Eliminar</button>` : ''}
         </div>
     `;
 
-    // Asignar eventos a los botones internos
-    div.querySelector('.like-btn').onclick = () => handleLike(id);
-    div.querySelector('.comm-btn').onclick = () => toggleComments(id);
-    if(div.querySelector('.send-comm')) div.querySelector('.send-comm').onclick = () => addComment(id);
-    if(div.querySelector('.del-btn')) div.querySelector('.del-btn').onclick = () => deletePost(id);
-    if(div.querySelector('.follow-btn')) checkFollowStatus(p.userId, div.querySelector('.follow-btn'));
+    // Eventos de los botones
+    box.querySelector('.like-btn').onclick = () => darLike(id, datos.likes || 0);
+    box.querySelector('.comm-toggle').onclick = () => {
+        const area = document.getElementById(`area-${id}`);
+        area.style.display = area.style.display === 'none' ? 'block' : 'none';
+        if(area.style.display === 'block') cargarComentarios(id);
+    };
+    box.querySelector('.send-btn').onclick = () => enviarComentario(id);
+    
+    // Lógica del botón seguir (Solo si existe el botón)
+    const fbtn = box.querySelector('.follow-btn');
+    if(fbtn) checkFollowStatus(datos.userId, fbtn);
 
-    return div;
+    return box;
 }
 
-// --- LOGICA DE DATOS ---
-async function handleLike(id) {
-    if(!currentUser) return openAuth();
-    const postRef = ref(db, `posts/${id}`);
-    const snap = await get(ref(db, `posts/${id}/likedBy/${currentUser.uid}`));
-    const postSnap = await get(postRef);
-    const likes = postSnap.val().likes || 0;
+// --- LIKES ---
+async function darLike(id, numActual) {
+    if(!userActual) return abrirAuth();
+    const lRef = ref(db, `posts/${id}/likedBy/${userActual.uid}`);
+    const pRef = ref(db, `posts/${id}`);
+    const snap = await get(lRef);
     if(snap.exists()) {
-        await remove(ref(db, `posts/${id}/likedBy/${currentUser.uid}`));
-        await update(postRef, { likes: Math.max(0, likes - 1) });
+        await remove(lRef);
+        await update(pRef, { likes: Math.max(0, numActual - 1) });
     } else {
-        await set(ref(db, `posts/${id}/likedBy/${currentUser.uid}`), true);
-        await update(postRef, { likes: likes + 1 });
+        await set(lRef, true);
+        await update(pRef, { likes: numActual + 1 });
     }
 }
 
-function toggleComments(id) {
-    const sec = document.getElementById(`commentSection_${id}`);
-    sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
-    if(sec.style.display === 'block') {
-        onValue(ref(db, `posts/${id}/comments`), snap => {
-            const list = document.getElementById(`commentList_${id}`);
-            list.innerHTML = "";
-            snap.forEach(s => { list.innerHTML += `<p><b>${s.val().user}:</b> ${s.val().text}</p>`; });
+// --- COMENTARIOS ---
+function cargarComentarios(id) {
+    onValue(ref(db, `posts/${id}/comments`), snap => {
+        const div = document.getElementById(`list-${id}`);
+        div.innerHTML = "";
+        snap.forEach(c => {
+            const com = c.val();
+            div.innerHTML += `<p><b>${com.user}:</b> ${com.text}</p>`;
         });
-    }
+        div.scrollTop = div.scrollHeight; // Auto-scroll al último comentario
+    });
 }
 
-async function addComment(id) {
-    const input = document.getElementById(`input_${id}`);
-    if(!input.value.trim() || !currentUser) return;
-    await push(ref(db, `posts/${id}/comments`), { text: input.value, user: currentUser.email.split('@')[0] });
+async function enviarComentario(id) {
+    const input = document.getElementById(`in-${id}`);
+    if(!input.value.trim() || !userActual) return;
+    await push(ref(db, `posts/${id}/comments`), {
+        text: input.value,
+        user: userActual.email.split('@')[0]
+    });
     input.value = "";
 }
 
-function checkFollowStatus(uid, btn) {
-    onValue(ref(db, `follows/${currentUser.uid}/${uid}`), snap => {
-        btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
+// --- SEGUIDORES ---
+function checkFollowStatus(artistUid, btn) {
+    if(!userActual) return;
+    const fRef = ref(db, `follows/${userActual.uid}/${artistUid}`);
+    onValue(fRef, snap => {
+        const existe = snap.exists();
+        btn.innerText = existe ? 'Siguiendo' : 'Seguir';
+        btn.style.background = existe ? '#7b5cff' : '#444';
+        
         btn.onclick = async () => {
-            const fRef = ref(db, `follows/${currentUser.uid}/${uid}`);
-            if((await get(fRef)).exists()) await remove(fRef); else await set(fRef, true);
+            if(existe) await remove(fRef);
+            else await set(fRef, true);
         };
     });
 }
 
-// --- CARGA DE FEEDS ---
+// --- CARGAR FEEDS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     if(feed && feed.style.display !== 'none') {
-        feed.innerHTML = '';
-        snap.forEach(s => feed.prepend(createCard(s.key, s.val(), s.val().userId === currentUser?.uid)));
+        feed.innerHTML = "";
+        snap.forEach(post => {
+            feed.prepend(crearCarta(post.key, post.val()));
+        });
     }
 });
 
-async function renderProfile() {
-    const grid = document.getElementById('profileGrid');
-    grid.innerHTML = '';
-    const snap = await get(ref(db, 'posts'));
-    snap.forEach(s => { if(s.val().userId === currentUser.uid) grid.prepend(createCard(s.key, s.val(), true)); });
-}
-
-// --- AUTH ---
+// --- AUTH LOGIC ---
 onAuthStateChanged(auth, user => {
-    currentUser = user;
-    document.getElementById('uploadBtn').style.display = user ? 'block' : 'none';
-    document.getElementById('loginNavBtn').innerText = user ? 'Salir' : 'Entrar';
+    userActual = user;
+    const uploadBtn = document.getElementById('btnOpenUpload');
+    if(uploadBtn) uploadBtn.style.display = user ? 'block' : 'none';
+    document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
-document.getElementById('authBtn').onclick = () => {
+document.getElementById('btnDoAuth').onclick = () => {
     const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    const action = isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-    action(auth, email, pass).then(() => document.getElementById('authModal').style.display = 'none').catch(e => alert("Error"));
+    const pass = document.getElementById('pass').value;
+    const f = modoLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
+    f(auth, email, pass).then(() => {
+        document.getElementById('modalAuth').style.display='none';
+    }).catch(e => alert("Error: " + e.message));
 };
 
-document.getElementById('toggleAuth').onclick = () => {
-    isLogin = !isLogin;
-    document.getElementById('authTitle').innerText = isLogin ? 'Login' : 'Registro';
+document.getElementById('btnToggleAuth').onclick = () => {
+    modoLogin = !modoLogin;
+    document.getElementById('authTitle').innerText = modoLogin ? 'Login' : 'Registro';
+    document.getElementById('btnToggleAuth').innerText = modoLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entra';
 };
