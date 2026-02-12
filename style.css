@@ -1,124 +1,78 @@
-
-
 body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #080808; color: white; }
 
 #nav { 
-    display: flex; justify-content: space-between; align-items: center; 
-    padding: 15px 5%; background: #141414; position: sticky; top: 0; z-index: 1000; 
-}
-#nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 5%;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px 5%; 
+    background: #141414; 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
     gap: 15px;
 }
 
 .search-container {
-    flex: 1; /* Esto hace que el buscador ocupe el centro */
+    flex: 1;
     display: flex;
     justify-content: center;
+    pointer-events: none; /* Crucial: para que no tape los clics de los botones */
 }
 
 #userSearch {
     width: 100%;
-    max-width: 300px; /* Evita que crezca demasiado */
-    z-index: 10;
-}
-
-.nav-buttons {
-    display: flex;
-    gap: 10px;
-    z-index: 20; /* Asegura que los botones estén "encima" para poder clicar */
-}
-}
-
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 30px 5%; }
-.card { background: #141414; border-radius: 15px; border: 1px solid #222; overflow: hidden; }
-.card img { width: 100%; height: 320px; object-fit: cover; }
-.info { padding: 15px; }
-.info h3 { margin: 0; font-size: 1.1rem; }
-.info p { color: #7b5cff; margin: 5px 0; font-weight: bold; }
-
-.social-actions { display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid #222; padding-top: 10px; align-items: center; }
-.social-actions button { background: #1f1f1f; border: 1px solid #333; color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
-
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-.modal-content { background: #141414; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
-input { width: 100%; padding: 12px; margin: 10px 0; background: #1f1f1f; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
-/* Estilo para el área de comentarios en la card */
-.comments-section {
-    padding: 10px 15px;
-    background: #0d0d0d;
-    border-top: 1px solid #222;
-}
-
-.comment-input {
-    width: 100%;
-    padding: 5px;
-    font-size: 0.8rem;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    color: white;
-    border-radius: 4px;
-}
-
-.comments-list {
-    max-height: 80px;
-    overflow-y: auto;
-    font-size: 0.8rem;
-    margin-bottom: 5px;
-    color: #ccc;
-}
-/* Ajuste del Header */
-#nav {
-    display: flex;
-    justify-content: space-between; /* Espacia los 3 elementos */
-    align-items: center;
-    padding: 10px 5%;
-    gap: 20px;
-}
-
-/* Contenedor del buscador */
-.search-container {
-    flex: 1; /* Esto hace que el buscador use el espacio del centro */
-    display: flex;
-    justify-content: center;
-}
-
-#userSearch {
-    width: 100%;
-    max-width: 400px; /* Para que no se estire demasiado */
+    max-width: 350px;
     background: #1a1a1a;
     border: 1px solid #333;
     color: white;
     padding: 8px 15px;
     border-radius: 20px;
     outline: none;
+    pointer-events: auto; /* Permite escribir */
 }
 
-#userSearch:focus {
-    border-color: #7b5cff;
-}
+#userSearch:focus { border-color: #7b5cff; }
 
-/* Asegurar que los botones no se encojan */
 .nav-buttons {
     display: flex;
     gap: 10px;
     flex-shrink: 0;
+    z-index: 1001;
 }
 
-/* Estilo para los comentarios que inyecta el JS */
+button {
+    cursor: pointer;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    color: white;
+    background: #1f1f1f;
+}
+
+#btnOpenUpload { background: #7b5cff; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 30px 5%; }
+.card { background: #141414; border-radius: 15px; border: 1px solid #222; overflow: hidden; display: flex; flex-direction: column; }
+.card img { width: 100%; height: 320px; object-fit: cover; }
+.info { padding: 15px; }
+.info p { color: #7b5cff; margin: 5px 0; font-weight: bold; }
+
 .comments-area {
     background: #0d0d0d;
-    padding: 10px;
-    border-radius: 0 0 15px 15px;
+    padding: 12px;
+    border-top: 1px solid #222;
 }
 
 .comments-area input {
-    margin-top: 10px;
-    height: 35px;
-    font-size: 0.8rem;
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: white;
+    padding: 6px;
+    border-radius: 5px;
+    margin-top: 8px;
+    box-sizing: border-box;
 }
 
-
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; }
+.modal-content { background: #141414; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
