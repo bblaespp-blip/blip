@@ -15,21 +15,21 @@
         </div>
     </header>
 
-    <div id="feed" class="grid"></div>
+    <main id="feed" class="grid"></main>
 
     <div id="modalUpload" class="modal" style="display:none;">
         <div class="modal-content">
             <h3>Nueva Obra</h3>
             <input type="file" id="fileInput" accept="image/*">
-            <input type="text" id="postTitle" placeholder="Título...">
-            <button id="btnDoUpload">Publicar Ahora</button>
+            <input type="text" id="postTitle" placeholder="Título de la obra...">
+            <button id="btnDoUpload">Publicar</button>
             <button onclick="document.getElementById('modalUpload').style.display='none'" class="btn-sec">Cerrar</button>
         </div>
     </div>
 
     <div id="modalAuth" class="modal" style="display:none;">
         <div class="modal-content">
-            <h3>Acceso</h3>
+            <h3>Acceso Artistas</h3>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Password">
             <button id="btnDoAuth">Confirmar</button>
