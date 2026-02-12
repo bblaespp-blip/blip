@@ -59,5 +59,21 @@
     </div>
 
     <script type="module" src="app.js"></script>
+<!-- ... todo tu HTML anterior ... -->
+
+<!-- Modal Upload y Modal Auth aquí -->
+
+<script type="module">
+  // Espera a que TODO el HTML esté listo
+  document.addEventListener('DOMContentLoaded', () => {
+    import('./app.js').then(module => {
+      // Tu app.js ya se ejecuta aquí, con todos los elementos disponibles
+      console.log('app.js cargado correctamente después del DOM');
+    }).catch(err => {
+      console.error('Error importando app.js:', err);
+    });
+  });
+</script>
 </body>
 </html>
+
