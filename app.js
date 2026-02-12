@@ -20,29 +20,23 @@ let currentUser = null;
 let isLogin = true;
 
 // --- NAVEGACIÓN ---
-window.showFeed = () => {
-    document.getElementById('feed').style.display = 'grid';
-    document.getElementById('followingFeed').style.display = 'none';
-    document.getElementById('profile').style.display = 'none';
+const switchView = (id) => {
+    ['feed', 'followingFeed', 'profile'].forEach(v => {
+        const el = document.getElementById(v);
+        if(el) el.style.display = (v === id) ? 'grid' : 'none';
+    });
 };
 
-window.showFollowing = () => {
-    if(!currentUser) return window.openAuth();
-    document.getElementById('feed').style.display = 'none';
-    document.getElementById('followingFeed').style.display = 'grid';
-    document.getElementById('profile').style.display = 'none';
-    renderFollowingFeed();
-};
+document.getElementById('btnParaTi').onclick = () => switchView('feed');
+document.getElementById('btnSiguiendo').onclick = () => { if(!currentUser) openAuth(); else { switchView('followingFeed'); renderFollowingFeed(); } };
+document.getElementById('btnPerfil').onclick = () => { if(!currentUser) openAuth(); else { switchView('profile'); renderProfile(); } };
+document.getElementById('loginNavBtn').onclick = () => { if(currentUser) signOut(auth); else openAuth(); };
+document.getElementById('uploadBtn').onclick = () => document.getElementById('modal').style.display = 'flex';
+document.getElementById('closeModalBtn').onclick = () => document.getElementById('modal').style.display = 'none';
 
-window.showProfile = () => {
-    if(!currentUser) return window.openAuth();
-    document.getElementById('feed').style.display = 'none';
-    document.getElementById('followingFeed').style.display = 'none';
-    document.getElementById('profile').style.display = 'grid';
-    renderProfile();
-};
+function openAuth() { document.getElementById('authModal').style.display = 'flex'; }
 
-// --- RENDERIZADO DE CARTAS ---
+// --- FUNCIONES DE CARTA ---
 function createCard(id, p, isOwner = false) {
     const div = document.createElement('div');
     div.className = 'card';
@@ -52,161 +46,111 @@ function createCard(id, p, isOwner = false) {
         <img src="${p.url}">
         <div class="info">
             <h3>${p.title}</h3>
-            <p style="color:#7b5cff; font-size:0.8rem;">@${p.userEmail ? p.userEmail.split('@')[0] : 'usuario'}</p>
+            <p style="color:#7b5cff; font-size:0.8rem;">@${p.userEmail ? p.userEmail.split('@')[0] : 'artista'}</p>
             <div style="display:flex; gap:5px; margin-top:10px;">
-                <button onclick="likePost('${id}')" style="background:${isLiked ? '#ff4b2b' : '#333'}">
+                <button class="like-btn" data-id="${id}" style="background:${isLiked ? '#ff4b2b' : '#333'}">
                     ${isLiked ? '❤️' : '🤍'} ${p.likes || 0}
                 </button>
-                <button onclick="toggleComments('${id}')" style="background:#444;">💬</button>
-                ${(!isOwner && currentUser) ? `<button id="follow_${p.userId}" onclick="toggleFollow('${p.userId}')" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
+                <button class="comm-btn" data-id="${id}" style="background:#444;">💬</button>
+                ${(!isOwner && currentUser) ? `<button class="follow-btn" data-uid="${p.userId}" style="background:#444; font-size:0.7rem;">Cargando...</button>` : ''}
             </div>
-            <div id="commentSection_${id}" class="comment-section" style="display:none; padding-top:10px;">
-                <div id="commentList_${id}" class="comment-list"></div>
-                <div class="comment-input-group" style="display:flex; gap:5px;">
-                    <input type="text" id="input_${id}" placeholder="Comentar..." style="flex:1; background:#222; color:#fff; border:1px solid #444; padding:5px; border-radius:5px;">
-                    <button onclick="addComment('${id}')" style="padding:5px 10px;">></button>
+            <div id="commentSection_${id}" style="display:none; margin-top:10px;">
+                <div id="commentList_${id}" style="max-height:100px; overflow-y:auto; font-size:0.8rem; text-align:left;"></div>
+                <div style="display:flex; gap:2px; margin-top:5px;">
+                    <input type="text" id="input_${id}" placeholder=".." style="flex:1; font-size:0.7rem;">
+                    <button class="send-comm" data-id="${id}">></button>
                 </div>
             </div>
-            ${isOwner ? `<button class="btn-delete" onclick="deletePost('${id}')" style="background:#ff4b2b; width:100%; margin-top:10px; padding:5px; border-radius:5px; font-size:0.7rem;">Eliminar</button>` : ''}
+            ${isOwner ? `<button class="del-btn" data-id="${id}" style="background:#ff4b2b; width:100%; margin-top:5px; font-size:0.6rem;">Eliminar</button>` : ''}
         </div>
     `;
-    if(!isOwner && currentUser) checkFollowStatus(p.userId);
+
+    // Asignar eventos a los botones internos
+    div.querySelector('.like-btn').onclick = () => handleLike(id);
+    div.querySelector('.comm-btn').onclick = () => toggleComments(id);
+    if(div.querySelector('.send-comm')) div.querySelector('.send-comm').onclick = () => addComment(id);
+    if(div.querySelector('.del-btn')) div.querySelector('.del-btn').onclick = () => deletePost(id);
+    if(div.querySelector('.follow-btn')) checkFollowStatus(p.userId, div.querySelector('.follow-btn'));
+
     return div;
 }
 
-// --- CARGA DE DATOS ---
+// --- LOGICA DE DATOS ---
+async function handleLike(id) {
+    if(!currentUser) return openAuth();
+    const postRef = ref(db, `posts/${id}`);
+    const snap = await get(ref(db, `posts/${id}/likedBy/${currentUser.uid}`));
+    const postSnap = await get(postRef);
+    const likes = postSnap.val().likes || 0;
+    if(snap.exists()) {
+        await remove(ref(db, `posts/${id}/likedBy/${currentUser.uid}`));
+        await update(postRef, { likes: Math.max(0, likes - 1) });
+    } else {
+        await set(ref(db, `posts/${id}/likedBy/${currentUser.uid}`), true);
+        await update(postRef, { likes: likes + 1 });
+    }
+}
+
+function toggleComments(id) {
+    const sec = document.getElementById(`commentSection_${id}`);
+    sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+    if(sec.style.display === 'block') {
+        onValue(ref(db, `posts/${id}/comments`), snap => {
+            const list = document.getElementById(`commentList_${id}`);
+            list.innerHTML = "";
+            snap.forEach(s => { list.innerHTML += `<p><b>${s.val().user}:</b> ${s.val().text}</p>`; });
+        });
+    }
+}
+
+async function addComment(id) {
+    const input = document.getElementById(`input_${id}`);
+    if(!input.value.trim() || !currentUser) return;
+    await push(ref(db, `posts/${id}/comments`), { text: input.value, user: currentUser.email.split('@')[0] });
+    input.value = "";
+}
+
+function checkFollowStatus(uid, btn) {
+    onValue(ref(db, `follows/${currentUser.uid}/${uid}`), snap => {
+        btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
+        btn.onclick = async () => {
+            const fRef = ref(db, `follows/${currentUser.uid}/${uid}`);
+            if((await get(fRef)).exists()) await remove(fRef); else await set(fRef, true);
+        };
+    });
+}
+
+// --- CARGA DE FEEDS ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
-    if(feed) {
+    if(feed && feed.style.display !== 'none') {
         feed.innerHTML = '';
-        snap.forEach(s => {
-            feed.prepend(createCard(s.key, s.val(), s.val().userId === currentUser?.uid));
-        });
+        snap.forEach(s => feed.prepend(createCard(s.key, s.val(), s.val().userId === currentUser?.uid)));
     }
 });
 
-// --- LIKES ---
-window.likePost = async (id) => {
-    if (!currentUser) return window.openAuth();
-    const likeRef = ref(db, `posts/${id}/likedBy/${currentUser.uid}`);
-    const postRef = ref(db, `posts/${id}`);
-    const snap = await get(likeRef);
-    const postSnap = await get(postRef);
-    let currentLikes = postSnap.val().likes || 0;
-
-    if (snap.exists()) {
-        await remove(likeRef);
-        await update(postRef, { likes: Math.max(0, currentLikes - 1) });
-    } else {
-        await set(likeRef, true);
-        await update(postRef, { likes: currentLikes + 1 });
-    }
-};
-
-// --- COMENTARIOS ---
-window.toggleComments = (postId) => {
-    const section = document.getElementById(`commentSection_${postId}`);
-    if(!section) return;
-    section.style.display = section.style.display === 'none' ? 'block' : 'none';
-    if(section.style.display === 'block') {
-        onValue(ref(db, `posts/${postId}/comments`), snap => {
-            const list = document.getElementById(`commentList_${postId}`);
-            if(!list) return;
-            list.innerHTML = "";
-            snap.forEach(s => { 
-                list.innerHTML += `<p style="font-size:0.8rem; margin:3px 0; text-align:left;"><b>${s.val().user}:</b> ${s.val().text}</p>`; 
-            });
-        });
-    }
-};
-
-window.addComment = async (postId) => {
-    if(!currentUser) return window.openAuth();
-    const input = document.getElementById(`input_${postId}`);
-    if(!input || !input.value.trim()) return;
-    await push(ref(db, `posts/${postId}/comments`), { 
-        text: input.value, 
-        user: currentUser.email.split('@')[0] 
-    });
-    input.value = "";
-};
-
-// --- SEGUIDORES Y MURO ---
-window.toggleFollow = async (artistId) => {
-    if(!currentUser) return window.openAuth();
-    const followRef = ref(db, `follows/${currentUser.uid}/${artistId}`);
-    const snap = await get(followRef);
-    if(snap.exists()) await remove(followRef); else await set(followRef, true);
-};
-
-function checkFollowStatus(artistId) {
-    if(!currentUser) return;
-    onValue(ref(db, `follows/${currentUser.uid}/${artistId}`), snap => {
-        const btn = document.getElementById(`follow_${artistId}`);
-        if(btn) btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
-    });
-}
-
-async function renderFollowingFeed() {
-    const grid = document.getElementById('followingFeed');
-    const followingSnap = await get(ref(db, `follows/${currentUser.uid}`));
-    const followingIds = followingSnap.exists() ? Object.keys(followingSnap.val()) : [];
-    
-    grid.innerHTML = followingIds.length === 0 ? '<p style="grid-column:1/-1;text-align:center;">No sigues a nadie.</p>' : '';
-    
-    onValue(ref(db, 'posts'), snap => {
-        if(grid.style.display !== 'none') {
-            grid.innerHTML = '';
-            snap.forEach(s => { 
-                if(followingIds.includes(s.val().userId)) grid.prepend(createCard(s.key, s.val())); 
-            });
-        }
-    });
-}
-
 async function renderProfile() {
     const grid = document.getElementById('profileGrid');
-    if(!grid) return;
     grid.innerHTML = '';
     const snap = await get(ref(db, 'posts'));
     snap.forEach(s => { if(s.val().userId === currentUser.uid) grid.prepend(createCard(s.key, s.val(), true)); });
 }
 
-window.deletePost = async (id) => { if(confirm("¿Borrar obra?")) await remove(ref(db, `posts/${id}`)); };
-
-// --- AUTENTICACIÓN ---
+// --- AUTH ---
 onAuthStateChanged(auth, user => {
     currentUser = user;
-    const upBtn = document.getElementById('uploadBtn');
-    const logBtn = document.getElementById('loginNavBtn');
-    if(upBtn) upBtn.style.display = user ? 'block' : 'none';
-    if(logBtn) {
-        logBtn.innerText = user ? 'Salir' : 'Entrar';
-        logBtn.onclick = user ? () => signOut(auth).then(()=>location.reload()) : () => window.openAuth();
-    }
+    document.getElementById('uploadBtn').style.display = user ? 'block' : 'none';
+    document.getElementById('loginNavBtn').innerText = user ? 'Salir' : 'Entrar';
 });
 
-window.openAuth = () => { document.getElementById('authModal').style.display = 'flex'; };
+document.getElementById('authBtn').onclick = () => {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    const action = isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
+    action(auth, email, pass).then(() => document.getElementById('authModal').style.display = 'none').catch(e => alert("Error"));
+};
 
-const authBtn = document.getElementById('authBtn');
-if(authBtn) {
-    authBtn.onclick = () => {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        const action = isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-        action(auth, email, pass).then(() => {
-            document.getElementById('authModal').style.display = 'none';
-        }).catch(e => alert("Error: Verifica tus datos"));
-    };
-}
-
-const toggleAuth = document.getElementById('toggleAuth');
-if(toggleAuth) {
-    toggleAuth.onclick = () => { 
-        isLogin = !isLogin; 
-        document.getElementById('authTitle').innerText = isLogin ? 'Login' : 'Registro'; 
-    };
-}
-
-const upBtn = document.getElementById('uploadBtn');
-if(upBtn) upBtn.onclick = () => { document.getElementById('modal').style.display = 'flex'; };
+document.getElementById('toggleAuth').onclick = () => {
+    isLogin = !isLogin;
+    document.getElementById('authTitle').innerText = isLogin ? 'Login' : 'Registro';
+};
