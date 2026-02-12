@@ -1,62 +1,31 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+import { getDatabase, ref, push, onValue, update, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
-    authDomain: "almacenamiento-redsocial.firebaseapp.com",
-    databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
-    projectId: "almacenamiento-redsocial",
-    storageBucket: "almacenamiento-redsocial.appspot.com",
-    appId: "1:562861595597:web:a88c0af7d0c8da44a9c284"
-};
+// ... (Tu firebaseConfig se mantiene igual)
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 let userActual = null;
 
-const CLOUD_NAME = "dz9s37bk0"; 
-const PRESET = "blip_unsigned"; 
+// --- NUEVA FUNCIÓN: BORRAR PUBLICACIÓN ---
+window.borrarPost = async (postId, autorUid) => {
+    if (!userActual || userActual.uid !== autorUid) {
+        return alert("No tienes permiso para borrar esta obra.");
+    }
 
-// --- FUNCIONES INCORPORADAS (EXPORTADAS A WINDOW PARA EL HTML) ---
-
-window.darLike = async (postId, currentLikes) => {
-    if (!userActual) return alert("Inicia sesión para dar like");
-    const postRef = ref(db, `posts/${postId}`);
-    await update(postRef, { likes: (currentLikes || 0) + 1 });
+    if (confirm("¿Estás seguro de que quieres eliminar esta publicación?")) {
+        try {
+            await remove(ref(db, `posts/${postId}`));
+            alert("Publicación eliminada.");
+        } catch (error) {
+            alert("Error al eliminar: " + error.message);
+        }
+    }
 };
 
-window.enviarComentario = async (postId) => {
-    if (!userActual) return alert("Inicia sesión para comentar");
-    const input = document.getElementById(`input-${postId}`);
-    const texto = input.value;
-    
-    if (!texto.trim()) return;
-    const comentariosRef = ref(db, `posts/${postId}/comentarios`);
-    await push(comentariosRef, {
-        usuario: userActual.email.split('@')[0],
-        texto: texto,
-        timestamp: Date.now()
-    });
-    input.value = "";
-};
-
-window.seguirUsuario = async (uidSeguido) => {
-    if (!userActual) return alert("Inicia sesión para seguir artistas");
-    if (userActual.uid === uidSeguido) return alert("No puedes seguirte a ti mismo");
-    
-    const seguimientoRef = ref(db, `users/${userActual.uid}/siguiendo/${uidSeguido}`);
-    await update(seguimientoRef, { activo: true });
-    alert("¡Ahora sigues a este artista!");
-};
-
-window.toggleComs = (id) => {
-    const el = document.getElementById(`box-${id}`);
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
-};
-
-// --- RENDERIZADO DEL FEED ---
+// --- RENDERIZADO DEL FEED (ACTUALIZADO) ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
@@ -65,12 +34,17 @@ onValue(ref(db, 'posts'), snap => {
         const d = p.val();
         const id = p.key;
         const autorNombre = d.userEmail ? d.userEmail.split('@')[0] : "artista";
-        const autorUid = d.userId || ""; // Asegúrate de guardar el userId al subir
+        const autorUid = d.userId || ""; 
+
+        // Verificar si el usuario actual es el dueño
+        const esMio = userActual && userActual.uid === autorUid;
 
         let comsHtml = "";
         if(d.comentarios) {
             Object.values(d.comentarios).forEach(c => {
-                comsHtml += `<div><b>${c.usuario}:</b> ${c.texto}</div>`;
+                comsHtml += `<div style="margin-bottom:5px; border-bottom:1px solid #222; padding-bottom:2px;">
+                                <b style="color:#7b5cff;">${c.usuario}:</b> ${c.texto}
+                             </div>`;
             });
         }
 
@@ -79,18 +53,21 @@ onValue(ref(db, 'posts'), snap => {
         card.innerHTML = `
             <img src="${d.url}">
             <div class="info">
-                <h3>${d.title}</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>${d.title}</h3>
+                    ${esMio ? `<button onclick="borrarPost('${id}', '${autorUid}')" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🗑️</button>` : ''}
+                </div>
                 <p>@${autorNombre}</p>
                 <div class="social-actions">
                     <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
                     <button onclick="toggleComs('${id}')">💬</button>
-                    <button onclick="seguirUsuario('${autorUid}')" class="btn-follow">Seguir</button>
+                    <button onclick="seguirUsuario('${autorUid}')" style="margin-left:auto; border-color:#7b5cff; color:#7b5cff;">Seguir</button>
                 </div>
-                <div id="box-${id}" class="comments-box" style="display:none;">
-                    <div class="comments-list">${comsHtml || "Aún no hay comentarios..."}</div>
-                    <div class="com-input-group">
-                        <input type="text" id="input-${id}" placeholder="Escribe un comentario...">
-                        <button onclick="enviarComentario('${id}')">➤</button>
+                <div id="box-${id}" class="comments-box" style="display:none; text-align:left;">
+                    <div class="comments-list">${comsHtml || "Sin comentarios"}</div>
+                    <div class="com-input-group" style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="input-${id}" placeholder="Comentar..." style="flex:1; padding:5px; background:#222; border:1px solid #333; color:white; border-radius:4px;">
+                        <button onclick="enviarComentario('${id}')" style="background:#7b5cff; border:none; color:white; padding:0 10px; border-radius:4px; cursor:pointer;">➤</button>
                     </div>
                 </div>
             </div>`;
@@ -98,44 +75,4 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- SUBIDA DE IMAGEN (ACTUALIZADA CON USERID) ---
-document.getElementById('btnDoUpload').onclick = async () => {
-    const file = document.getElementById('fileInput').files[0];
-    const title = document.getElementById('postTitle').value;
-    if(!file || !title || !userActual) return alert("Completa los datos");
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', PRESET);
-
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
-    const data = await res.json();
-
-    if(data.secure_url) {
-        await push(ref(db, 'posts'), {
-            url: data.secure_url,
-            title: title,
-            userId: userActual.uid, // Importante para la función de seguir
-            userEmail: userActual.email,
-            likes: 0,
-            timestamp: serverTimestamp()
-        });
-        document.getElementById('modalUpload').style.display = 'none';
-    }
-};
-
-// --- AUTH ---
-onAuthStateChanged(auth, u => {
-    userActual = u;
-    document.getElementById('btnOpenUpload').style.display = u ? 'block' : 'none';
-    document.getElementById('btnLogin').innerText = u ? 'Salir' : 'Entrar';
-});
-
-document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
-document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
-document.getElementById('btnDoAuth').onclick = () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
-    signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
-    document.getElementById('modalAuth').style.display = 'none';
-};
+// ... (El resto del código de subida y auth se mantiene igual)
