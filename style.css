@@ -26,3 +26,27 @@ body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #080808; colo
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 2000; }
 .modal-content { background: #141414; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
 input { width: 100%; padding: 12px; margin: 10px 0; background: #1f1f1f; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+/* Estilo para el área de comentarios en la card */
+.comments-section {
+    padding: 10px 15px;
+    background: #0d0d0d;
+    border-top: 1px solid #222;
+}
+
+.comment-input {
+    width: 100%;
+    padding: 5px;
+    font-size: 0.8rem;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 4px;
+}
+
+.comments-list {
+    max-height: 80px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    color: #ccc;
+}
