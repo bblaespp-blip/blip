@@ -13,7 +13,7 @@
     <div class="nav-buttons">
         <button id="btnHome">Inicio</button>
         <button id="btnFollows">Siguiendo</button>
-        <button id="btnOpenUpload" style="display:none;">Subir Arte</button>
+        <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
         <button id="btnProfile">Perfil</button>
         <button id="btnLogin">Entrar</button>
     </div>
@@ -27,21 +27,31 @@
 
 <div id="modalUpload" class="modal" style="display:none;">
     <div class="modal-content">
-        <h3>Publicar Obra</h3>
-        <input type="file" id="fileInput" accept="image/*">
-        <input type="text" id="postTitle" placeholder="Título de la obra">
-        <button id="btnDoUpload">Publicar</button>
-        <button onclick="document.getElementById('modalUpload').style.display='none'">Cancelar</button>
+        <h3 style="margin-bottom:15px;">Publicar Nueva Obra</h3>
+        
+        <label style="font-size:0.8rem; color:#aaa; text-align:left; display:block; margin-bottom:5px;">Selecciona tu arte:</label>
+        <input type="file" id="fileInput" accept="image/*" style="margin-bottom:15px;">
+        
+        <label style="font-size:0.8rem; color:#aaa; text-align:left; display:block; margin-bottom:5px;">Título de la obra:</label>
+        <input type="text" id="postTitle" placeholder="Ej: Atardecer en óleo" style="margin-bottom:20px;">
+        
+        <div style="display:flex; gap:10px;">
+            <button id="btnDoUpload" style="flex:1;">Publicar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'" style="flex:1; background:#444;">Cancelar</button>
+        </div>
     </div>
 </div>
 
 <div id="modalAuth" class="modal" style="display:none;">
     <div class="modal-content">
-        <h3 id="authTitle">Login</h3>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Contraseña">
+        <h3 id="authTitle">Bienvenido a BLIP</h3>
+        <input type="email" id="email" placeholder="Correo electrónico" style="margin-bottom:10px;">
+        <input type="password" id="pass" placeholder="Contraseña" style="margin-bottom:15px;">
         <button id="btnDoAuth">Confirmar</button>
-        <button id="btnToggleAuth" style="background:none; color:#7b5cff;">¿No tienes cuenta? Regístrate</button>
+        <button id="btnToggleAuth" style="background:none; color:#7b5cff; margin-top:10px; font-size:0.8rem;">
+            ¿No tienes cuenta? Regístrate gratis
+        </button>
+        <button onclick="document.getElementById('modalAuth').style.display='none'" style="background:none; color:#666; font-size:0.7rem;">Cerrar</button>
     </div>
 </div>
 
