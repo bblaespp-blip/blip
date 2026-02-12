@@ -132,3 +132,21 @@ input {
     margin-top: 5px;
     text-align: left;
 }
+/* ... Tus estilos anteriores se mantienen igual ... */
+
+/* Ajuste para los inputs dentro de la caja de comentarios */
+.comments-box input {
+    width: 70%;
+    margin: 0;
+    padding: 8px;
+    font-size: 0.8rem;
+}
+
+.comments-list {
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    padding: 5px;
+    background: #111;
+    border-radius: 5px;
+}
