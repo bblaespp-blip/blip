@@ -166,9 +166,9 @@ main{
     <div class="logo">BLIP</div>
     <nav>
         <button onclick="showFeed()">Inicio</button>
+        <button onclick="showExplore()">Explorar</button>
         <button onclick="showProfile()">Perfil</button>
-        <button>Explorar</button>
-        <button>Login</button>
+        <button onclick="openAuth()">Login</button>
     </nav>
 </header>
 
@@ -254,7 +254,18 @@ function addPost(){
     modal.style.display='none';
 }
 
-function showProfile(){ feed.style.display='none'; profile.style.display='block'; }
+function showProfile(){ feed.style.display='none'; profile.style.display='block'; explore.style.display='none'; }
+function showFeed(){ feed.style.display='block'; profile.style.display='none'; explore.style.display='none'; }
+function showExplore(){ feed.style.display='none'; profile.style.display='none'; explore.style.display='block'; }
+
+const explore = document.createElement('section');
+explore.id = 'explore';
+explore.className = 'grid';
+explore.style.display='none';
+explore.innerHTML = '<div class="card"><div class="info"><h3>Explorar</h3><p>Próximamente tendencias y categorías</p></div></div>';
+document.querySelector('main').appendChild(explore);
+
+(){ feed.style.display='none'; profile.style.display='block'; }
 function showFeed(){ feed.style.display='block'; profile.style.display='none'; }
 
 loadDemo();
