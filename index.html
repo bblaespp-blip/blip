@@ -3,37 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Red de Arte</title>
+    <title>BLIP - Red Arte</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header id="nav">
-        <div class="logo" onclick="location.reload()">BLIP</div>
+        <div class="logo" onclick="location.reload()" style="cursor:pointer; font-weight:bold; color:#a29bfe;">BLIP</div>
         <div class="nav-buttons">
             <button id="btnOpenUpload" style="display:none;">Subir Arte</button>
             <button id="btnLogin">Entrar</button>
         </div>
     </header>
 
-    <main id="feed" class="grid"></main>
+    <div id="feed" class="grid"></div>
 
     <div id="modalUpload" class="modal" style="display:none;">
         <div class="modal-content">
             <h3>Nueva Obra</h3>
             <input type="file" id="fileInput" accept="image/*">
-            <input type="text" id="postTitle" placeholder="Título de la obra...">
+            <input type="text" id="postTitle" placeholder="Título...">
             <button id="btnDoUpload">Publicar</button>
-            <button onclick="document.getElementById('modalUpload').style.display='none'" class="btn-sec">Cerrar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'" style="background:none; color:gray; margin-top:10px; cursor:pointer;">Cerrar</button>
         </div>
     </div>
 
     <div id="modalAuth" class="modal" style="display:none;">
         <div class="modal-content">
-            <h3>Acceso Artistas</h3>
+            <h3>Acceso</h3>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Password">
             <button id="btnDoAuth">Confirmar</button>
-            <button onclick="document.getElementById('modalAuth').style.display='none'" class="btn-sec">Cerrar</button>
+            <button onclick="document.getElementById('modalAuth').style.display='none'" style="background:none; color:gray; margin-top:10px; cursor:pointer;">Cerrar</button>
         </div>
     </div>
 
