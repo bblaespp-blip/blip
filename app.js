@@ -19,9 +19,9 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// --- FUNCIONES DE INTERACCIÓN ---
+// --- FUNCIONES GLOBALES ---
 window.darLike = async (postId, currentLikes) => {
-    if (!userActual) return alert("Inicia sesión para dar like");
+    if (!userActual) return alert("Inicia sesión primero");
     await update(ref(db, `posts/${postId}`), { likes: (currentLikes || 0) + 1 });
 };
 
@@ -35,17 +35,17 @@ window.enviarComentario = async (postId) => {
     const input = document.getElementById(`input-${postId}`);
     if (!input || !input.value.trim()) return;
 
-    const nuevoComentario = {
+    const data = {
         usuario: userActual.email.split('@')[0],
         texto: input.value,
         timestamp: Date.now()
     };
 
-    await push(ref(db, `posts/${postId}/comentarios`), nuevoComentario);
-    input.value = ""; 
+    await push(ref(db, `posts/${postId}/comentarios`), data);
+    input.value = ""; // Limpiar tras enviar
 };
 
-// --- RENDERIZADO DEL FEED (CORREGIDO PARA MOSTRAR COMENTARIOS) ---
+// --- RENDERIZADO EN TIEMPO REAL ---
 onValue(ref(db, 'posts'), snap => {
     const feed = document.getElementById('feed');
     feed.innerHTML = "";
@@ -55,22 +55,22 @@ onValue(ref(db, 'posts'), snap => {
         const id = postSnap.key;
         const autor = d.userEmail ? d.userEmail.split('@')[0] : "artista";
 
-        // 1. EXTRAER COMENTARIOS DE FIREBASE
-        let listaHTML = "";
+        // Generar la lista de comentarios para este post
+        let listaComentariosHTML = "";
         if (d.comentarios) {
-            // Convertimos el objeto de comentarios en un array y lo recorremos
-            Object.values(d.comentarios).forEach(c => {
-                listaHTML += `
-                    <div class="comment-bubble">
-                        <span class="comment-user">@${c.usuario}:</span>
-                        <span class="comment-text">${c.texto}</span>
+            // Convertimos el objeto de FB en array y lo ordenamos por fecha
+            const lista = Object.values(d.comentarios);
+            lista.forEach(c => {
+                listaComentariosHTML += `
+                    <div class="comentario-item" style="padding: 5px 0; border-bottom: 1px solid #333; text-align: left; font-size: 0.85rem;">
+                        <b style="color: #7b5cff;">@${c.usuario}:</b> 
+                        <span style="color: #fff;">${c.texto}</span>
                     </div>`;
             });
         } else {
-            listaHTML = `<p style="color:#666; font-size:0.8rem; padding:5px;">Aún no hay comentarios...</p>`;
+            listaComentariosHTML = `<p style="color: #666; font-size: 0.75rem;">Sé el primero en comentar...</p>`;
         }
 
-        // 2. CREAR LA CARTA
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
@@ -78,15 +78,17 @@ onValue(ref(db, 'posts'), snap => {
             <div class="info">
                 <h3>${d.title}</h3>
                 <p class="tag">@${autor}</p>
-                <div class="actions">
+                <div class="social-bar">
                     <button onclick="darLike('${id}', ${d.likes || 0})">❤️ ${d.likes || 0}</button>
-                    <button onclick="toggleComentarios('${id}')">💬 Comentarios</button>
+                    <button onclick="toggleComentarios('${id}')">💬</button>
                 </div>
-                <div id="box-${id}" class="comment-container" style="display:none;">
-                    <div class="comments-display">${listaHTML}</div>
-                    <div class="comment-input-area">
-                        <input type="text" id="input-${id}" placeholder="Escribe un comentario...">
-                        <button onclick="enviarComentario('${id}')">➤</button>
+                <div id="box-${id}" class="comment-box" style="display:none; background: #111; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                    <div id="list-${id}" class="comment-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;">
+                        ${listaComentariosHTML}
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="input-${id}" placeholder="Escribe..." style="flex: 1; padding: 5px; border-radius: 4px; border: 1px solid #333; background: #222; color: #fff;">
+                        <button onclick="enviarComentario('${id}')" style="background: #7b5cff; border: none; color: white; border-radius: 4px; padding: 5px 10px;">➤</button>
                     </div>
                 </div>
             </div>`;
@@ -94,7 +96,7 @@ onValue(ref(db, 'posts'), snap => {
     });
 });
 
-// --- EL RESTO DEL CÓDIGO (UPLOAD Y AUTH) SE MANTIENE IGUAL ---
+// --- AUTH & UPLOAD ---
 onAuthStateChanged(auth, user => {
     userActual = user;
     document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
@@ -104,15 +106,23 @@ onAuthStateChanged(auth, user => {
 document.getElementById('btnDoUpload').onclick = async () => {
     const file = document.getElementById('fileInput').files[0];
     const title = document.getElementById('postTitle').value;
-    if(!file || !title) return alert("Falta info");
+    if(!file || !title) return alert("Completa los campos");
+    
     const formData = new FormData();
-    formData.append('file', file); formData.append('upload_preset', PRESET);
+    formData.append('file', file);
+    formData.append('upload_preset', PRESET);
+
     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
     const data = await res.json();
+
     if(data.secure_url) {
         await push(ref(db, 'posts'), {
-            url: data.secure_url, title: title, userId: userActual.uid,
-            userEmail: userActual.email, likes: 0, timestamp: serverTimestamp()
+            url: data.secure_url,
+            title: title,
+            userId: userActual.uid,
+            userEmail: userActual.email,
+            likes: 0,
+            timestamp: serverTimestamp()
         });
         document.getElementById('modalUpload').style.display = 'none';
     }
@@ -121,7 +131,8 @@ document.getElementById('btnDoUpload').onclick = async () => {
 document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
 document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
 document.getElementById('btnDoAuth').onclick = () => {
-    const e = document.getElementById('email').value; const p = document.getElementById('pass').value;
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('pass').value;
     signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     document.getElementById('modalAuth').style.display = 'none';
 };
