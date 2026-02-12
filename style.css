@@ -1,43 +1,45 @@
 body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #080808; color: white; }
 
-#nav { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 10px 5%; 
-    background: #141414; 
-    position: sticky; 
-    top: 0; 
-    z-index: 1000; 
-    gap: 15px;
+#nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5%;
+    background: #141414;
+    position: sticky;
+    top: 0;
+    z-index: 9999; /* Muy alto para que nada lo tape */
 }
 
 .search-container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    pointer-events: none; /* Crucial: para que no tape los clics de los botones */
+    position: absolute; /* Lo sacamos del flujo normal */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    pointer-events: none; /* El contenedor NO recibe clics... */
 }
 
 #userSearch {
     width: 100%;
-    max-width: 350px;
+    pointer-events: auto; /* ...pero el input SÍ recibe clics */
     background: #1a1a1a;
     border: 1px solid #333;
     color: white;
     padding: 8px 15px;
     border-radius: 20px;
-    outline: none;
-    pointer-events: auto; /* Permite escribir */
 }
-
-#userSearch:focus { border-color: #7b5cff; }
 
 .nav-buttons {
     display: flex;
     gap: 10px;
-    flex-shrink: 0;
-    z-index: 1001;
+    position: relative;
+    z-index: 10000; /* Un nivel más arriba que el nav */
+}
+
+.nav-buttons button {
+    cursor: pointer !important; /* Fuerza el cursor de mano */
+    position: relative;
+    z-index: 10001;
 }
 
 button {
@@ -76,3 +78,4 @@ button {
 
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; }
 .modal-content { background: #141414; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
+
