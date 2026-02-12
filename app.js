@@ -21,20 +21,13 @@ let isLogin = true;
 
 // --- NAVEGACIÓN ---
 window.showFeed = () => switchView('feed');
-window.showFollowing = () => { 
-    if(!currentUser) return openAuth();
-    switchView('followingFeed');
-    renderFollowingFeed();
-};
-window.showProfile = () => { 
-    if(!currentUser) return openAuth();
-    switchView('profile');
-    renderProfile();
-};
+window.showFollowing = () => { if(!currentUser) return openAuth(); switchView('followingFeed'); renderFollowingFeed(); };
+window.showProfile = () => { if(!currentUser) return openAuth(); switchView('profile'); renderProfile(); };
 
 function switchView(id) {
     ['feed', 'followingFeed', 'profile'].forEach(v => {
-        document.getElementById(v).style.display = v === id ? 'grid' : 'none';
+        const el = document.getElementById(v);
+        if(el) el.style.display = v === id ? 'grid' : 'none';
     });
 }
 
@@ -52,31 +45,25 @@ async function uploadToCloudinary(file) {
 document.getElementById('postBtn').onclick = async () => {
     const file = document.getElementById('imgInput').files[0];
     const title = document.getElementById('imgTitle').value || "Arte";
-    if(!file) return alert("Selecciona una imagen");
+    if(!file) return alert("Selecciona imagen");
     if(file.size > 2 * 1024 * 1024) return alert("Máximo 2MB");
 
     document.getElementById('uploadLoader').style.display = 'block';
-    document.getElementById('postBtn').disabled = true;
-
     try {
         const url = await uploadToCloudinary(file);
         const postRef = push(ref(db, 'posts'));
-        await set(postRef, {
-            url, title, userId: currentUser.uid, userEmail: currentUser.email, likes: 0, date: Date.now()
-        });
+        await set(postRef, { url, title, userId: currentUser.uid, userEmail: currentUser.email, likes: 0, date: Date.now() });
         document.getElementById('modal').style.display = 'none';
-    } catch (e) { alert("Error al subir"); }
-    finally {
-        document.getElementById('uploadLoader').style.display = 'none';
-        document.getElementById('postBtn').disabled = false;
-    }
+    } catch (e) { alert("Error"); }
+    finally { document.getElementById('uploadLoader').style.display = 'none'; }
 };
 
-// --- RENDERIZADO ---
+// --- RENDERIZADO DE CARTAS ---
 function createCard(id, p, isOwner = false) {
     const div = document.createElement('div');
     div.className = 'card';
     const isLiked = p.likedBy && p.likedBy[currentUser?.uid];
+    
     div.innerHTML = `
         <img src="${p.url}">
         <div class="info">
@@ -86,8 +73,18 @@ function createCard(id, p, isOwner = false) {
                 <button onclick="likePost('${id}')" style="background:${isLiked ? '#ff4b2b' : '#333'}">
                     ${isLiked ? '❤️' : '🤍'} ${p.likes || 0}
                 </button>
-                ${!isOwner ? `<button id="follow_${p.userId}" onclick="toggleFollow('${p.userId}')" style="background:#444; font-size:0.7rem;">Cargando...</button>` : ''}
+                <button onclick="toggleComments('${id}')" style="background:#444;">💬</button>
+                ${!isOwner ? `<button id="follow_${p.userId}" onclick="toggleFollow('${p.userId}')" style="background:#444; font-size:0.7rem;">Seguir</button>` : ''}
             </div>
+            
+            <div id="commentSection_${id}" class="comment-section" style="display:none;">
+                <div id="commentList_${id}" class="comment-list"></div>
+                <div class="comment-input-group">
+                    <input type="text" id="input_${id}" placeholder="Comentar...">
+                    <button onclick="addComment('${id}')">></button>
+                </div>
+            </div>
+
             ${isOwner ? `<button class="btn-delete" onclick="deletePost('${id}')">Eliminar</button>` : ''}
         </div>
     `;
@@ -95,98 +92,95 @@ function createCard(id, p, isOwner = false) {
     return div;
 }
 
-// FEED GLOBAL
-onValue(ref(db, 'posts'), snap => {
-    const feed = document.getElementById('feed');
-    feed.innerHTML = '';
-    snap.forEach(s => feed.prepend(createCard(s.key, s.val(), s.val().userId === currentUser?.uid)));
-});
+// --- LOGICA DE COMENTARIOS ---
+window.toggleComments = (postId) => {
+    const section = document.getElementById(`commentSection_${postId}`);
+    const isVisible = section.style.display === 'block';
+    section.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) loadComments(postId);
+};
 
-// MURO PERSONALIZADO
-async function renderFollowingFeed() {
-    const grid = document.getElementById('followingFeed');
-    const followingSnap = await get(ref(db, `follows/${currentUser.uid}`));
-    const followingIds = followingSnap.exists() ? Object.keys(followingSnap.val()) : [];
+window.addComment = async (postId) => {
+    if (!currentUser) return openAuth();
+    const input = document.getElementById(`input_${postId}`);
+    if (!input.value.trim()) return;
+    const commentRef = push(ref(db, `posts/${postId}/comments`));
+    await set(commentRef, { text: input.value, user: currentUser.email.split('@')[0], date: Date.now() });
+    input.value = "";
+};
 
-    if(followingIds.length === 0) {
-        grid.innerHTML = '<p style="text-align:center; grid-column:1/-1;">No sigues a nadie todavía. ¡Explora el contenido global!</p>';
-        return;
-    }
-
-    onValue(ref(db, 'posts'), snap => {
-        grid.innerHTML = '';
+function loadComments(postId) {
+    onValue(ref(db, `posts/${postId}/comments`), snap => {
+        const list = document.getElementById(`commentList_${postId}`);
+        if(!list) return;
+        list.innerHTML = "";
         snap.forEach(s => {
-            if(followingIds.includes(s.val().userId)) grid.prepend(createCard(s.key, s.val()));
+            const c = s.val();
+            list.innerHTML += `<p class="comment-item"><b style="color:#7b5cff">${c.user}:</b> ${c.text}</p>`;
         });
     });
 }
 
-// PERFIL
+// --- FEEDS ---
+onValue(ref(db, 'posts'), snap => {
+    const feed = document.getElementById('feed');
+    if(feed.style.display !== 'none'){
+        feed.innerHTML = '';
+        snap.forEach(s => feed.prepend(createCard(s.key, s.val(), s.val().userId === currentUser?.uid)));
+    }
+});
+
+async function renderFollowingFeed() {
+    const grid = document.getElementById('followingFeed');
+    const followingSnap = await get(ref(db, `follows/${currentUser.uid}`));
+    const followingIds = followingSnap.exists() ? Object.keys(followingSnap.val()) : [];
+    if(followingIds.length === 0) { grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;">No sigues a nadie.</p>'; return; }
+    onValue(ref(db, 'posts'), snap => {
+        grid.innerHTML = '';
+        snap.forEach(s => { if(followingIds.includes(s.val().userId)) grid.prepend(createCard(s.key, s.val())); });
+    });
+}
+
 async function renderProfile() {
     const grid = document.getElementById('profileGrid');
     grid.innerHTML = '';
     const snap = await get(ref(db, 'posts'));
-    snap.forEach(s => {
-        if(s.val().userId === currentUser.uid) grid.prepend(createCard(s.key, s.val(), true));
-    });
+    snap.forEach(s => { if(s.val().userId === currentUser.uid) grid.prepend(createCard(s.key, s.val(), true)); });
 }
 
-// --- ACCIONES MEJORADAS ---
-
-// LIKE REVERSIBLE
+// --- ACCIONES (LIKE Y FOLLOW) ---
 window.likePost = async (id) => {
-    if(!currentUser) return openAuth();
+    if (!currentUser) return openAuth();
+    const likeRef = ref(db, `posts/${id}/likedBy/${currentUser.uid}`);
     const postRef = ref(db, `posts/${id}`);
-    const snap = await get(postRef);
-    const p = snap.val();
-    const likedBy = p.likedBy || {};
-    
-    if(likedBy[currentUser.uid]) {
-        // Quitar Like
-        delete likedBy[currentUser.uid];
-        update(postRef, { likedBy, likes: (p.likes > 0 ? p.likes - 1 : 0) });
+    const snap = await get(likeRef);
+    const postSnap = await get(postRef);
+    const currentLikes = postSnap.val().likes || 0;
+    if (snap.exists()) {
+        await remove(likeRef);
+        await update(postRef, { likes: Math.max(0, currentLikes - 1) });
     } else {
-        // Dar Like
-        likedBy[currentUser.uid] = true;
-        update(postRef, { likedBy, likes: (p.likes || 0) + 1 });
+        await set(likeRef, true);
+        await update(postRef, { likes: currentLikes + 1 });
     }
 };
 
-// SEGUIR / DEJAR DE SEGUIR
 window.toggleFollow = async (artistId) => {
     if(!currentUser) return openAuth();
     const followRef = ref(db, `follows/${currentUser.uid}/${artistId}`);
     const snap = await get(followRef);
-    
-    if(snap.exists()) {
-        await remove(followRef);
-    } else {
-        await set(followRef, true);
-    }
-    // Forzar re-render de botones
-    checkFollowStatus(artistId);
+    if(snap.exists()) await remove(followRef);
+    else await set(followRef, true);
 };
 
 function checkFollowStatus(artistId) {
-    if(!currentUser) return; // Si no hay usuario, no intentamos buscar en 'follows'
-    
-    const followRef = ref(db, `follows/${currentUser.uid}/${artistId}`);
-    onValue(followRef, (snap) => {
+    onValue(ref(db, `follows/${currentUser.uid}/${artistId}`), snap => {
         const btn = document.getElementById(`follow_${artistId}`);
-        if(btn) {
-            btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
-            btn.style.background = snap.exists() ? '#7b5cff' : '#444';
-        }
+        if(btn) btn.innerText = snap.exists() ? 'Siguiendo' : 'Seguir';
     });
 }
-}
 
-window.deletePost = async (id) => {
-    if(confirm("¿Borrar esta obra?")) {
-        await remove(ref(db, `posts/${id}`));
-        renderProfile();
-    }
-};
+window.deletePost = async (id) => { if(confirm("¿Borrar?")) await remove(ref(db, `posts/${id}`)); };
 
 // --- AUTH ---
 onAuthStateChanged(auth, user => {
@@ -195,7 +189,6 @@ onAuthStateChanged(auth, user => {
         document.getElementById('uploadBtn').style.display = 'block';
         document.getElementById('loginNavBtn').innerText = 'Salir';
         document.getElementById('loginNavBtn').onclick = () => signOut(auth).then(()=>location.reload());
-        set(ref(db, 'users/' + user.uid), { email: user.email, uid: user.uid });
     }
 });
 
@@ -206,11 +199,6 @@ document.getElementById('authBtn').onclick = () => {
     action(auth, email, pass).then(()=>document.getElementById('authModal').style.display='none').catch(e=>alert(e.message));
 };
 
-document.getElementById('toggleAuth').onclick = () => {
-    isLogin = !isLogin;
-    document.getElementById('authTitle').innerText = isLogin ? 'Login' : 'Registro';
-};
-
+document.getElementById('toggleAuth').onclick = () => { isLogin = !isLogin; document.getElementById('authTitle').innerText = isLogin ? 'Login' : 'Registro'; };
 window.openAuth = () => document.getElementById('authModal').style.display='flex';
 document.getElementById('uploadBtn').onclick = () => document.getElementById('modal').style.display='flex';
-
