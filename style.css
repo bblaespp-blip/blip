@@ -1,152 +1,233 @@
-
+/* --- ESTILO GLOBAL --- */
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #0b0b0b;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #080808; /* Un negro más profundo */
     color: #ffffff;
+    line-height: 1.6;
 }
 
+/* --- NAVEGACIÓN --- */
 #nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 5%;
-    background: #141414;
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(10px); /* Efecto cristal */
     position: sticky;
     top: 0;
     z-index: 1000;
+    border-bottom: 1px solid #222;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #7b5cff;
+    letter-spacing: -1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logo:hover {
+    text-shadow: 0 0 15px rgba(123, 92, 255, 0.6);
 }
 
 .nav-buttons button {
-    background: #252525;
+    background: #1f1f1f;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    margin-left: 10px;
+    border: 1px solid #333;
+    padding: 10px 22px;
+    border-radius: 10px;
+    margin-left: 12px;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
+    transition: 0.3s;
 }
 
+.nav-buttons button:hover {
+    background: #2a2a2a;
+    border-color: #444;
+}
+
+/* --- FEED Y TARJETAS --- */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 25px;
-    padding: 30px 5%;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 40px 5%;
 }
 
 .card {
-    background: #1a1a1a;
-    border-radius: 15px;
+    background: #141414;
+    border-radius: 20px;
     overflow: hidden;
-    transition: transform 0.3s ease;
+    border: 1px solid #222;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-10px);
+    border-color: #3d3d3d;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
 .card img {
     width: 100%;
-    height: 300px;
+    height: 320px;
     object-fit: cover;
+    display: block;
 }
 
 .info {
-    padding: 15px;
+    padding: 20px;
 }
 
 .info h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    font-weight: 700;
 }
 
 .info p {
-    color: #7b5cff;
-    margin: 8px 0 0;
-    font-weight: bold;
+    color: #a29bfe; /* Color lila suave para el autor */
+    margin: 5px 0 15px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
 }
 
-.modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 2000;
-}
-
-.modal-content {
-    background: #1f1f1f;
-    padding: 30px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 15px 0;
-    background: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    color: white;
-    border-radius: 8px;
-    box-sizing: border-box;
-}
+/* --- ACCIONES SOCIALES (LIKES Y COMS) --- */
 .social-actions {
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    border-top: 1px solid #333;
-    padding-top: 10px;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #222;
 }
 
 .social-actions button {
-    background: none;
-    border: 1px solid #444;
-    color: white;
-    padding: 5px 10px;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    color: #ddd;
+    padding: 8px 16px;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     transition: 0.2s;
 }
 
 .social-actions button:hover {
-    background: #7b5cff;
+    background: #2a2a2a;
+    color: #fff;
     border-color: #7b5cff;
 }
 
+/* --- CAJA DE COMENTARIOS --- */
 .comments-box {
-    margin-top: 10px;
-    background: #252525;
-    padding: 10px;
-    border-radius: 8px;
+    margin-top: 15px;
+    background: #0d0d0d;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #222;
 }
 
 .comments-list {
-    max-height: 100px;
-    overflow-y: auto;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    text-align: left;
-}
-/* ... Tus estilos anteriores se mantienen igual ... */
-
-/* Ajuste para los inputs dentro de la caja de comentarios */
-.comments-box input {
-    width: 70%;
-    margin: 0;
-    padding: 8px;
-    font-size: 0.8rem;
-}
-
-.comments-list {
-    max-height: 120px;
+    max-height: 150px;
     overflow-y: auto;
     font-size: 0.85rem;
-    padding: 5px;
-    background: #111;
-    border-radius: 5px;
+    text-align: left;
+    margin-bottom: 15px;
+    padding-right: 5px;
+}
+
+.comments-list div {
+    padding: 6px 0;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.comments-list b {
+    color: #7b5cff;
+    margin-right: 6px;
+}
+
+/* Area para escribir comentario */
+.com-input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.com-input-group input {
+    flex: 1;
+    margin: 0 !important; /* Quita el margen de los inputs globales */
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    background: #1a1a1a !important;
+}
+
+.com-input-group button {
+    background: #7b5cff;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* --- MODALES --- */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.92);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #141414;
+    padding: 35px;
+    border-radius: 25px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    border: 1px solid #333;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0 20px 0;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 12px;
+    box-sizing: border-box;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #7b5cff;
+    background: #252525;
+}
+
+/* --- SCROLLBAR PERSONALIZADA --- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0b0b0b;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
 }
