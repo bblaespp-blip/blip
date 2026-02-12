@@ -1,58 +1,40 @@
 import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
 const db = getDatabase();
 const auth = getAuth();
-let currentUserEmail = '';
-let currentUserId = '';
 
-// Crear panel de chat global
 const globalChatDiv = document.createElement('div');
 globalChatDiv.id = 'globalChat';
-globalChatDiv.style.cssText = 'position:fixed;bottom:10px;left:50%;transform:translateX(-50%);width:400px;height:300px;background:#f0f0f0;border-radius:10px;padding:10px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.2);z-index:10000;';
-const chatHeader = document.createElement('h4');
-chatHeader.innerText = 'Chat Global';
-globalChatDiv.appendChild(chatHeader);
-const messagesDiv = document.createElement('div');
-messagesDiv.id='globalMessages';
-messagesDiv.style.height='220px';
-messagesDiv.style.overflowY='auto';
-globalChatDiv.appendChild(messagesDiv);
-const input = document.createElement('input');
-input.id='globalInput';
-input.placeholder='Escribe un mensaje...';
-input.style.width='75%';
-const sendBtn = document.createElement('button');
-sendBtn.innerText='Enviar';
-globalChatDiv.appendChild(input);
-globalChatDiv.appendChild(sendBtn);
+globalChatDiv.style.cssText = 'position:fixed;bottom:80px;right:20px;width:300px;height:350px;background:#222;border-radius:10px;padding:15px;display:none;flex-direction:column;box-shadow:0 0 20px rgba(0,0,0,0.5);z-index:4000;';
+globalChatDiv.innerHTML = `<h4>Chat Global</h4><div id="globalMsgs" style="flex:1; overflow-y:auto; font-size:14px; margin-bottom:10px;"></div>
+<input id="globalInput" placeholder="Mensaje..." style="width:100%; box-sizing:border-box;">`;
+
 document.body.appendChild(globalChatDiv);
 
-onAuthStateChanged(auth,user=>{
-  if(user){
-    currentUserEmail = user.email;
-    currentUserId = user.uid;
-  }
-});
+window.toggleGlobalChat = () => {
+    globalChatDiv.style.display = globalChatDiv.style.display === 'none' ? 'flex' : 'none';
+};
 
-// Enviar mensaje global
-sendBtn.onclick = ()=>{
-  const text = input.value.trim();
-  if(!text) return;
-  const msgRef = push(ref(db,'globalChat'));
-  set(msgRef,{ from: currentUserEmail, text, date: Date.now() });
-  input.value='';
-}
+const input = document.getElementById('globalInput');
+input.onkeypress = (e) => {
+    if(e.key === 'Enter' && auth.currentUser) {
+        const msgRef = push(ref(db, 'globalChat'));
+        set(msgRef, {
+            from: auth.currentUser.email.split('@')[0],
+            text: input.value,
+            date: Date.now()
+        });
+        input.value = '';
+    }
+};
 
-// Mostrar mensajes en tiempo real
-onValue(ref(db,'globalChat'),snapshot=>{
-  messagesDiv.innerHTML='';
-  snapshot.forEach(s=>{
-    const msg = s.val();
-    const p = document.createElement('p');
-    const date = new Date(msg.date);
-    p.innerHTML=`<b>${msg.from}</b> [${date.getHours()}:${date.getMinutes()}]: ${msg.text}`;
-    messagesDiv.appendChild(p);
-  });
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+onValue(ref(db, 'globalChat'), snap => {
+    const box = document.getElementById('globalMsgs');
+    box.innerHTML = '';
+    snap.forEach(s => {
+        const m = s.val();
+        box.innerHTML += `<p style="margin:5px 0"><b>${m.from}:</b> ${m.text}</p>`;
+    });
+    box.scrollTop = box.scrollHeight;
 });
