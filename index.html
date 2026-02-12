@@ -7,60 +7,57 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<header id="nav">
-    <div class="logo-section">
-        <div class="logo" onclick="location.reload()">BLIP</div>
-    </div>
-    
-    <div class="search-container">
-        <input type="text" id="userSearch" placeholder="Buscar artistas...">
-    </div>
-
-    <div class="nav-buttons">
-        <button id="btnHome">Inicio</button>
-        <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
-        <button id="btnLogin">Entrar</button>
-    </div>
-</header>
-
-<main id="app-container">
-    <div id="profile-header" style="display:none; text-align:center; padding:30px; background:#111; border-radius:15px; margin-bottom:20px; border:1px solid #222;">
-        <h2 id="profile-name" style="color:#7b5cff; margin:0;">@usuario</h2>
-        <p id="profile-bio" style="color:#aaa; font-style:italic; margin:10px 0;">¡Nuevo artista!</p>
-        <div style="display:flex; gap:20px; justify-content:center; margin-bottom:15px;">
-            <span id="profile-stats"><b>0</b> Publicaciones</span>
-            <span id="profile-followers"><b>0</b> Seguidores</span>
+    <header id="nav">
+        <div class="logo" onclick="location.reload()" style="cursor:pointer">BLIP</div>
+        <div class="nav-buttons">
+            <button id="btnParaTi">Para Ti</button>
+            <button id="btnMiPerfil">Mi Perfil</button>
+            <button id="btnOpenUpload" style="display:none; background:#7b5cff;">Subir Arte</button>
+            <button id="btnLogin">Entrar</button>
         </div>
-        <div style="display:flex; gap:10px; justify-content:center;">
-            <button id="btnFollow" style="background:#7b5cff; border:none; color:white; padding:8px 20px; border-radius:20px; cursor:pointer;">Seguir</button>
-            <button id="btnCerrarPerfil" style="background:#333; border:none; color:white; padding:8px 20px; border-radius:20px; cursor:pointer;">Volver</button>
+    </header>
+
+    <main id="app-container">
+        <!-- Perfil Header (se muestra cuando se abre un perfil) -->
+        <div id="profile-header" class="profile-header" style="display:none;">
+            <button onclick="cerrarPerfil()" class="back-btn">← Volver</button>
+            <div class="profile-info">
+                <h2 id="profile-name">@usuario</h2>
+                <p id="profile-bio">Cargando biografía...</p>
+                <div class="profile-stats">
+                    <span id="profile-stats-posts"><b>0</b> Publicaciones</span>
+                    <span id="profile-stats-followers"><b>0</b> Seguidores</span>
+                </div>
+                <button id="btnFollow" style="display:none;">Seguir</button>
+            </div>
+        </div>
+
+        <!-- Feed principal -->
+        <div id="feed" class="grid"></div>
+    </main>
+
+    <!-- Modal Subir -->
+    <div id="modalUpload" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Nueva Obra</h3>
+            <input type="file" id="fileInput" accept="image/*">
+            <input type="text" id="postTitle" placeholder="Título de la obra">
+            <button id="btnDoUpload">Publicar</button>
+            <button onclick="document.getElementById('modalUpload').style.display='none'">Cancelar</button>
         </div>
     </div>
 
-    <div id="feed" class="grid"></div> 
-</main>
-
-<div id="modalAuth" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Acceso Artistas</h3>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Contraseña">
-        <button id="btnDoAuth">Confirmar</button>
-        <button onclick="document.getElementById('modalAuth').style.display='none'">Cerrar</button>
+    <!-- Modal Login -->
+    <div id="modalAuth" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Acceso para Artistas</h3>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button id="btnDoAuth">Iniciar / Registrarse</button>
+            <button onclick="document.getElementById('modalAuth').style.display='none'">Cerrar</button>
+        </div>
     </div>
-</div>
 
-<div id="modalUpload" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Nueva Obra</h3>
-        <input type="file" id="fileInput" accept="image/*">
-        <input type="text" id="postTitle" placeholder="Título de la obra">
-        <button id="btnDoUpload">Publicar</button>
-        <button onclick="document.getElementById('modalUpload').style.display='none'">Cancelar</button>
-    </div>
-</div>
-
-<script type="module" src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
