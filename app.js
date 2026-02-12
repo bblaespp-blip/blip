@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -14,85 +14,85 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-
 let userActual = null;
 
-const CLOUD_NAME = "dz9s37bk0";
-const PRESET = "blip_unsigned";
+// TUS DATOS DE CLOUDINARY (Verificados)
+const CLOUD_NAME = "dz9s37bk0"; 
+const PRESET = "blip_unsigned"; 
 
-// SUBIR POST
-btnDoUpload.onclick = async () => {
-    if(!userActual) return alert("Debes iniciar sesión");
-    const file = fileInput.files[0];
-    if(!file || !postTitle.value) return alert("Completa todo");
+// --- FUNCIÓN DE SUBIDA ---
+document.getElementById('btnDoUpload').onclick = async () => {
+    const file = document.getElementById('fileInput').files[0];
+    const titleInput = document.getElementById('postTitle');
+    const btn = document.getElementById('btnDoUpload');
+
+    if(!file || !titleInput.value) return alert("Selecciona una imagen y escribe un título");
+
+    btn.innerText = "Subiendo...";
+    btn.disabled = true;
 
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", PRESET);
+    formData.append('file', file);
+    formData.append('upload_preset', PRESET);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{
-        method:"POST",
-        body:formData
-    });
+    try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
 
-    const data = await res.json();
-
-    await push(ref(db,'posts'),{
-        url: data.secure_url,
-        title: postTitle.value,
-        userEmail: userActual.email,
-        userId: userActual.uid,
-        time: Date.now()
-    });
-
-    modalUpload.style.display="none";
-    postTitle.value="";
+        if(data.secure_url) {
+            await push(ref(db, 'posts'), {
+                url: data.secure_url,
+                title: titleInput.value,
+                userEmail: userActual.email,
+                timestamp: Date.now()
+            });
+            alert("¡Obra publicada con éxito!");
+            document.getElementById('modalUpload').style.display = 'none';
+            titleInput.value = "";
+        } else {
+            alert("Error de Cloudinary: " + (data.error ? data.error.message : "Desconocido"));
+        }
+    } catch (e) {
+        alert("Error de conexión al subir");
+    } finally {
+        btn.innerText = "Publicar Ahora";
+        btn.disabled = false;
+    }
 };
 
-// CARGAR FEED
-onValue(ref(db,'posts'),snap=>{
-    feed.innerHTML="";
-    snap.forEach(p=>{
-        const d=p.val();
-        const esMio = userActual && d.userId === userActual.uid;
-
-        const card=document.createElement("div");
-        card.className="card";
-        card.innerHTML=`
-        ${esMio?`<button class="deleteBtn" data-id="${p.key}">🗑</button>`:""}
-        <img src="${d.url}">
-        <div class="info">
-            <h3>${d.title}</h3>
-            <p>@${d.userEmail.split('@')[0]}</p>
-        </div>`;
-
+// --- CARGAR FEED ---
+onValue(ref(db, 'posts'), snap => {
+    const feed = document.getElementById('feed');
+    feed.innerHTML = "";
+    snap.forEach(p => {
+        const d = p.val();
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <img src="${d.url}">
+            <div class="info">
+                <h3>${d.title}</h3>
+                <p>@${d.userEmail.split('@')[0]}</p>
+            </div>`;
         feed.prepend(card);
     });
 });
 
-// BORRAR POST
-feed.onclick=e=>{
-    if(e.target.classList.contains("deleteBtn")){
-        const id=e.target.dataset.id;
-        if(confirm("¿Eliminar esta obra?")){
-            remove(ref(db,'posts/'+id));
-        }
-    }
-};
-
-// SESIÓN
-onAuthStateChanged(auth,u=>{
-    userActual=u;
-    btnOpenUpload.style.display=u?"block":"none";
-    btnLogin.innerText=u?"Salir":"Entrar";
+// --- MANEJO DE SESIÓN ---
+onAuthStateChanged(auth, user => {
+    userActual = user;
+    document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
+    document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
 });
 
-btnLogin.onclick=()=>userActual?signOut(auth):modalAuth.style.display="flex";
-btnOpenUpload.onclick=()=>modalUpload.style.display="flex";
-
-btnDoAuth.onclick=()=>{
-    const e=email.value,p=pass.value;
-    signInWithEmailAndPassword(auth,e,p)
-    .catch(()=>createUserWithEmailAndPassword(auth,e,p));
-    modalAuth.style.display="none";
+document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
+document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+document.getElementById('btnDoAuth').onclick = () => {
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('pass').value;
+    signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
+    document.getElementById('modalAuth').style.display = 'none';
 };
