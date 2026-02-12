@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+    apiKey: "388153554154555",
     authDomain: "almacenamiento-redsocial.firebaseapp.com",
     databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
     projectId: "almacenamiento-redsocial",
@@ -86,3 +86,4 @@ document.getElementById('btnDoAuth').onclick = () => {
     signInWithEmailAndPassword(auth, e, p).catch(() => createUserWithEmailAndPassword(auth, e, p));
     document.getElementById('modalAuth').style.display = 'none';
 };
+
