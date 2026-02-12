@@ -2,16 +2,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, push, onValue, update, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-// 1. CONFIGURACIÓN (Siempre al principio)
+// 1. CONFIGURACIÓN (Debe ir primero para evitar el error 'not defined')
 const firebaseConfig = {
-  apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
-  authDomain: "almacenamiento-redsocial.firebaseapp.com",
-  databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
-  projectId: "almacenamiento-redsocial",
-  storageBucket: "almacenamiento-redsocial.firebasestorage.app",
-  messagingSenderId: "562861595597",
-  appId: "1:562861595597:web:a88c0af7d0c8da44a9c284",
-  measurementId: "G-K8B422VPD9"
+    apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+    authDomain: "almacenamiento-redsocial.firebaseapp.com",
+    databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+    projectId: "almacenamiento-redsocial",
+    storageBucket: "almacenamiento-redsocial.appspot.com",
+    appId: "1:562861595597:web:a88c0af7d0c8da44a9c284"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -22,7 +20,7 @@ let userActual = null;
 const CLOUD_NAME = "dz9s37bk0"; 
 const PRESET = "blip_unsigned"; 
 
-// 2. FUNCIONES DE INTERACCIÓN (Disponibles para el HTML)
+// 2. FUNCIONES DE INTERACCIÓN
 window.darLike = async (postId, currentLikes) => {
     if (!userActual) return alert("Inicia sesión para dar like");
     await update(ref(db, `posts/${postId}`), { likes: (currentLikes || 0) + 1 });
@@ -44,14 +42,12 @@ window.seguirUsuario = async (uidSeguido) => {
     if (!userActual) return alert("Inicia sesión para seguir");
     if (!uidSeguido || uidSeguido === userActual.uid) return alert("No puedes seguirte a ti mismo");
     await update(ref(db, `users/${userActual.uid}/siguiendo/${uidSeguido}`), { activo: true });
-    alert("¡Ahora sigues a este artista!");
+    alert("¡Artista seguido!");
 };
 
 window.borrarPost = async (postId, autorUid) => {
     if (userActual && userActual.uid === autorUid) {
-        if (confirm("¿Seguro que quieres borrar tu obra?")) {
-            await remove(ref(db, `posts/${postId}`));
-        }
+        if (confirm("¿Borrar esta obra?")) await remove(ref(db, `posts/${postId}`));
     }
 };
 
@@ -107,17 +103,8 @@ onValue(ref(db, 'posts'), snap => {
 
 // 4. LÓGICA DE NAVEGACIÓN Y AUTH
 document.getElementById('btnHome').onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
-
-onAuthStateChanged(auth, u => {
-    userActual = u;
-    document.getElementById('btnOpenUpload').style.display = u ? 'block' : 'none';
-    document.getElementById('btnLogin').innerText = u ? 'Salir' : 'Entrar';
-});
-
-document.getElementById('btnLogin').onclick = () => {
-    if(userActual) signOut(auth);
-    else document.getElementById('modalAuth').style.display = 'flex';
-};
+document.getElementById('btnOpenUpload').onclick = () => document.getElementById('modalUpload').style.display = 'flex';
+document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : (document.getElementById('modalAuth').style.display = 'flex');
 
 document.getElementById('btnDoAuth').onclick = () => {
     const e = document.getElementById('email').value, p = document.getElementById('pass').value;
@@ -126,21 +113,32 @@ document.getElementById('btnDoAuth').onclick = () => {
 };
 
 document.getElementById('btnDoUpload').onclick = async () => {
-    const file = document.getElementById('fileInput').files[0], title = document.getElementById('postTitle').value;
-    if(!file || !title) return alert("Falta imagen o título");
+    const file = document.getElementById('fileInput').files[0], titleInput = document.getElementById('postTitle');
+    if(!file || !titleInput.value) return alert("Falta imagen o título");
+    
+    const btn = document.getElementById('btnDoUpload');
+    btn.innerText = "Subiendo...";
     
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', PRESET);
     
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
-    const data = await res.json();
-
-    if(data.secure_url) {
-        await push(ref(db, 'posts'), {
-            url: data.secure_url, title: title, userId: userActual.uid, userEmail: userActual.email, likes: 0, timestamp: serverTimestamp()
-        });
-        document.getElementById('modalUpload').style.display = 'none';
-    }
+    try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if(data.secure_url) {
+            await push(ref(db, 'posts'), {
+                url: data.secure_url, title: titleInput.value, userId: userActual.uid, userEmail: userActual.email, likes: 0, timestamp: serverTimestamp()
+            });
+            document.getElementById('modalUpload').style.display = 'none';
+            titleInput.value = "";
+        }
+    } catch (e) { alert("Error al subir"); }
+    btn.innerText = "Publicar Ahora";
 };
 
+onAuthStateChanged(auth, u => {
+    userActual = u;
+    document.getElementById('btnOpenUpload').style.display = u ? 'block' : 'none';
+    document.getElementById('btnLogin').innerText = u ? 'Salir' : 'Entrar';
+});
