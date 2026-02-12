@@ -93,3 +93,42 @@ input {
     border-radius: 8px;
     box-sizing: border-box;
 }
+.social-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    border-top: 1px solid #333;
+    padding-top: 10px;
+}
+
+.social-actions button {
+    background: none;
+    border: 1px solid #444;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.social-actions button:hover {
+    background: #7b5cff;
+    border-color: #7b5cff;
+}
+
+.comments-box {
+    margin-top: 10px;
+    background: #252525;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.comments-list {
+    max-height: 100px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    text-align: left;
+}
+
