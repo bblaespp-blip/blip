@@ -12,9 +12,9 @@
 <header>
   <h1>BLIP</h1>
   <nav>
-    <button onclick="showFeed()">Inicio</button>
-    <button onclick="showUpload()">Subir</button>
-    <button onclick="logout()">Salir</button>
+    <button id="btnFeed">Inicio</button>
+    <button id="btnUpload">Subir</button>
+    <button id="btnLogout">Salir</button>
   </nav>
 </header>
 
@@ -24,9 +24,7 @@
   <h3>💬 Chat Global</h3>
   <div id="globalChatBox"></div>
   <input id="globalInput" placeholder="Escribe un mensaje...">
-  <button onclick="sendGlobalMessage()">Enviar</button>
+  <button id="btnSendChat">Enviar</button>
 </section>
 
-<script type="module" src="app.js"></script>
-</body>
-</html>
+<scr
