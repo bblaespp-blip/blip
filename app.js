@@ -30,9 +30,9 @@ onAuthStateChanged(auth, user => {
     userActual = user;
     console.log("Sesión activa:", user.uid);
     listenGlobalChat();
-    showFeed(); // Cargar galería al iniciar
+    showFeed(); 
   } else {
-    signInAnonymously(auth);
+    signInAnonymously(auth).catch(err => console.error("Error Auth:", err));
   }
 });
 
@@ -50,33 +50,29 @@ function sendGlobalMessage(){
   input.value = "";
 }
 
-function openCloudinaryWidget() {
-  window.cloudinary.openUploadWidget({
-    cloudName: cloudName,
-    uploadPreset: uploadPreset,
-    sources: ['local', 'camera'],
-    theme: "purple"
-  }, (error, result) => {
-    if (!error && result && result.event === "success") {
-      
-      // Verificamos que el usuario ya cargó
-      if (userActual) {
-        push(ref(db, "posts"), {
-          user: "Artista_" + userActual.uid.substring(0,4),
-          image: result.info.secure_url,
-          time: Date.now()
-        });
-        alert("¡Imagen publicada!");
-        showFeed(); 
-      } else {
-        alert("Error: Espera un segundo a que el sistema te reconozca.");
-      }
-    }
+function listenGlobalChat(){
+  const chatBox = document.getElementById("globalChatBox");
+  if(!chatBox) return;
+  
+  chatBox.innerHTML = ""; // Limpiar antes de cargar
+  onChildAdded(ref(db, "globalChat"), snap => {
+    const msg = snap.val();
+    const div = document.createElement("div");
+    div.className = "chat-msg";
+    div.style.marginBottom = "5px";
+    div.innerHTML = `<b style="color:#7c7cff;">${msg.user}:</b> ${msg.text}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
   });
 }
 
 // --- SUBIDA A CLOUDINARY Y GUARDADO EN FIREBASE ---
 function openCloudinaryWidget() {
+  if (!userActual) {
+    alert("Espera a que el sistema te reconozca...");
+    return;
+  }
+
   window.cloudinary.openUploadWidget({
     cloudName: cloudName,
     uploadPreset: uploadPreset,
@@ -91,7 +87,7 @@ function openCloudinaryWidget() {
         time: Date.now()
       });
       alert("¡Arte publicado con éxito!");
-      showFeed(); // Regresar al feed para ver la foto
+      showFeed(); 
     }
   });
 }
@@ -101,7 +97,6 @@ window.showFeed = function() {
   feed.innerHTML = "<h2>🚀 Galería de la Comunidad</h2><div id='galeria' style='display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:15px; padding:10px;'></div>";
   const galeria = document.getElementById("galeria");
   
-  // Escuchar nuevos posts en Firebase
   onChildAdded(ref(db, "posts"), snap => {
     const post = snap.val();
     const card = document.createElement("div");
@@ -110,7 +105,7 @@ window.showFeed = function() {
         <img src="${post.image}" style="width:100%; border-radius:8px; display:block;">
         <p style="margin-top:10px; font-size:12px; color:#7c7cff;">Por: ${post.user}</p>
     `;
-    galeria.prepend(card); // Poner la foto más nueva arriba
+    galeria.prepend(card);
   });
 };
 
@@ -127,22 +122,23 @@ window.showUpload = function() {
 
 // --- CONFIGURACIÓN DE EVENTOS ---
 document.addEventListener("DOMContentLoaded", () => {
-  // Navegación
   document.getElementById("btnFeed").onclick = showFeed;
   document.getElementById("btnUpload").onclick = showUpload;
   document.getElementById("btnLogout").onclick = () => signOut(auth);
   
-  // Chat
-  document.getElementById("btnSendChat").onclick = sendGlobalMessage;
-  document.getElementById("globalInput").onkeypress = (e) => {
-    if(e.key === "Enter") sendGlobalMessage();
-  };
+  const btnChat = document.getElementById("btnSendChat");
+  if(btnChat) btnChat.onclick = sendGlobalMessage;
 
-  // Clic en botones creados dinámicamente
+  const chatInput = document.getElementById("globalInput");
+  if(chatInput) {
+    chatInput.onkeypress = (e) => {
+      if(e.key === "Enter") sendGlobalMessage();
+    };
+  }
+
   document.addEventListener("click", (e) => {
     if(e.target && e.target.id === "btnRealUpload") {
       openCloudinaryWidget();
     }
   });
 });
-
