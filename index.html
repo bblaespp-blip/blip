@@ -2,56 +2,31 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BLIP - Red Social de Arte</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<header id="nav">
-  <div class="logo" onclick="location.reload()">BLIP</div>
-  <div class="nav-buttons">
-    <button id="btnHome">Inicio</button>
-    <button id="btnOpenUpload" style="display:none;background:#7b5cff;">Subir</button>
-    <button id="btnLogin">Entrar</button>
-  </div>
+<header>
+  <h1>BLIP</h1>
+  <nav>
+    <button onclick="showFeed()">Inicio</button>
+    <button onclick="showUpload()">Subir</button>
+    <button onclick="logout()">Salir</button>
+  </nav>
 </header>
 
-<main id="app">
-  <div id="profile-header" class="profile-header" style="display:none;"></div>
-  <div id="feed" class="grid"></div>
-</main>
+<main id="feed"></main>
 
-<div id="modalAuth" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Acceso</h3>
-    <input id="email" type="email" placeholder="Email">
-    <input id="pass" type="password" placeholder="Contraseña">
-    <button id="btnDoAuth">Entrar / Crear</button>
-  </div>
-</div>
-
-<div id="modalUpload" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Nueva Obra</h3>
-    <input id="fileInput" type="file" accept="image/*">
-    <input id="postTitle" placeholder="Título">
-    <button id="btnDoUpload">Publicar</button>
-  </div>
-</div>
+<section id="chat">
+  <h3>💬 Chat Global</h3>
+  <div id="globalChatBox"></div>
+  <input id="globalInput" placeholder="Escribe un mensaje...">
+  <button onclick="sendGlobalMessage()">Enviar</button>
+</section>
 
 <script type="module" src="app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <div id="global-chat" class="global-chat">
-  <div class="chat-header">💬 Chat Global</div>
-  <div id="chat-messages" class="chat-messages"></div>
-  <div class="chat-input">
-    <input id="chatText" placeholder="Escribe un mensaje...">
-    <button id="btnSendChat">Enviar</button>
-  </div>
-</div>
 </body>
 </html>
-
-
