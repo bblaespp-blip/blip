@@ -194,26 +194,46 @@ const chatBox = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chatText');
 const btnSendChat = document.getElementById('btnSendChat');
 
-onValue(ref(db,'globalChat'), snap=>{
-  chatBox.innerHTML="";
-  snap.forEach(m=>{
-    const d=m.val();
-    const p=document.createElement('p');
-    p.innerHTML=`<b>@${d.user}:</b> ${d.text}`;
-    chatBox.appendChild(p);
-  });
-  chatBox.scrollTop = chatBox.scrollHeight;
-});
+function initChat(){
+  if(!btnSendChat) return;
 
-btnSendChat.onclick=()=>{
-  if(!userActual || !chatInput.value.trim()) return;
-  push(ref(db,'globalChat'),{
-    uid:userActual.uid,
-    user:userActual.email.split('@')[0],
-    text:chatInput.value,
-    timestamp:Date.now()
+  btnSendChat.addEventListener('click', enviarMensaje);
+
+  chatInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter') enviarMensaje();
   });
+
+  onValue(ref(db,'globalChat'), snap=>{
+    chatBox.innerHTML="";
+    snap.forEach(m=>{
+      const d = m.val();
+      const p = document.createElement('p');
+      p.innerHTML = `<b>@${d.user}:</b> ${d.text}`;
+      chatBox.appendChild(p);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+}
+
+function enviarMensaje(){
+  if(!userActual){
+    alert("Debes iniciar sesión");
+    return;
+  }
+  if(!chatInput.value.trim()) return;
+
+  push(ref(db,'globalChat'),{
+    uid: userActual.uid,
+    user: userActual.email.split('@')[0],
+    text: chatInput.value,
+    timestamp: Date.now()
+  });
+
   chatInput.value="";
+}
+
+initChat();
 };
 
 renderFeed();
+
