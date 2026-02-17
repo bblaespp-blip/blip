@@ -50,16 +50,28 @@ function sendGlobalMessage(){
   input.value = "";
 }
 
-function listenGlobalChat(){
-  const chatBox = document.getElementById("globalChatBox");
-  chatBox.innerHTML = ""; 
-  onChildAdded(ref(db, "globalChat"), snap => {
-    const msg = snap.val();
-    const div = document.createElement("div");
-    div.className = "chat-msg";
-    div.innerHTML = `<b>${msg.user}:</b> ${msg.text}`;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
+function openCloudinaryWidget() {
+  window.cloudinary.openUploadWidget({
+    cloudName: cloudName,
+    uploadPreset: uploadPreset,
+    sources: ['local', 'camera'],
+    theme: "purple"
+  }, (error, result) => {
+    if (!error && result && result.event === "success") {
+      
+      // Verificamos que el usuario ya cargó
+      if (userActual) {
+        push(ref(db, "posts"), {
+          user: "Artista_" + userActual.uid.substring(0,4),
+          image: result.info.secure_url,
+          time: Date.now()
+        });
+        alert("¡Imagen publicada!");
+        showFeed(); 
+      } else {
+        alert("Error: Espera un segundo a que el sistema te reconozca.");
+      }
+    }
   });
 }
 
@@ -133,3 +145,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
