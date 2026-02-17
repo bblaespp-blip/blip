@@ -15,3 +15,49 @@ button{background:#1f1f1f;border:1px solid #333;color:white;padding:8px 15px;bor
 input{width:100%;padding:12px;margin:10px 0;background:#1f1f1f;border:1px solid #333;color:white;border-radius:8px}
 .profile-header{background:#111;padding:20px;border-radius:15px;margin:25px 5%;border:1px solid #222;text-align:center}
 .profile-header button{margin:5px}
+/* CHAT GLOBAL */
+.global-chat{
+  position:fixed;
+  right:15px;
+  bottom:15px;
+  width:300px;
+  height:400px;
+  background:#111;
+  border:1px solid #222;
+  border-radius:15px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:3000;
+}
+.chat-header{
+  padding:10px;
+  background:#141414;
+  border-bottom:1px solid #222;
+  font-weight:bold;
+  color:#7b5cff;
+}
+.chat-messages{
+  flex:1;
+  padding:10px;
+  overflow-y:auto;
+  font-size:0.85rem;
+}
+.chat-input{
+  display:flex;
+  border-top:1px solid #222;
+}
+.chat-input input{
+  flex:1;
+  border:none;
+  padding:10px;
+  background:#1a1a1a;
+  color:white;
+}
+.chat-input button{
+  border:none;
+  background:#7b5cff;
+  padding:0 15px;
+  color:white;
+}
+
