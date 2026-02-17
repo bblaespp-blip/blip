@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getDatabase, ref, push, onValue, set, update, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
+// -------- CONFIG --------
 const firebaseConfig = {
   apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
   authDomain: "almacenamiento-redsocial.firebaseapp.com",
@@ -11,6 +12,9 @@ const firebaseConfig = {
   appId: "1:562861595597:web:a88c0af7d0c8da44a9c284"
 };
 
+const CLOUD_NAME = "dz9s37bk0";
+const PRESET = "blip_unsigned";
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
@@ -18,16 +22,13 @@ const db = getDatabase(app);
 let userActual = null;
 let perfilActivo = null;
 
-const CLOUD_NAME = "dz9s37bk0";
-const PRESET = "blip_unsigned";
-
 const feed = document.getElementById('feed');
 
 // -------- AUTH --------
 onAuthStateChanged(auth, async user => {
   userActual = user;
-  document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
-  document.getElementById('btnLogin').innerText = user ? 'Salir' : 'Entrar';
+  btnOpenUpload.style.display = user ? 'block' : 'none';
+  btnLogin.innerText = user ? 'Salir' : 'Entrar';
 
   if(user){
     await set(ref(db, `users/${user.uid}`), {
@@ -37,15 +38,15 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-document.getElementById('btnLogin').onclick = () => {
-  userActual ? signOut(auth) : modalAuth.style.display = 'flex';
-};
+btnLogin.onclick = () => userActual ? signOut(auth) : modalAuth.style.display = 'flex';
 
-document.getElementById('btnDoAuth').onclick = async () => {
-  const e = email.value, p = pass.value;
-  try { await signInWithEmailAndPassword(auth,e,p); }
-  catch { await createUserWithEmailAndPassword(auth,e,p); }
-  modalAuth.style.display='none';
+btnDoAuth.onclick = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, pass.value);
+  } catch {
+    await createUserWithEmailAndPassword(auth, email.value, pass.value);
+  }
+  modalAuth.style.display = 'none';
 };
 
 // -------- FEED --------
@@ -55,6 +56,7 @@ function renderFeed(){
     feed.innerHTML = "";
     snap.forEach(p=>{
       const d=p.val();
+      d.id = p.key;
       crearPost(d);
     });
   });
@@ -64,13 +66,24 @@ function crearPost(d){
   const card=document.createElement('div');
   card.className='card';
   const autor=d.userEmail.split('@')[0];
+
   card.innerHTML=`
     <img src="${d.url}">
     <div class="info">
       <h3>${d.title}</h3>
       <p onclick="verPerfil('${d.userId}','${autor}')">@${autor}</p>
+
+      <div class="social">
+        <button onclick="likePost('${d.id}')">❤️</button>
+        <span id="likes-${d.id}">${d.likes?.count || 0}</span> likes
+      </div>
+
+      <div class="comments" id="comments-${d.id}"></div>
+      <input placeholder="Comentar..." onkeydown="if(event.key==='Enter') comentar('${d.id}', this)">
     </div>`;
+
   feed.prepend(card);
+  cargarComentarios(d.id);
 }
 
 // -------- PERFIL --------
@@ -84,7 +97,7 @@ window.verPerfil=(uid,nombre)=>{
     header.innerHTML=`
       <h2>@${nombre}</h2>
       <p>${d.bio||"Artista en BLIP"}</p>
-      <button id="btnFollow">Seguir</button>
+      <button onclick="seguir('${uid}')">Seguir</button>
       <button onclick="cerrarPerfil()">Volver</button>`;
   });
 
@@ -102,10 +115,17 @@ function renderPerfil(uid){
     feed.innerHTML="";
     snap.forEach(p=>{
       const d=p.val();
+      d.id = p.key;
       if(d.userId===uid) crearPost(d);
     });
   });
 }
+
+// -------- FOLLOW --------
+window.seguir = async (uid)=>{
+  if(!userActual) return alert("Inicia sesión");
+  await update(ref(db,`users/${uid}`),{ seguidores: increment(1) });
+};
 
 // -------- SUBIDA --------
 btnOpenUpload.onclick=()=>modalUpload.style.display='flex';
@@ -128,7 +148,8 @@ btnDoUpload.onclick=async()=>{
       title:postTitle.value,
       userId:userActual.uid,
       userEmail:userActual.email,
-      timestamp:serverTimestamp()
+      timestamp:serverTimestamp(),
+      likes:{count:0}
     });
     modalUpload.style.display='none';
   }
@@ -137,5 +158,62 @@ btnDoUpload.onclick=async()=>{
 };
 
 btnHome.onclick=()=>cerrarPerfil();
+
+// -------- LIKES --------
+window.likePost = async (id)=>{
+  if(!userActual) return alert("Inicia sesión");
+  const likeRef = ref(db,`posts/${id}/likes`);
+  update(likeRef, { count: increment(1) });
+};
+
+// -------- COMENTARIOS --------
+window.comentar = async (postId, input)=>{
+  if(!userActual || !input.value.trim()) return;
+  await push(ref(db,`comments/${postId}`),{
+    user:userActual.email.split('@')[0],
+    text:input.value,
+    timestamp:Date.now()
+  });
+  input.value="";
+};
+
+function cargarComentarios(postId){
+  onValue(ref(db,`comments/${postId}`), snap=>{
+    const box=document.getElementById(`comments-${postId}`);
+    if(!box) return;
+    box.innerHTML="";
+    snap.forEach(c=>{
+      const d=c.val();
+      box.innerHTML += `<p style="font-size:.75rem"><b>@${d.user}:</b> ${d.text}</p>`;
+    });
+  });
+}
+
+// -------- CHAT GLOBAL --------
+const chatBox = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chatText');
+const btnSendChat = document.getElementById('btnSendChat');
+
+onValue(ref(db,'globalChat'), snap=>{
+  chatBox.innerHTML="";
+  snap.forEach(m=>{
+    const d=m.val();
+    const p=document.createElement('p');
+    p.innerHTML=`<b>@${d.user}:</b> ${d.text}`;
+    chatBox.appendChild(p);
+  });
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
+
+btnSendChat.onclick=()=>{
+  if(!userActual || !chatInput.value.trim()) return;
+  push(ref(db,'globalChat'),{
+    uid:userActual.uid,
+    user:userActual.email.split('@')[0],
+    text:chatInput.value,
+    timestamp:Date.now()
+  });
+  chatInput.value="";
+};
 
 renderFeed();
