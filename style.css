@@ -93,3 +93,20 @@ nav button:hover{
   background:#7c7cff;
   cursor:pointer;
 }
+#galeria img {
+    transition: transform 0.3s ease;
+}
+
+#galeria img:hover {
+    transform: scale(1.02);
+    cursor: zoom-in;
+}
+
+.chat-msg {
+    padding: 4px 8px;
+    border-bottom: 1px solid #222;
+}
+
+.chat-msg b {
+    color: #7c7cff;
+}
