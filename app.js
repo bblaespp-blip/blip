@@ -189,20 +189,19 @@ function cargarComentarios(postId){
   });
 }
 
-// -------- CHAT GLOBAL --------
-const chatBox = document.getElementById('chat-messages');
-const chatInput = document.getElementById('chatText');
-const btnSendChat = document.getElementById('btnSendChat');
+// -------- CHAT GLOBAL (FIX DEFINITIVO) --------
 
 function initChat(){
-  if(!btnSendChat) return;
+  const chatBox = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chatText');
+  const btnSendChat = document.getElementById('btnSendChat');
 
-  btnSendChat.addEventListener('click', enviarMensaje);
+  if(!chatBox || !chatInput || !btnSendChat){
+    console.warn("Chat DOM no listo");
+    return;
+  }
 
-  chatInput.addEventListener('keydown', e=>{
-    if(e.key === 'Enter') enviarMensaje();
-  });
-
+  // Escuchar mensajes
   onValue(ref(db,'globalChat'), snap=>{
     chatBox.innerHTML="";
     snap.forEach(m=>{
@@ -213,27 +212,18 @@ function initChat(){
     });
     chatBox.scrollTop = chatBox.scrollHeight;
   });
-}
 
-function enviarMensaje(){
-  if(!userActual){
-    alert("Debes iniciar sesión");
-    return;
-  }
-  if(!chatInput.value.trim()) return;
+  // Enviar mensaje
+  const enviar = () => {
+    if(!userActual) return alert("Debes iniciar sesión");
+    if(!chatInput.value.trim()) return;
 
-  push(ref(db,'globalChat'),{
-    uid: userActual.uid,
-    user: userActual.email.split('@')[0],
-    text: chatInput.value,
-    timestamp: Date.now()
-  });
+    push(ref(db,'globalChat'),{
+      uid: userActual.uid,
+      user: userActual.ema
 
-  chatInput.value="";
-}
-
-initChat();
 };
 
 renderFeed();
+
 
