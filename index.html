@@ -2,54 +2,42 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BLIP - Red Social de Arte</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header id="nav">
-    <div class="logo" onclick="location.reload()">BLIP</div>
-    <div class="nav-buttons">
-        <button id="btnHome">Inicio</button>
-        <button id="btnForYou">Para ti</button>
-        <button id="btnOpenUpload" style="display:none;background:#7b5cff;">Subir Arte</button>
-        <button id="btnLogin">Entrar</button>
-    </div>
+  <div class="logo" onclick="location.reload()">BLIP</div>
+  <div class="nav-buttons">
+    <button id="btnHome">Inicio</button>
+    <button id="btnOpenUpload" style="display:none;background:#7b5cff;">Subir</button>
+    <button id="btnLogin">Entrar</button>
+  </div>
 </header>
 
-<main id="app-container">
-
-<div id="profile-header" style="display:none;">
-    <h2 id="profile-name">@usuario</h2>
-    <p id="profile-bio">Cargando...</p>
-    <div id="profile-stats"></div>
-    <div id="profile-followers"></div>
-    <button id="btnFollow">Seguir</button>
-    <button onclick="cerrarPerfil()">Volver</button>
-</div>
-
-<div id="feed" class="grid"></div>
-<div id="forYou" class="grid" style="display:none;"></div>
-
+<main id="app">
+  <div id="profile-header" class="profile-header" style="display:none;"></div>
+  <div id="feed" class="grid"></div>
 </main>
 
 <div id="modalAuth" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Acceso</h3>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Contraseña">
-        <button id="btnDoAuth">Entrar / Crear</button>
-    </div>
+  <div class="modal-content">
+    <h3>Acceso</h3>
+    <input id="email" type="email" placeholder="Email">
+    <input id="pass" type="password" placeholder="Contraseña">
+    <button id="btnDoAuth">Entrar / Crear</button>
+  </div>
 </div>
 
 <div id="modalUpload" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h3>Publicar Obra</h3>
-        <input type="file" id="fileInput" accept="image/*">
-        <input type="text" id="postTitle" placeholder="Título">
-        <button id="btnDoUpload">Publicar</button>
-    </div>
+  <div class="modal-content">
+    <h3>Nueva Obra</h3>
+    <input id="fileInput" type="file" accept="image/*">
+    <input id="postTitle" placeholder="Título">
+    <button id="btnDoUpload">Publicar</button>
+  </div>
 </div>
 
 <script type="module" src="app.js"></script>
