@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>BLIP - Red Social de Arte</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 </head>
 <body>
 
@@ -17,21 +18,17 @@
     </nav>
 </header>
 
-<main id="feed">
-    </main>
+<main id="feed"></main>
 
 <section id="chat">
-  <h3>💬 Chat Global</h3>
-  <div id="globalChatBox" style="min-height: 50px; border: 1px solid #333; margin-bottom: 10px;"></div>
-  
-  <input id="globalInput" placeholder="Escribe un mensaje...">
-  <button id="btnSendChat">Enviar</button> 
+    <h3>💬 Chat Global</h3>
+    <div id="globalChatBox"></div>
+    <div style="display: flex; gap: 5px;">
+        <input id="globalInput" placeholder="Escribe un mensaje...">
+        <button id="btnSendChat">Enviar</button>
+    </div>
 </section>
 
 <script type="module" src="app.js"></script>
-<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-<script type="module" src="app.js"></script>
 </body>
 </html>
-
-
