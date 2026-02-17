@@ -95,4 +95,27 @@ document.getElementById("btnLogout").addEventListener("click", () => signOut(aut
 // Permitir enviar mensaje con la tecla Enter
 document.getElementById("globalInput").addEventListener("keypress", (e) => {
   if (e.key === 'Enter') sendGlobalMessage();
+// Asegúrate de que esto esté al final de tu app.js
+document.addEventListener("DOMContentLoaded", () => {
+  
+  const btnSend = document.getElementById("btnSendChat");
+  const input = document.getElementById("globalInput");
+
+  // Al hacer clic en enviar
+  if (btnSend) {
+    btnSend.onclick = () => {
+      sendGlobalMessage();
+    };
+  }
+
+  // Al presionar Enter
+  if (input) {
+    input.onkeypress = (e) => {
+      if (e.key === "Enter") sendGlobalMessage();
+    };
+  }
+  
+  // Forzar carga del feed inicial
+  showFeed();
 });
+
