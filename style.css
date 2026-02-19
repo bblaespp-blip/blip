@@ -1,112 +1,139 @@
-*{
-  box-sizing:border-box;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
-body{
-  margin:0;
-  font-family:sans-serif;
-  background:#0f0f0f;
-  color:#fff;
+body {
+    min-height: 100vh;
+    background: radial-gradient(circle at bottom, #2a006a 0%, #16003a 40%, #0b001f 100%);
+    color: #fff;
+    overflow-x: hidden;
 }
 
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 20px;
-  background:#000;
-  border-bottom:1px solid #222;
+/* ===== NAVBAR ===== */
+
+.nav {
+    width: 100%;
+    height: 64px;
+    background: linear-gradient(90deg, #4b1cff, #6d00ff);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    box-shadow: 0 4px 25px rgba(140, 60, 255, 0.45);
 }
 
-header h1{
-  margin:0;
-  color:#7c7cff;
+/* LOGO */
+
+.logo-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff44cc, #7b00ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 15px rgba(255, 70, 200, 0.7);
 }
 
-nav button{
-  background:#222;
-  color:#fff;
-  border:none;
-  padding:8px 14px;
-  margin-left:6px;
-  border-radius:6px;
-  cursor:pointer;
+/* SEARCH */
+
+.search-box {
+    flex: 1;
+    max-width: 420px;
 }
 
-nav button:hover{
-  background:#333;
+.search-box input {
+    width: 100%;
+    height: 40px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #3a00c7, #4b1cff);
+    border: 1px solid rgba(255,255,255,0.1);
+    outline: none;
+    padding: 0 16px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: inset 0 0 10px rgba(0,0,0,.5), 0 0 10px rgba(120,0,255,.4);
 }
 
-#feed{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:15px;
-  padding:15px;
+.search-box input::placeholder {
+    color: #d6c7ff;
 }
 
-.post{
-  background:#121212;
-  border-radius:10px;
-  overflow:hidden;
+/* MENU */
+
+.menu {
+    display: flex;
+    gap: 10px;
 }
 
-.post img{
-  width:100%;
-  display:block;
+.menu button {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #2b0077, #4c00ff);
+    border: 1px solid rgba(255,255,255,.12);
+    color: white;
+    font-weight: 600;
+    letter-spacing: .3px;
+    cursor: pointer;
+    transition: .25s;
+    box-shadow: 0 0 15px rgba(120, 0, 255, .35);
 }
 
-.post p{
-  padding:8px;
+.menu button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(190, 0, 255, .8);
 }
 
-#chat{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#000;
-  border-top:1px solid #222;
-  padding:10px;
+/* AVATAR */
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff4ecd, #00d4ff);
+    box-shadow: 0 0 18px rgba(0, 210, 255, .8);
+    border: 2px solid rgba(255,255,255,.25);
 }
 
-#globalChatBox{
-  max-height:180px;
-  overflow-y:auto;
-  font-size:14px;
-  margin-bottom:6px;
+/* ===== FEED ===== */
+
+.feed {
+    min-height: calc(100vh - 64px);
+    padding: 30px 20px;
+    background:
+        radial-gradient(circle at bottom, rgba(190,0,255,.25), transparent 50%),
+        linear-gradient(180deg, #14002f 0%, #0b001a 100%);
 }
 
-.chat-msg{
-  margin-bottom:4px;
+/* ===== POSTS ===== */
+
+.post {
+    max-width: 620px;
+    margin: 0 auto 24px;
+    background: linear-gradient(135deg, rgba(80,0,200,.5), rgba(30,0,90,.5));
+    border-radius: 18px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 0 30px rgba(140,0,255,.25);
 }
 
-#globalInput{
-  width:80%;
-  padding:6px;
-  border-radius:6px;
-  border:none;
-}
+/* ===== RESPONSIVE ===== */
 
-#chat button{
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  background:#7c7cff;
-  cursor:pointer;
-}
-#galeria img {
-    transition: transform 0.3s ease;
-}
+@media (max-width: 720px) {
+    .menu {
+        display: none;
+    }
 
-#galeria img:hover {
-    transform: scale(1.02);
-    cursor: zoom-in;
-}
-
-.chat-msg {
-    padding: 4px 8px;
-    border-bottom: 1px solid #222;
-}
-
-.chat-msg b {
-    color: #7c7cff;
+    .search-box {
+        max-width: 100%;
+    }
 }
