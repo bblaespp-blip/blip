@@ -3,28 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Galería de Artistas</title>
+    <title>BLIP - Galería</title>
     <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 
     <style>
-        :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; --white: #ffffff; }
-        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
+        :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; }
         
         nav { background: var(--nav); padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
         .logo { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background: linear-gradient(45deg, #7b2cbf, #ff00ff); }
-        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; }
-        .btn:hover { background: var(--accent); transform: scale(1.05); }
-        .profile-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; }
+        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; }
 
         .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 1600px; margin: 20px auto; padding: 0 20px; }
         
-        /* --- EL MURO AHORA ES FLEX (UNA AL LADO DE OTRA) --- */
+        /* --- CORRECCIÓN CRÍTICA: EL MURO --- */
         #gallery { 
-            display: flex; 
-            flex-wrap: wrap; /* Salta de línea automáticamente */
+            display: grid; 
+            /* Esto obliga a crear 3 columnas del mismo tamaño */
+            grid-template-columns: repeat(3, 1fr); 
             gap: 20px; 
-            justify-content: flex-start; 
-            align-items: flex-start;
+            width: 100%;
+            align-items: start;
         }
 
         .card { 
@@ -32,37 +31,29 @@
             border-radius: 15px; 
             overflow: hidden; 
             color: #333; 
-            /* 33.33% menos el espacio del gap para que quepan 3 por fila */
-            width: calc(33.33% - 14px); 
+            width: 100%; /* Ahora la tarjeta se estira al ancho de la columna del grid */
             display: flex;
             flex-direction: column;
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            height: fit-content;
         }
 
-        .card img.main { 
-            width: 100%; 
-            height: auto; 
-            display: block;
-        }
+        .card img.main { width: 100%; height: auto; display: block; }
 
         .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 80px; height: calc(100vh - 100px); }
         .box { background: rgba(255,255,255,0.05); border: 2px solid white; border-radius: 20px; padding: 15px; }
         
-        #chat-messages { height: 180px; overflow-y: auto; font-size: 11px; margin-bottom: 10px; }
-        .msg { padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.1); margin-bottom: 5px; }
+        #chat-messages { height: 180px; overflow-y: auto; font-size: 11px; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: var(--nav); padding: 25px; border-radius: 25px; border: 3px solid white; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
-        input, textarea { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; }
+        textarea { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; }
 
-        /* Ajustes para que en tablets salgan 2 y en móviles 1 */
-        @media (max-width: 1200px) { .card { width: calc(50% - 10px); } }
-        @media (max-width: 900px) {
-            .layout { grid-template-columns: 1fr; }
-            .sidebar { order: 2; height: auto; position: static; }
+        /* Responsivo: 2 columnas en tablets, 1 en móvil */
+        @media (max-width: 1100px) { #gallery { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 800px) { 
+            .layout { grid-template-columns: 1fr; } 
+            #gallery { grid-template-columns: 1fr; }
         }
-        @media (max-width: 650px) { .card { width: 100%; } }
     </style>
 </head>
 <body>
@@ -73,19 +64,18 @@
     <div style="display:flex; gap:10px; align-items:center;">
         <button class="btn" id="login">ENTRAR</button>
         <button class="btn" id="logout" style="display:none">SALIR</button>
-        <div class="profile-pic" id="u-pic"></div>
+        <div id="u-pic" style="width:40px; height:40px; border-radius:50%; background-size:cover; border:2px solid white"></div>
     </div>
 </nav>
 
 <div class="modal" id="pubModal">
     <div class="modal-content">
-        <h3 style="text-align:center; margin:0">NUEVA OBRA</h3>
+        <h3>NUEVA OBRA</h3>
         <button class="btn" id="btn-upload">1. SELECCIONAR IMAGEN</button>
-        <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista</div>
+        <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Lista</div>
         <textarea id="p-cap" placeholder="Descripción..."></textarea>
-        <input type="text" id="p-tag" placeholder="#tags">
         <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
-        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'" style="background:transparent; border:1px solid gray">CANCELAR</button>
+        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CANCELAR</button>
     </div>
 </div>
 
@@ -93,17 +83,12 @@
     <aside class="sidebar">
         <div class="box"><h3>Artistas</h3><div id="users-dir"></div></div>
         <div class="box">
-            <h3>Chat Global</h3>
+            <h3>Chat</h3>
             <div id="chat-messages"></div>
-            <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1" placeholder="Escribe algo...">
-                <button id="chat-send" class="btn">🚀</button>
-            </div>
+            <input type="text" id="chat-in" style="width:100%; box-sizing:border-box" placeholder="Escribe...">
         </div>
     </aside>
-    <main id="muro">
-        <div id="gallery"></div>
-    </main>
+    <main><div id="gallery"></div></main>
 </div>
 
 <script type="module">
@@ -125,23 +110,23 @@
     let userNow = null;
     let finalUrl = "";
 
+    // Cloudinary
     const myWidget = cloudinary.createUploadWidget({
-        cloudName: "dz9s37bk0",
-        uploadPreset: "blip_unsigned"
+        cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned"
     }, (error, result) => {
-        if (!error && result && result.event === "success") {
+        if (!error && result.event === "success") {
             finalUrl = result.info.secure_url;
             document.getElementById('status').style.display = "block";
         }
     });
     document.getElementById('btn-upload').onclick = () => myWidget.open();
 
+    // Publicar
     document.getElementById('btn-post').onclick = async () => {
-        if (!finalUrl || !userNow) return alert("Sube una imagen primero");
+        if (!finalUrl || !userNow) return alert("Falta imagen o login");
         await push(ref(db, 'posts'), {
             imageUrl: finalUrl,
             caption: document.getElementById('p-cap').value,
-            tags: document.getElementById('p-tag').value,
             userName: userNow.displayName,
             userPhoto: userNow.photoURL,
             uid: userNow.uid,
@@ -149,73 +134,45 @@
             timestamp: serverTimestamp()
         });
         document.getElementById('pubModal').style.display = "none";
-        finalUrl = ""; document.getElementById('status').style.display = "none";
-        document.getElementById('p-cap').value = "";
+        finalUrl = ""; 
     };
 
+    // --- LEER POSTS ---
     onValue(ref(db, 'posts'), (snap) => {
         const gal = document.getElementById('gallery');
         gal.innerHTML = "";
-        let posts = [];
-        snap.forEach(d => posts.push({id: d.key, ...d.val()}));
-        posts.reverse().forEach(p => {
-            let comms = "";
-            if(p.comments) {
-                Object.entries(p.comments).forEach(([cId, c]) => {
-                    const isMyComm = userNow && c.uid === userNow.uid;
-                    comms += `<div style="font-size:10px; margin-bottom:4px; display:flex; justify-content:space-between;">
-                        <span><b>${c.u}:</b> ${c.t}</span>
-                        ${isMyComm ? `<button style="background:none; border:none; color:red; cursor:pointer" onclick="window.delC('${p.id}', '${cId}')">×</button>` : ''}
-                    </div>`;
-                });
-            }
-            const isMyPost = userNow && p.uid === userNow.uid;
+        if (!snap.exists()) return;
 
+        let posts = [];
+        snap.forEach(d => { posts.push({id: d.key, ...d.val()}); });
+        
+        posts.reverse().forEach(p => {
+            const isMyPost = userNow && p.uid === userNow.uid;
             gal.innerHTML += `
                 <div class="card">
-                    <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#f8f9fa">
-                        <div style="display:flex; align-items:center; gap:8px; font-size:11px; font-weight:bold">
-                            <img src="${p.userPhoto}" style="width:25px; height:25px; border-radius:50%">
-                            <span>${p.userName}</span>
-                        </div>
-                        ${isMyPost ? `<button style="background:red; color:white; border:none; border-radius:5px; font-size:9px; padding:3px 7px; cursor:pointer" onclick="window.delP('${p.id}')">Borrar</button>` : ''}
+                    <div style="padding:8px; display:flex; justify-content:space-between; background:#eee; align-items:center">
+                        <span style="font-size:10px; font-weight:bold">${p.userName}</span>
+                        ${isMyPost ? `<button onclick="window.delP('${p.id}')" style="color:red; border:none; background:none; cursor:pointer">X</button>` : ''}
                     </div>
                     <img src="${p.imageUrl}" class="main">
-                    <div style="padding:12px">
-                        <p style="margin:0; font-size:13px">${p.caption || ""}</p>
-                        <span style="color:var(--accent); font-weight:bold; font-size:11px">${p.tags || ""}</span>
-                        <div style="margin-top:10px; cursor:pointer; font-size:16px" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
-                    </div>
-                    <div style="padding:10px; border-top:1px solid #eee; background:#fafafa;">
-                        <div style="max-height:80px; overflow-y:auto; margin-bottom:5px">${comms || "<small>Sin comentarios</small>"}</div>
-                        <div style="display:flex; gap:5px">
-                            <input type="text" id="in-${p.id}" style="flex:1; font-size:11px; border:1px solid #ddd; padding:4px; border-radius:5px" placeholder="Comentar...">
-                            <button class="btn" style="padding:4px 10px" onclick="window.cm('${p.id}')">></button>
-                        </div>
+                    <div style="padding:10px">
+                        <p style="margin:0; font-size:12px">${p.caption || ""}</p>
+                        <div style="margin-top:5px; cursor:pointer" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
                     </div>
                 </div>`;
         });
     });
 
-    window.delP = (id) => { if(confirm("¿Eliminar obra?")) remove(ref(db, `posts/${id}`)); };
-    window.delC = (pId, cId) => { if(confirm("¿Eliminar comentario?")) remove(ref(db, `posts/${pId}/comments/${cId}`)); };
+    window.delP = (id) => { if(confirm("¿Borrar?")) remove(ref(db, `posts/${id}`)); };
 
     window.lk = async (id) => {
-        if (!userNow) return alert("Inicia sesión");
+        if (!userNow) return;
         const uLikeRef = ref(db, `posts/${id}/userLikes/${userNow.uid}`);
         const pRef = ref(db, `posts/${id}/likes`);
         await runTransaction(uLikeRef, (exists) => {
             if (exists) { runTransaction(pRef, (c) => (c || 1) - 1); return null; }
             else { runTransaction(pRef, (c) => (c || 0) + 1); return true; }
         });
-    };
-
-    window.cm = (id) => {
-        const t = document.getElementById(`in-${id}`).value;
-        if(userNow && t.trim()) {
-            push(ref(db, `posts/${id}/comments`), { u: userNow.displayName, t: t, uid: userNow.uid });
-            document.getElementById(`in-${id}`).value = "";
-        }
     };
 
     onAuthStateChanged(auth, u => {
@@ -228,25 +185,7 @@
         }
     });
 
-    onValue(ref(db, 'users'), (s) => {
-        const d = document.getElementById('users-dir'); d.innerHTML = "";
-        s.forEach(c => { const u = c.val(); d.innerHTML += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">
-            <img src="${u.p}" style="width:25px; height:25px; border-radius:50%"><span>${u.n}</span></div>`; });
-    });
-
-    document.getElementById('chat-send').onclick = () => {
-        const i = document.getElementById('chat-in');
-        if(userNow && i.value.trim()) push(ref(db, 'chat'), { u: userNow.displayName, t: i.value });
-        i.value = "";
-    };
-
-    onValue(ref(db, 'chat'), (s) => {
-        const b = document.getElementById('chat-messages'); b.innerHTML = "";
-        s.forEach(m => { const d = m.val(); b.innerHTML += `<div class="msg"><b>${d.u}:</b> ${d.t}</div>`; });
-        b.scrollTop = b.scrollHeight;
-    });
-
-    document.getElementById('openModal').onclick = () => { if(userNow) document.getElementById('pubModal').style.display = "flex"; else alert("Inicia sesión"); };
+    document.getElementById('openModal').onclick = () => { if(userNow) document.getElementById('pubModal').style.display = "flex"; };
     document.getElementById('login').onclick = () => signInWithPopup(auth, provider);
     document.getElementById('logout').onclick = () => signOut(auth);
 </script>
