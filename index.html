@@ -2,40 +2,26 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BLIP — Red Social de Arte</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLIP - Acceso</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 </head>
+<body class="auth-body">
 
-<body>
+<div class="auth-card">
+    <h1>BLIP</h1>
+    <p>Red social para artistas</p>
 
-<header class="nav">
-  <div class="logo-circle">blip</div>
+    <input type="email" id="email" placeholder="Correo">
+    <input type="password" id="password" placeholder="Contraseña">
 
-  <div class="search-box">
-    <input placeholder="Buscar artistas, estilos, tags...">
-  </div>
-
-  <div class="menu">
-    <button id="btnFeed">MURO</button>
-    <button id="btnUpload">PUBLICAR</button>
-    <button id="btnChat">CHAT</button>
-    <button id="btnLogout">SALIR</button>
-  </div>
-
-  <div class="avatar"></div>
-</header>
-
-<main id="feed" class="feed"></main>
-
-<div id="chatPanel" class="chat-panel hidden">
-  <h3>💬 Chat Global</h3>
-  <div id="globalChatBox" class="chat-box"></div>
-  <input id="globalInput" placeholder="Escribe un mensaje...">
+    <button onclick="login()">Iniciar sesión</button>
+    <button onclick="register()">Registrarse</button>
 </div>
 
-<script type="module" src="app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
