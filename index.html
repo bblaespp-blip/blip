@@ -3,50 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Galería con Borrado</title>
+    <title>BLIP - Galería de Artistas</title>
     <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 
     <style>
         :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; }
-        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
         
+        /* NAVBAR */
         nav { background: var(--nav); padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
         .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; }
-        
-        .layout { display: grid; grid-template-columns: 300px 1fr; gap: 25px; max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-        
-        #gallery { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 20px; }
-        
-        .card { background: white; border-radius: 12px; overflow: hidden; color: #333; display: flex; flex-direction: column; position: relative; }
-        .card img.main { width: 100%; height: auto; display: block; }
 
-        /* BOTÓN ELIMINAR DESTACADO */
-        .btn-del { 
-            background: #ff4d4d; 
-            color: white; 
-            border: none; 
-            padding: 4px 8px; 
-            border-radius: 5px; 
-            font-size: 10px; 
-            cursor: pointer;
-            font-weight: bold;
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .layout { 
+            display: flex; 
+            gap: 20px; 
+            max-width: 1400px; 
+            margin: 20px auto; 
+            padding: 0 20px; 
+            align-items: flex-start; 
         }
-        .btn-del:hover { background: #cc0000; }
 
-        .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 80px; }
+        /* --- BARRA LATERAL (ARTISTAS Y CHAT) --- */
+        .sidebar { 
+            width: 300px; 
+            flex-shrink: 0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            position: sticky; 
+            top: 80px; 
+        }
+
         .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; }
-        
         #chat-messages { height: 250px; overflow-y: auto; font-size: 12px; margin-bottom: 10px; }
-        .comm-box { font-size: 11px; padding: 10px; border-top: 1px solid #eee; background: #fdfdfd; max-height: 80px; overflow-y: auto; }
+        .user-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
 
+        /* --- EL MURO (SOLUCIÓN AL AMONTONAMIENTO) --- */
+        #gallery { 
+            flex-grow: 1;
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 20px; 
+        }
+
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            color: #333; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            height: fit-content;
+        }
+
+        .card img.main { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            object-fit: contain; 
+        }
+
+        .btn-del { background: #ff4d4d; color: white; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 10px; }
+
+        /* MODAL */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: var(--nav); padding: 25px; border-radius: 20px; width: 350px; display: flex; flex-direction: column; gap: 15px; }
+
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; position: static; }
+        }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-weight: bold; font-size: 20px;">BLIP</div>
+    <div style="font-weight: bold; font-size: 18px;">BLIP</div>
     <button class="btn" id="openModal" style="background: var(--accent);">PUBLICAR OBRA</button>
     <div style="display:flex; gap:10px; align-items:center;">
         <button class="btn" id="loginBtn">ENTRAR</button>
@@ -57,34 +91,34 @@
 
 <div class="modal" id="pubModal">
     <div class="modal-content">
-        <h3 style="margin:0; text-align:center">NUEVA PUBLICACIÓN</h3>
         <button class="btn" id="btn-upload">1. ELEGIR IMAGEN</button>
-        <div id="status" style="color:#00ff00; font-size:11px; text-align:center; display:none">✓ Lista</div>
-        <textarea id="p-cap" placeholder="Descripción..." style="padding:10px; border-radius:10px; background:#000; color:white; border:1px solid var(--accent)"></textarea>
-        <button class="btn" id="btn-post" style="background: var(--accent);">2. PUBLICAR</button>
-        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CERRAR</button>
+        <div id="status" style="color:#00ff00; font-size:11px; text-align:center; display:none">✓ Imagen lista</div>
+        <textarea id="p-cap" placeholder="¿De qué trata tu obra?" style="padding:10px; background:black; color:white; border:1px solid var(--accent); border-radius:10px"></textarea>
+        <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
+        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CANCELAR</button>
     </div>
 </div>
 
 <div class="layout">
     <aside class="sidebar">
-        <div class="box"><h4>Artistas</h4><div id="users-dir"></div></div>
         <div class="box">
-            <h4>Chat Global</h4>
+            <h4 style="margin:0 0 10px 0">Artistas</h4>
+            <div id="users-dir"></div>
+        </div>
+        <div class="box">
+            <h4 style="margin:0 0 10px 0">Chat Global</h4>
             <div id="chat-messages"></div>
-            <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1; background:black; color:white; border:1px solid #7b2cbf" placeholder="Escribe...">
-                <button id="chat-send" class="btn">🚀</button>
-            </div>
+            <input type="text" id="chat-in" style="width:90%; background:black; color:white; border:1px solid #7b2cbf; border-radius:5px; padding:5px" placeholder="Escribe algo...">
         </div>
     </aside>
-    <main><div id="gallery"></div></main>
+
+    <main id="gallery"></main>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, serverTimestamp, runTransaction, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -100,7 +134,7 @@
     let userNow = null;
     let finalUrl = "";
 
-    // LOGIN
+    // AUTH
     document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
     document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
@@ -108,10 +142,13 @@
         userNow = u;
         document.getElementById('loginBtn').style.display = u ? "none" : "block";
         document.getElementById('logoutBtn').style.display = u ? "block" : "none";
-        if(u) document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
+        if(u) {
+            document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
+            set(ref(db, 'users/' + u.uid), { n: u.displayName, p: u.photoURL });
+        }
     });
 
-    // SUBIR A CLOUDINARY
+    // CLOUDINARY
     const myWidget = cloudinary.createUploadWidget({
         cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned"
     }, (error, result) => {
@@ -124,68 +161,63 @@
 
     // PUBLICAR
     document.getElementById('btn-post').onclick = async () => {
-        if (!finalUrl || !userNow) return alert("Falta imagen o login");
+        if (!finalUrl || !userNow) return alert("Sube imagen e inicia sesión");
         await push(ref(db, 'posts'), {
             imageUrl: finalUrl,
             caption: document.getElementById('p-cap').value,
             userName: userNow.displayName,
             uid: userNow.uid,
-            likes: 0,
             timestamp: serverTimestamp()
         });
         document.getElementById('pubModal').style.display = "none";
         finalUrl = ""; document.getElementById('status').style.display = "none";
     };
 
-    // MOSTRAR MURO + BOTÓN ELIMINAR
+    // CARGAR MURO Y ARTISTAS
     onValue(ref(db, 'posts'), (snap) => {
         const gal = document.getElementById('gallery');
         gal.innerHTML = "";
         let posts = [];
         snap.forEach(d => posts.push({id: d.key, ...d.val()}));
-        
         posts.reverse().forEach(p => {
-            // Solo el dueño ve el botón de eliminar
             const isOwner = userNow && p.uid === userNow.uid;
-            
             gal.innerHTML += `
                 <div class="card">
-                    <div style="padding:10px; display:flex; justify-content:space-between; background:#eee; align-items:center">
+                    <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#f4f4f4">
                         <span style="font-size:11px; font-weight:bold">${p.userName}</span>
                         ${isOwner ? `<button class="btn-del" onclick="window.borrarPost('${p.id}')">ELIMINAR</button>` : ''}
                     </div>
                     <img src="${p.imageUrl}" class="main">
-                    <div style="padding:10px">
-                        <p style="margin:0; font-size:12px">${p.caption || ""}</p>
-                    </div>
+                    <div style="padding:10px; font-size:12px; line-height:1.4">${p.caption || ""}</div>
                 </div>`;
         });
     });
 
-    // FUNCIÓN GLOBAL PARA BORRAR
-    window.borrarPost = (id) => {
-        if(confirm("¿Estás seguro de que quieres eliminar esta obra de tu muro?")) {
-            remove(ref(db, `posts/${id}`))
-                .then(() => alert("Publicación eliminada"))
-                .catch((e) => alert("Error al borrar: " + e.message));
-        }
-    };
+    onValue(ref(db, 'users'), snap => {
+        const dir = document.getElementById('users-dir');
+        dir.innerHTML = "";
+        snap.forEach(u => {
+            const d = u.val();
+            dir.innerHTML += `<div class="user-item"><img src="${d.p}" style="width:25px; height:25px; border-radius:50%"> ${d.n}</div>`;
+        });
+    });
 
-    // CHAT Y ARTISTAS
-    onValue(ref(db, 'chat'), (snap) => {
+    window.borrarPost = (id) => { if(confirm("¿Borrar post?")) remove(ref(db, `posts/${id}`)); };
+
+    // CHAT
+    onValue(ref(db, 'chat'), snap => {
         const chat = document.getElementById('chat-messages');
         chat.innerHTML = "";
         snap.forEach(m => {
-            chat.innerHTML += `<div style="background:rgba(255,255,255,0.1); padding:5px; margin-bottom:5px; border-radius:5px"><b>${m.val().u}:</b> ${m.val().t}</div>`;
+            chat.innerHTML += `<div style="margin-bottom:8px"><b>${m.val().u}:</b> ${m.val().t}</div>`;
         });
         chat.scrollTop = chat.scrollHeight;
     });
 
-    document.getElementById('chat-send').onclick = () => {
-        const inp = document.getElementById('chat-in');
-        if(userNow && inp.value.trim()) {
-            push(ref(db, 'chat'), { u: userNow.displayName, t: inp.value });
-            inp.value = "";
+    document.getElementById('chat-in').onkeypress = (e) => {
+        if(e.key === 'Enter' && userNow && e.target.value.trim()) {
+            push(ref(db, 'chat'), { u: userNow.displayName, t: e.target.value });
+            e.target.value = "";
         }
     };
 
