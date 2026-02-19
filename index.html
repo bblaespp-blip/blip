@@ -11,53 +11,46 @@
         
         body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* NAVBAR RESPONSIVO */
         nav { background: var(--nav); padding: 0 15px; display: flex; align-items: center; justify-content: space-between; min-height: 60px; border-bottom: 2px solid var(--accent); z-index: 1000; }
-        .nav-logo { font-weight: bold; font-size: 20px; }
-        .btn { background: #2a0066; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 10px; white-space: nowrap; }
+        .btn { background: #2a0066; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 10px; }
 
-        /* CONTENEDOR PRINCIPAL FLEXIBLE */
         .main-container { display: flex; flex: 1; overflow: hidden; width: 100%; }
 
-        /* SIDEBAR QUE SE ADAPTA */
-        .sidebar { width: 300px; background: rgba(0,0,0,0.4); border-right: 2px solid var(--accent); display: flex; flex-direction: column; padding: 15px; gap: 15px; transition: 0.3s; }
+        /* SIDEBAR COMPACTO */
+        .sidebar { width: 300px; background: rgba(0,0,0,0.4); border-right: 2px solid var(--accent); display: flex; flex-direction: column; padding: 15px; gap: 15px; }
         .box { background: rgba(255,255,255,0.05); border: 1px solid white; border-radius: 15px; padding: 12px; display: flex; flex-direction: column; overflow: hidden; }
         
-        #chat-messages { flex: 1; min-height: 150px; overflow-y: auto; font-size: 13px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        /* LISTA DE ARTISTAS PEQUEÑA (CORREGIDO) */
+        #users-dir { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .user-row { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 10px; font-size: 12px; }
+        .user-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
+
+        #chat-messages { flex: 1; overflow-y: auto; font-size: 13px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding-right: 5px; }
         .msg { background: rgba(123, 44, 191, 0.2); padding: 8px; border-radius: 10px; border-left: 3px solid var(--accent); word-break: break-word; }
 
-        /* MURO QUE SE AJUSTA AL 100% */
-        .gallery-wrapper { flex: 1; overflow-y: auto; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; gap: 30px; background: #08001a; }
-        .card { width: 100%; max-width: 500px; background: white; border-radius: 15px; color: #333; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .gallery-wrapper { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #08001a; }
+        .card { width: 100%; max-width: 500px; background: white; border-radius: 15px; color: #333; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); flex-shrink: 0; }
 
         .post-header { padding: 10px; display: flex; align-items: center; justify-content: space-between; background: #f8f8f8; }
-        .post-user-pic { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        .post-user-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
         .card img.main { width: 100%; height: auto; display: block; }
         .hashtag { color: var(--accent); font-weight: bold; }
-        .actions { padding: 12px; display: flex; gap: 15px; border-top: 1px solid #eee; }
-        .comm-area { background: #fdfdfd; padding: 8px; max-height: 80px; overflow-y: auto; font-size: 12px; border-top: 1px solid #eee; }
 
-        /* DISEÑO PARA MÓVILES (Media Queries) */
         @media (max-width: 768px) {
-            .main-container { flex-direction: column; } /* Sidebar arriba del muro o abajo */
-            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 2px solid var(--accent); padding: 10px; order: 2; } /* Chat abajo en móvil */
-            .gallery-wrapper { order: 1; padding: 15px 5px; } /* Galería arriba */
-            .nav-logo { font-size: 18px; }
-            #chat-messages { height: 120px; }
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 2px solid var(--accent); order: 2; }
+            .gallery-wrapper { order: 1; }
+            #users-dir { max-height: 80px; }
         }
 
-        /* MODAL RESPONSIVO */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--nav); padding: 20px; border-radius: 20px; border: 2px solid white; width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-logo">BLIP</div>
+    <div style="font-weight:bold; font-size:20px;">BLIP</div>
     <button class="btn" id="openModal" style="background:var(--accent)">PUBLICAR</button>
     <div style="display:flex; gap:10px; align-items:center;">
         <button class="btn" id="loginBtn">ENTRAR</button>
@@ -67,20 +60,25 @@
 </nav>
 
 <div class="main-container">
-    <main class="gallery-wrapper">
-        <div id="gallery" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:30px;"></div>
-    </main>
-
     <aside class="sidebar">
+        <div class="box">
+            <h4 style="margin:0 0 8px 0; font-size:13px; color:var(--accent)">Artistas en línea</h4>
+            <div id="users-dir"></div>
+        </div>
+
         <div class="box" style="flex:1">
-            <h4 style="margin:0 0 8px 0; font-size:14px;">Chat Global</h4>
+            <h4 style="margin:0 0 8px 0; font-size:13px;">Chat Global</h4>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:10px; font-size:14px;" placeholder="Escribe...">
+                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:10px; font-size:13px;" placeholder="Escribe...">
                 <button id="chat-send" class="btn">🚀</button>
             </div>
         </div>
     </aside>
+
+    <main class="gallery-wrapper">
+        <div id="gallery" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:40px;"></div>
+    </main>
 </div>
 
 <script type="module">
@@ -108,19 +106,30 @@
         document.getElementById('logoutBtn').style.display = u ? "block" : "none";
         if(u) {
             document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
+            set(ref(db, 'users/' + u.uid), { n: u.displayName, p: u.photoURL });
         }
     });
 
     document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
     document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-    // CHAT MEJORADO
-    const qChat = query(ref(db, 'chat'), limitToLast(30));
+    // ARTISTAS MINI (CORREGIDO)
+    onValue(ref(db, 'users'), snap => {
+        const dir = document.getElementById('users-dir');
+        let html = "";
+        snap.forEach(u => {
+            html += `<div class="user-row"><img src="${u.val().p}"> <span>${u.val().n}</span></div>`;
+        });
+        dir.innerHTML = html;
+    });
+
+    // CHAT
+    const qChat = query(ref(db, 'chat'), limitToLast(50));
     onValue(qChat, snap => {
         const c = document.getElementById('chat-messages');
-        let html = "";
-        snap.forEach(m => { html += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
-        c.innerHTML = html;
+        let h = "";
+        snap.forEach(m => { h += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
+        c.innerHTML = h;
         c.scrollTop = c.scrollHeight;
     });
 
@@ -129,7 +138,7 @@
         if(userNow && i.value.trim()) { push(ref(db, 'chat'), { u: userNow.displayName, t: i.value }); i.value = ""; }
     };
 
-    // GALERÍA MEJORADA
+    // MURO
     const procesarHashtags = (t) => t ? t.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>') : "";
 
     onValue(ref(db, 'posts'), snap => {
@@ -139,21 +148,21 @@
         gal.innerHTML = posts.reverse().map(p => `
             <div class="card">
                 <div class="post-header">
-                    <div style="display:flex; align-items:center; gap:8px; font-weight:bold; font-size:13px;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:bold; font-size:12px;">
                         <img src="${p.userPic || 'https://via.placeholder.com/30'}" class="post-user-pic">
                         <span>${p.userName}</span>
                     </div>
-                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:#ff4d4d; color:white; border:none; border-radius:5px; padding:3px 7px; font-size:9px">BORRAR</button>` : ''}
+                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:#ff4d4d; color:white; border:none; border-radius:5px; padding:3px 7px; font-size:9px; cursor:pointer">BORRAR</button>` : ''}
                 </div>
                 <img src="${p.imageUrl}" class="main">
                 <div style="padding:12px; font-size:13px;">${procesarHashtags(p.caption)}</div>
-                <div class="actions" onclick="window.lk('${p.id}')" style="cursor:pointer">❤️ ${p.likes || 0}</div>
+                <div style="padding:0 12px 12px; cursor:pointer" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
             </div>
         `).join('');
     });
 
     window.lk = (id) => { if(userNow) runTransaction(ref(db, `posts/${id}/likes`), c => (c || 0) + 1); };
-    window.delP = (id) => { if(confirm("¿Borrar?")) remove(ref(db, `posts/${id}`)); };
+    window.delP = (id) => { if(confirm("¿Borrar obra?")) remove(ref(db, `posts/${id}`)); };
 
     // CLOUDINARY
     const myWidget = cloudinary.createUploadWidget({ cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned" }, (e, r) => {
