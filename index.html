@@ -10,35 +10,29 @@
         :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; --white: #ffffff; }
         body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
         
-        /* --- NAVBAR --- */
         nav { background: var(--nav); padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
         .logo { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background: linear-gradient(45deg, #7b2cbf, #ff00ff); }
         .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; }
         .btn:hover { background: var(--accent); transform: scale(1.05); }
-        .profile-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background-size: cover; }
+        .profile-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; }
 
-        /* --- LAYOUT --- */
         .layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 80px; height: calc(100vh - 100px); }
         .box { background: rgba(255,255,255,0.05); border: 2px solid white; border-radius: 20px; padding: 15px; }
         
-        /* --- CHAT --- */
         #chat-messages { height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
         .msg { font-size: 12px; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.1); }
-        .my-msg { align-self: flex-end; background: var(--accent); }
 
-        /* --- FEED --- */
         #muro { border: 4px solid white; border-radius: 30px; padding: 20px; background: rgba(255,255,255,0.02); }
-        .card { background: white; border-radius: 20px; overflow: hidden; color: #333; margin-bottom: 30px; max-width: 500px; margin-inline: auto; }
-        .card img.main { width: 100%; max-height: 500px; object-fit: contain; background: #000; display: block; }
+        .card { background: white; border-radius: 20px; overflow: hidden; color: #333; margin-bottom: 35px; max-width: 500px; margin-inline: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .card img.main { width: 100%; max-height: 550px; object-fit: contain; background: #000; display: block; }
         
-        /* --- MODAL --- */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: var(--nav); padding: 25px; border-radius: 25px; border: 3px solid white; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
-        input, textarea { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; }
+        input, textarea { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; outline: none; }
 
         @media (max-width: 900px) {
-            .layout { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+            .layout { grid-template-columns: 1fr; }
             .sidebar { position: static; height: auto; order: 2; }
             #muro { order: 1; }
         }
@@ -60,23 +54,26 @@
     <div class="modal-content">
         <h3 style="text-align:center; margin:0">NUEVA OBRA</h3>
         <button class="btn" id="btn-upload">1. SELECCIONAR IMAGEN</button>
-        <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista</div>
-        <textarea id="p-cap" placeholder="Descripción..."></textarea>
-        <input type="text" id="p-tag" placeholder="#Hashtags">
+        <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista para subir</div>
+        <textarea id="p-cap" placeholder="¿Qué nos quieres mostrar?"></textarea>
+        <input type="text" id="p-tag" placeholder="#Hashtags #Arte">
         <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
-        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CANCELAR</button>
+        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'" style="background:transparent; border:1px solid gray">CANCELAR</button>
     </div>
 </div>
 
 <div class="layout">
     <aside class="sidebar">
-        <div class="box"><h3>Artistas</h3><div id="users-dir"></div></div>
+        <div class="box">
+            <h3>Artistas</h3>
+            <div id="users-dir" style="max-height: 150px; overflow-y: auto;"></div>
+        </div>
         <div class="box">
             <h3>Chat Global</h3>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1" placeholder="Tu mensaje...">
-                <button id="chat-send" class="btn">🚀</button>
+                <input type="text" id="chat-in" style="flex:1; padding:5px" placeholder="Escribe...">
+                <button id="chat-send" class="btn" style="padding:5px 10px">🚀</button>
             </div>
         </div>
     </aside>
@@ -102,7 +99,7 @@
     let userNow = null;
     let finalUrl = "";
 
-    // --- CLOUDINARY (Preset blip_unsigned) ---
+    // --- CLOUDINARY ---
     const myWidget = cloudinary.createUploadWidget({
         cloudName: "dz9s37bk0",
         uploadPreset: "blip_unsigned"
@@ -110,17 +107,13 @@
         if (!error && result && result.event === "success") {
             finalUrl = result.info.secure_url;
             document.getElementById('status').style.display = "block";
-            console.log("URL capturada:", finalUrl);
         }
     });
-
     document.getElementById('btn-upload').onclick = () => myWidget.open();
 
     // --- PUBLICAR ---
     document.getElementById('btn-post').onclick = async () => {
-        if (!finalUrl) return alert("Primero selecciona una imagen");
-        if (!userNow) return alert("Inicia sesión");
-
+        if (!finalUrl || !userNow) return alert("Imagen obligatoria e inicia sesión");
         await push(ref(db, 'posts'), {
             imageUrl: finalUrl,
             caption: document.getElementById('p-cap').value,
@@ -130,22 +123,22 @@
             likes: 0,
             timestamp: serverTimestamp()
         });
-
         document.getElementById('pubModal').style.display = "none";
         finalUrl = ""; 
-        document.getElementById('status').style.display = "none";
         document.getElementById('p-cap').value = "";
+        document.getElementById('status').style.display = "none";
     };
 
-    // --- FEED ---
+    // --- FEED (Muestra todas las imágenes) ---
     onValue(ref(db, 'posts'), (snap) => {
         const gal = document.getElementById('gallery');
         gal.innerHTML = "";
-        const list = [];
-        snap.forEach(d => list.push({id: d.key, ...d.val()}));
-        list.reverse().forEach(p => {
-            let cHtml = "";
-            if(p.comments) Object.values(p.comments).forEach(c => cHtml += `<div style="font-size:11px"><b>${c.u}:</b> ${c.t}</div>`);
+        let posts = [];
+        snap.forEach(d => posts.push({id: d.key, ...d.val()}));
+        posts.reverse().forEach(p => {
+            let comms = "";
+            if(p.comments) Object.values(p.comments).forEach(c => comms += `<div style="font-size:11px"><b>${c.u}:</b> ${c.t}</div>`);
+            
             gal.innerHTML += `
                 <div class="card">
                     <div style="padding:10px; display:flex; align-items:center; gap:8px; font-weight:bold">
@@ -155,9 +148,9 @@
                     <div style="padding:15px">
                         <p style="margin:0">${p.caption || ""}</p>
                         <span style="color:var(--accent); font-weight:bold">${p.tags || ""}</span>
-                        <div style="margin-top:10px; cursor:pointer" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
+                        <div style="margin-top:10px; cursor:pointer; font-size:18px" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
                     </div>
-                    <div style="padding:10px; border-top:1px solid #eee; background:#f9f9f9">${cHtml || "Sin comentarios"}</div>
+                    <div style="padding:10px; border-top:1px solid #eee; background:#f9f9f9">${comms || "Sin comentarios"}</div>
                     <div style="display:flex; padding:10px; gap:5px; border-top:1px solid #eee">
                         <input type="text" id="in-${p.id}" style="flex:1; background:#fff; color:#000" placeholder="Comentar...">
                         <button class="btn" onclick="window.cm('${p.id}')">></button>
@@ -166,14 +159,32 @@
         });
     });
 
-    // --- ACCIONES ---
-    window.lk = (id) => runTransaction(ref(db, `posts/${id}/likes`), c => (c || 0) + 1);
-    window.cm = (id) => {
-        const t = document.getElementById(`in-${id}`).value;
-        if(userNow && t.trim()) push(ref(db, `posts/${id}/comments`), { u: userNow.displayName, t: t });
+    // --- LIKES ÚNICOS (DAR Y QUITAR) ---
+    window.lk = async (id) => {
+        if (!userNow) return alert("Inicia sesión");
+        const uLikeRef = ref(db, `posts/${id}/userLikes/${userNow.uid}`);
+        const pRef = ref(db, `posts/${id}/likes`);
+
+        await runTransaction(uLikeRef, (exists) => {
+            if (exists) {
+                runTransaction(pRef, (c) => (c || 1) - 1);
+                return null;
+            } else {
+                runTransaction(pRef, (c) => (c || 0) + 1);
+                return true;
+            }
+        });
     };
 
-    // --- AUTH & CHAT ---
+    window.cm = (id) => {
+        const t = document.getElementById(`in-${id}`).value;
+        if(userNow && t.trim()) {
+            push(ref(db, `posts/${id}/comments`), { u: userNow.displayName, t: t });
+            document.getElementById(`in-${id}`).value = "";
+        }
+    };
+
+    // --- AUTH, ARTISTAS Y CHAT ---
     onAuthStateChanged(auth, u => {
         userNow = u;
         document.getElementById('login').style.display = u ? "none" : "block";
@@ -184,22 +195,32 @@
         }
     });
 
-    document.getElementById('openModal').onclick = () => document.getElementById('pubModal').style.display = "flex";
-    document.getElementById('login').onclick = () => signInWithPopup(auth, provider);
-    document.getElementById('logout').onclick = () => signOut(auth);
+    onValue(ref(db, 'users'), (s) => {
+        const d = document.getElementById('users-dir'); d.innerHTML = "";
+        s.forEach(c => { 
+            const u = c.val(); 
+            d.innerHTML += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">
+                <img src="${u.p}" style="width:25px; height:25px; border-radius:50%">
+                <span style="font-size:12px">${u.n}</span>
+            </div>`;
+        });
+    });
 
-    // Chat Logic
     document.getElementById('chat-send').onclick = () => {
         const i = document.getElementById('chat-in');
         if(userNow && i.value.trim()) push(ref(db, 'chat'), { u: userNow.displayName, t: i.value });
         i.value = "";
     };
+
     onValue(ref(db, 'chat'), (s) => {
-        const b = document.getElementById('chat-messages');
-        b.innerHTML = "";
+        const b = document.getElementById('chat-messages'); b.innerHTML = "";
         s.forEach(m => { const d = m.val(); b.innerHTML += `<div class="msg"><b>${d.u}:</b> ${d.t}</div>`; });
         b.scrollTop = b.scrollHeight;
     });
+
+    document.getElementById('openModal').onclick = () => { if(userNow) document.getElementById('pubModal').style.display = "flex"; else alert("Inicia sesión"); };
+    document.getElementById('login').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('logout').onclick = () => signOut(auth);
 </script>
 </body>
 </html>
