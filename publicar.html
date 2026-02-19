@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Publicar - BLIP</title>
+    <style>
+        body { background: #050010; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+        nav { width: 100%; background: #1a0044; padding: 15px; border-bottom: 2px solid #7b2cbf; }
+        .box { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid #7b2cbf; width: 90%; max-width: 450px; margin-top: 40px; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #444; background: #000; color: white; outline: none; }
+        .btn { width: 100%; background: #7b2cbf; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .preview { width: 100%; height: 200px; border: 2px dashed #444; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden; }
+        .preview img { max-width: 100%; max-height: 100%; }
+    </style>
+</head>
+<body>
+    <nav><b style="cursor:pointer" onclick="location.href='index.html'">BLIP</b></nav>
+    <div class="box">
+        <h2>Nueva Obra</h2>
+        <div class="preview" id="previa"><span>Sin imagen</span></div>
+        <input type="file" id="archivo" accept="image/*">
+        <textarea id="desc" placeholder="¿De qué trata tu obra?" rows="3"></textarea>
+        <input type="text" id="tags" placeholder="#neon #cyberpunk #arte"></textarea>
+        <button class="btn" id="subir">PUBLICAR AHORA</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+            authDomain: "almacenamiento-redsocial.firebaseapp.com",
+            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+            projectId: "almacenamiento-redsocial"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        let userActual = null;
+
+        onAuthStateChanged(auth, user => { if(!user) location.href='index.html'; userActual = user; });
+
+        document.getElementById('archivo').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => { document.getElementById('previa').innerHTML = `<img src="${ev.target.result}">`; };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        document.getElementById('subir').onclick = async () => {
+            const file = document.getElementById('archivo').files[0];
+            const btn = document.getElementById('subir');
+            if(!file) return alert("Sube una imagen");
+            btn.disabled = true; btn.innerText = "Subiendo...";
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'blip_unsigned');
+
+            try {
+                const res = await fetch('https://api.cloudinary.com/v1_1/dz9s37bk0/image/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                await push(ref(db, 'posts'), {
+                    url: data.secure_url,
+                    desc: document.getElementById('desc').value,
+                    tags: document.getElementById('tags').value,
+                    userName: userActual.displayName,
+                    userPic: userActual.photoURL,
+                    uid: userActual.uid,
+                    timestamp: Date.now()
+                });
+                location.href = 'index.html';
+            } catch (e) { alert("Error"); btn.disabled = false; }
+        };
+    </script>
+</body>
+</html>

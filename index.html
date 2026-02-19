@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLIP - Comunidad de Artistas</title>
+    <style>
+        :root { --bg: #050010; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        nav { background: var(--nav); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 65px; border-bottom: 2px solid var(--accent); z-index: 1000; flex-shrink: 0; gap: 15px; }
+        .nav-logo { font-weight: bold; font-size: 24px; cursor: pointer; text-shadow: 0 0 10px var(--accent); }
+
+        .search-container { flex: 1; max-width: 400px; position: relative; }
+        .search-container input { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid var(--accent); padding: 8px 15px 8px 35px; border-radius: 20px; color: white; outline: none; }
+
+        .main-container { display: flex; flex: 1; width: 100%; overflow: hidden; }
+        .sidebar { width: 300px; background: rgba(0,0,0,0.8); border-right: 1px solid var(--accent); display: flex; flex-direction: column; padding: 15px; gap: 20px; flex-shrink: 0; overflow-y: auto; }
+        
+        .gallery-wrapper { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; background: #020008; }
+        #feed { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 30px; }
+        
+        .card { width: 100%; background: var(--card-bg); border-radius: 15px; color: #1a1a1a; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .post-header { padding: 10px 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .post-header img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+        .post-text { padding: 0 15px 12px 15px; font-size: 14px; color: #333; }
+        .post-tags { color: var(--accent); font-weight: bold; font-size: 13px; }
+        .main-pic { width: 100%; display: block; cursor: pointer; background: #000; }
+        .post-actions { padding: 12px 15px; display: flex; gap: 15px; border-top: 1px solid #eee; }
+        .action-btn { cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+
+        /* NOTIFICACIONES */
+        .noti-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ff0055; border-radius: 50%; border: 2px solid var(--nav); display: none; }
+        #noti-panel { display: none; position: fixed; top: 70px; right: 20px; width: 320px; max-height: 450px; background: white; color: black; border-radius: 15px; border: 1px solid var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 3000; overflow-y: auto; }
+        .noti-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .noti-item img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+
+        /* MODAL COMENTARIOS */
+        #comment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(5px); }
+        .modal-container { background: #1a1a1a; width: 95%; max-width: 950px; height: 85vh; border-radius: 20px; display: flex; overflow: hidden; border: 1px solid var(--accent); }
+        .modal-preview { flex: 1.2; background: #000; display: flex; align-items: center; justify-content: center; }
+        .modal-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-comments-section { flex: 0.8; display: flex; flex-direction: column; background: #fff; color: #000; }
+        #comments-list { flex: 1; overflow-y: auto; padding: 15px; }
+
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 12px; }
+        .btn-mini { padding: 5px 10px; font-size: 10px; }
+        
+        .chat-box { flex: 1; display: flex; flex-direction: column; background: rgba(15, 0, 30, 0.6); border-radius: 15px; padding: 10px; border: 1px solid var(--accent); overflow: hidden; }
+        #chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+        .msg-bubble { padding: 8px; border-radius: 10px; max-width: 85%; }
+        .msg-me { align-self: flex-end; background: var(--accent); color: white; }
+        .msg-other { align-self: flex-start; background: rgba(255,255,255,0.1); }
+        
+        @media (max-width: 768px) { .sidebar { display: none; } .modal-container { flex-direction: column; } #noti-panel { right: 5%; width: 90%; } }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo" onclick="location.href='index.html'">BLIP</div>
+    <div class="search-container"><input type="text" id="main-search" placeholder="Buscar artista o #tag..."></div>
+    <div style="display:flex; gap:15px; align-items:center;">
+        <div style="position:relative; cursor:pointer;" onclick="window.toggleNotis()">
+            <span style="font-size:22px;">🔔</span>
+            <div id="noti-badge" class="noti-dot"></div>
+        </div>
+        <a href="perfil.html" id="btnPerfil" style="display:none;"><img id="navUserPic" src="" style="width:35px; height:35px; border-radius:50%; border:2px solid var(--accent);"></a>
+        <a href="publicar.html" class="btn" id="btnOpenUpload" style="display:none">+</a>
+        <button class="btn" id="btnLogin">ENTRAR</button>
+    </div>
+</nav>
+
+<div id="noti-panel">
+    <div style="padding:15px; font-weight:bold; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+        NOTIFICACIONES <span onclick="window.toggleNotis()" style="cursor:pointer; font-size:20px;">&times;</span>
+    </div>
+    <div id="noti-list"></div>
+</div>
+
+<div class="main-container">
+    <aside class="sidebar">
+        <div style="color:var(--accent); font-size:11px; font-weight:bold;">ARTISTAS SUGERIDOS</div>
+        <div id="suggested-list"></div>
+        <div class="chat-box">
+            <div style="color:var(--accent); font-size:11px; font-weight:bold; margin-bottom:10px;">CHAT GLOBAL</div>
+            <div id="chat-messages"></div>
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:10px;" placeholder="Escribe...">
+                <button id="chat-send" class="btn">🚀</button>
+            </div>
+        </div>
+    </aside>
+    <main class="gallery-wrapper"><div id="feed"></div></main>
+</div>
+
+<div id="comment-modal">
+    <div class="modal-container">
+        <div class="modal-preview"><img id="modal-img-preview" src=""></div>
+        <div class="modal-comments-section">
+            <div style="padding:15px; border-bottom:1px solid #eee; font-weight:bold; display:flex; justify-content:space-between;">
+                COMENTARIOS <span onclick="window.cerrarComentarios()" style="cursor:pointer; font-size:24px;">&times;</span>
+            </div>
+            <div id="comments-list"></div>
+            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:8px;">
+                <input type="text" id="new-comment-in" style="flex:1; padding:12px; border-radius:20px; border:1px solid #ddd;" placeholder="Añade un comentario...">
+                <button id="send-comment-btn" class="btn">🚀</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+    import { getDatabase, ref, push, set, onValue, remove, onDisconnect, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+        authDomain: "almacenamiento-redsocial.firebaseapp.com",
+        databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+        projectId: "almacenamiento-redsocial"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const provider = new GoogleAuthProvider();
+    
+    let userActual = null, seguidosGlobal = [], todosLosPosts = [], postActivo = null;
+    const IMG_DEFAULT = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    onAuthStateChanged(auth, user => {
+        userActual = user;
+        document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
+        document.getElementById('btnPerfil').style.display = user ? 'block' : 'none';
+        document.getElementById('btnLogin').innerText = user ? 'SALIR' : 'ENTRAR';
+        if(user) {
+            document.getElementById('navUserPic').src = user.photoURL || IMG_DEFAULT;
+            set(ref(db, 'online_users/' + user.uid), { n: user.displayName, p: user.photoURL || IMG_DEFAULT });
+            onDisconnect(ref(db, 'online_users/' + user.uid)).remove();
+            onValue(ref(db, `seguidores/${user.uid}`), snap => {
+                seguidosGlobal = [user.uid]; snap.forEach(s => seguidosGlobal.push(s.key));
+                cargarMuro(); cargarSugeridos();
+            });
+            escucharNotis(user.uid);
+        } else { cargarMuro(); }
+    });
+
+    // --- NOTIFICACIONES ---
+    function enviarNoti(uidDestino, msj) {
+        if(!userActual || uidDestino === userActual.uid) return;
+        push(ref(db, `notificaciones/${uidDestino}`), {
+            u: userActual.displayName, p: userActual.photoURL || IMG_DEFAULT, m: msj, t: Date.now()
+        });
+    }
+
+    function escucharNotis(uid) {
+        onValue(query(ref(db, `notificaciones/${uid}`), limitToLast(10)), snap => {
+            const list = document.getElementById('noti-list');
+            const badge = document.getElementById('noti-badge');
+            list.innerHTML = "";
+            if(snap.exists()) {
+                badge.style.display = 'block';
+                snap.forEach(n => {
+                    const d = n.val();
+                    list.innerHTML = `<div class="noti-item"><img src="${d.p}"><span><b>${d.u}</b> ${d.m}</span></div>` + list.innerHTML;
+                });
+            } else { list.innerHTML = "<p style='padding:20px; text-align:center; color:#999;'>Sin avisos</p>"; }
+        });
+    }
+
+    window.toggleNotis = () => {
+        const p = document.getElementById('noti-panel');
+        p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        document.getElementById('noti-badge').style.display = 'none';
+    };
+
+    // --- MURO Y POSTS ---
+    function cargarMuro() {
+        onValue(ref(db, 'posts'), snap => {
+            todosLosPosts = []; snap.forEach(p => { todosLosPosts.push({ id: p.key, ...p.val() }); });
+            renderizarFeed(todosLosPosts);
+        });
+    }
+
+    function renderizarFeed(lista) {
+        const feed = document.getElementById('feed'); feed.innerHTML = "";
+        lista.slice().reverse().forEach(p => {
+            const loSigo = seguidosGlobal.includes(p.uid);
+            const esMio = userActual && p.uid === userActual.uid;
+            const card = document.createElement('article');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="post-header">
+                    <img src="${p.userPic || IMG_DEFAULT}">
+                    <span>${p.userName}</span>
+                    ${esMio ? `<button onclick="window.eliminarPost('${p.id}')" style="margin-left:auto; background:none; border:none; cursor:pointer;">🗑️</button>` : 
+                    `<button onclick="window.toggleSeguir('${p.uid}')" style="margin-left:auto; background:${loSigo?'#444':''};" class="btn btn-mini">${loSigo?'Siguiendo':'+ Seguir'}</button>`}
+                </div>
+                <div class="post-text">${p.desc || ''} <div class="post-tags">${p.tags || ''}</div></div>
+                <img src="${p.url}" class="main-pic" onclick="window.abrirComentarios('${p.id}', '${p.url}')">
+                <div class="post-actions">
+                    <div class="action-btn" onclick="window.darLike('${p.id}', '${p.uid}')">${p.likes && userActual && p.likes[userActual.uid] ? '❤️' : '🤍'} ${p.likes ? Object.keys(p.likes).length : 0}</div>
+                    <div class="action-btn" onclick="window.abrirComentarios('${p.id}', '${p.url}')">💬 Comentar</div>
+                </div>`;
+            feed.appendChild(card);
+        });
+    }
+
+    window.darLike = (postId, dueñoId) => {
+        if(!userActual) return alert("Entra primero");
+        const r = ref(db, `posts/${postId}/likes/${userActual.uid}`);
+        onValue(r, s => {
+            if(s.exists()) remove(r); 
+            else { set(r, true); enviarNoti(dueñoId, "le dio ❤️ a tu obra"); }
+        }, {onlyOnce:true});
+    };
+
+    window.toggleSeguir = (id) => {
+        if(!userActual) return alert("Entra primero");
+        const r = ref(db, `seguidores/${userActual.uid}/${id}`);
+        onValue(r, s => {
+            if(s.exists()) remove(r); 
+            else { set(r, {a:true}); enviarNoti(id, "empezó a seguirte ✨"); }
+        }, {onlyOnce:true});
+    };
+
+    // --- COMENTARIOS ---
+    window.abrirComentarios = (id, url) => {
+        postActivo = id; document.getElementById('modal-img-preview').src = url;
+        document.getElementById('comment-modal').style.display = 'flex';
+        onValue(ref(db, `comments/${id}`), snap => {
+            const list = document.getElementById('comments-list'); list.innerHTML = "";
+            snap.forEach(c => {
+                const com = c.val();
+                list.innerHTML += `<div style="display:flex; gap:10px; margin-bottom:10px;"><img src="${com.p}" style="width:30px; height:30px; border-radius:50%;"><div style="font-size:13px;"><b>${com.u}</b><p style="margin:2px 0;">${com.m}</p></div></div>`;
+            });
+            list.scrollTop = list.scrollHeight;
+        });
+    };
+
+    document.getElementById('send-comment-btn').onclick = () => {
+        const input = document.getElementById('new-comment-in');
+        if(input.value.trim() && userActual && postActivo) {
+            onValue(ref(db, `posts/${postActivo}/uid`), snap => {
+                const dueñoId = snap.val();
+                push(ref(db, `comments/${postActivo}`), { u: userActual.displayName, m: input.value, p: userActual.photoURL || IMG_DEFAULT });
+                enviarNoti(dueñoId, "comentó: " + input.value.substring(0,15) + "...");
+                input.value = "";
+            }, {onlyOnce:true});
+        }
+    };
+
+    window.cerrarComentarios = () => { document.getElementById('comment-modal').style.display = 'none'; postActivo = null; };
+    window.eliminarPost = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, `posts/${id}`)); };
+
+    // --- CHAT Y OTROS ---
+    document.getElementById('chat-send').onclick = () => {
+        const v = document.getElementById('chat-in').value.trim();
+        if(v && userActual) { push(ref(db, 'chat_global'), { u: userActual.displayName, m: v, uid: userActual.uid }); document.getElementById('chat-in').value = ""; }
+    };
+    onValue(query(ref(db, 'chat_global'), limitToLast(20)), snap => {
+        const box = document.getElementById('chat-messages'); box.innerHTML = "";
+        snap.forEach(m => {
+            const d = m.val(); const esMio = userActual && d.uid === userActual.uid;
+            box.innerHTML += `<div class="msg-bubble ${esMio?'msg-me':'msg-other'}"><b>${esMio?'Tú':d.u}:</b> ${d.m}</div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    function cargarSugeridos() {
+        onValue(ref(db, 'online_users'), snap => {
+            const list = document.getElementById('suggested-list'); list.innerHTML = "";
+            snap.forEach(u => {
+                if(userActual && u.key !== userActual.uid && !seguidosGlobal.includes(u.key)) {
+                    list.innerHTML += `<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;"><div style="display:flex; align-items:center; gap:8px;"><img src="${u.val().p}" style="width:30px; height:30px; border-radius:50%;"><span style="font-size:12px;">${u.val().n.split(' ')[0]}</span></div><button class="btn btn-mini" onclick="window.toggleSeguir('${u.key}')">SEGUIR</button></div>`;
+                }
+            });
+        });
+    }
+
+    document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : signInWithPopup(auth, provider);
+</script>
+</body>
+</html>

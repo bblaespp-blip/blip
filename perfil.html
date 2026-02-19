@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil - BLIP</title>
+    <style>
+        :root { --bg: #050010; --accent: #7b2cbf; }
+        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; }
+        nav { background: #1a0044; padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--accent); }
+        .header { text-align: center; padding: 40px; background: linear-gradient(to bottom, #1a0044, #050010); }
+        .header img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 20px; }
+        .grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; border: 1px solid #333; }
+        .stats { display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-weight: bold; }
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <nav><b style="font-size: 20px;">BLIP</b> <a href="index.html" class="btn">Volver</a></nav>
+    <div class="header">
+        <img id="uImg" src="">
+        <h2 id="uName">Cargando...</h2>
+        <div class="stats"><span id="pCount">0</span> Obras | <span id="sCount">0</span> Seguidores</div>
+    </div>
+    <div class="grid" id="uGrid"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getDatabase, ref, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+            authDomain: "almacenamiento-redsocial.firebaseapp.com",
+            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+            projectId: "almacenamiento-redsocial"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const id = new URLSearchParams(window.location.search).get('id');
+
+        onAuthStateChanged(auth, user => {
+            const uid = id || (user ? user.uid : null);
+            if(!uid) return location.href = 'index.html';
+
+            onValue(ref(db, 'online_users/' + uid), s => {
+                if(s.exists()){
+                    document.getElementById('uName').innerText = s.val().n;
+                    document.getElementById('uImg').src = s.val().p;
+                }
+            });
+
+            onValue(query(ref(db, 'posts'), orderByChild('uid'), equalTo(uid)), snap => {
+                const g = document.getElementById('uGrid'); g.innerHTML = "";
+                let count = 0;
+                snap.forEach(p => {
+                    count++;
+                    const img = document.createElement('img'); img.src = p.val().url;
+                    g.prepend(img);
+                });
+                document.getElementById('pCount').innerText = count;
+            });
+
+            onValue(ref(db, 'seguidores'), snap => {
+                let s = 0;
+                snap.forEach(u => { if(u.hasChild(uid)) s++; });
+                document.getElementById('sCount').innerText = s;
+            });
+        });
+    </script>
+</body>
+</html>
