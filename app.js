@@ -1,5 +1,21 @@
 const firebaseConfig = {
   // 🔴 PEGA AQUI TU CONFIG DE FIREBASE 🔴
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+const firebaseConfig = {
+  apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+  authDomain: "almacenamiento-redsocial.firebaseapp.com",
+  databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+  projectId: "almacenamiento-redsocial",
+  storageBucket: "almacenamiento-redsocial.firebasestorage.app",
+  messagingSenderId: "562861595597",
+  appId: "1:562861595597:web:f9e5764ea977b72fa9c284",
+  measurementId: "G-KZXC1T5EFD"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -67,3 +83,4 @@ db.ref("posts").on("child_added",snap=>{
   div.innerHTML=`<img src="${p.img}"><p>${p.caption}</p>`;
   feed.prepend(div);
 });
+
