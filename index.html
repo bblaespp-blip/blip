@@ -16,38 +16,35 @@
         .btn:hover { background: var(--accent); transform: scale(1.05); }
         .profile-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; }
 
-        .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 1600px; margin: 20px auto; padding: 0 20px; }
         .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 80px; height: calc(100vh - 100px); }
         .box { background: rgba(255,255,255,0.05); border: 2px solid white; border-radius: 20px; padding: 15px; }
         
-        #chat-messages { height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .msg { font-size: 11px; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.1); }
-
-        /* --- NUEVO DISEÑO DE GALERÍA (UNA AL LADO DE OTRA) --- */
+        /* --- MURO ESTILO GALERÍA REAL --- */
         #gallery { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 20px; 
-            align-items: start;
+            columns: 3 300px; /* Crea columnas automáticas de mínimo 300px */
+            column-gap: 20px;
         }
 
         .card { 
+            break-inside: avoid; /* Evita que la tarjeta se parta entre columnas */
             background: white; 
             border-radius: 15px; 
+            margin-bottom: 20px;
             overflow: hidden; 
             color: #333; 
             display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            flex-direction: column;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
         }
+        .card:hover { transform: translateY(-5px); }
 
         .card img.main { 
             width: 100%; 
-            height: 250px; /* Altura fija para que se vean ordenadas */
-            object-fit: cover; /* Recorta la imagen para llenar el espacio sin deformar */
-            background: #000; 
+            height: auto; /* Altura automática para respetar la proporción del dibujo */
             display: block; 
-            cursor: pointer;
+            cursor: zoom-in;
         }
 
         .del-btn { background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 9px; }
@@ -55,12 +52,11 @@
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: var(--nav); padding: 25px; border-radius: 25px; border: 3px solid white; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
-        input, textarea { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; outline: none; }
 
         @media (max-width: 900px) {
             .layout { grid-template-columns: 1fr; }
             .sidebar { position: static; height: auto; order: 2; }
-            #gallery { grid-template-columns: 1fr; } /* En móvil vuelve a una columna */
+            #gallery { columns: 1; } 
         }
     </style>
 </head>
@@ -81,10 +77,10 @@
         <h3 style="text-align:center; margin:0">NUEVA OBRA</h3>
         <button class="btn" id="btn-upload">1. SELECCIONAR IMAGEN</button>
         <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista</div>
-        <textarea id="p-cap" placeholder="Descripción..."></textarea>
-        <input type="text" id="p-tag" placeholder="#Hashtags">
+        <textarea id="p-cap" placeholder="Descripción de tu arte..."></textarea>
+        <input type="text" id="p-tag" placeholder="#tattoo #sketch #color">
         <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
-        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CANCELAR</button>
+        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'" style="background:transparent; border:1px solid gray">CANCELAR</button>
     </div>
 </div>
 
@@ -93,10 +89,10 @@
         <div class="box"><h3>Artistas</h3><div id="users-dir"></div></div>
         <div class="box">
             <h3>Chat Global</h3>
-            <div id="chat-messages"></div>
+            <div id="chat-messages" style="height:150px; overflow-y:auto; font-size:11px;"></div>
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1" placeholder="Mensaje...">
-                <button id="chat-send" class="btn">🚀</button>
+                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid #7b2cbf; padding:5px; border-radius:10px;" placeholder="Escribe...">
+                <button id="chat-send" class="btn" style="padding:5px 10px">🚀</button>
             </div>
         </div>
     </aside>
@@ -136,7 +132,7 @@
     document.getElementById('btn-upload').onclick = () => myWidget.open();
 
     document.getElementById('btn-post').onclick = async () => {
-        if (!finalUrl || !userNow) return alert("Imagen obligatoria");
+        if (!finalUrl || !userNow) return alert("Sube una imagen primero");
         await push(ref(db, 'posts'), {
             imageUrl: finalUrl,
             caption: document.getElementById('p-cap').value,
@@ -148,7 +144,7 @@
             timestamp: serverTimestamp()
         });
         document.getElementById('pubModal').style.display = "none";
-        finalUrl = ""; document.getElementById('status').style.display = "none";
+        finalUrl = ""; document.getElementById('p-cap').value = ""; document.getElementById('status').style.display = "none";
     };
 
     onValue(ref(db, 'posts'), (snap) => {
@@ -161,7 +157,7 @@
             if(p.comments) {
                 Object.entries(p.comments).forEach(([cId, c]) => {
                     const isMyComm = userNow && c.uid === userNow.uid;
-                    comms += `<div style="font-size:10px; margin-bottom:2px; display:flex; justify-content:space-between;">
+                    comms += `<div style="font-size:10px; margin-bottom:4px; display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:2px;">
                         <span><b>${c.u}:</b> ${c.t}</span>
                         ${isMyComm ? `<button class="del-comment" onclick="window.delC('${p.id}', '${cId}')">×</button>` : ''}
                     </div>`;
@@ -172,35 +168,37 @@
 
             gal.innerHTML += `
                 <div class="card">
-                    <div style="padding:8px; display:flex; justify-content:space-between; align-items:center; background:#eee">
-                        <div style="display:flex; align-items:center; gap:5px; font-size:11px; font-weight:bold">
-                            <img src="${p.userPhoto}" style="width:20px; height:20px; border-radius:50%">
+                    <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#f8f9fa">
+                        <div style="display:flex; align-items:center; gap:8px; font-size:11px; font-weight:bold">
+                            <img src="${p.userPhoto}" style="width:25px; height:25px; border-radius:50%">
                             <span>${p.userName}</span>
                         </div>
-                        ${isMyPost ? `<button class="del-btn" onclick="window.delP('${p.id}')">Eliminar</button>` : ''}
+                        ${isMyPost ? `<button class="del-btn" onclick="window.delP('${p.id}')">Borrar</button>` : ''}
                     </div>
                     <img src="${p.imageUrl}" class="main" onclick="window.open('${p.imageUrl}', '_blank')">
-                    <div style="padding:10px; flex-grow:1">
-                        <p style="margin:0; font-size:12px">${p.caption || ""}</p>
+                    <div style="padding:12px;">
+                        <p style="margin:0 0 5px 0; font-size:13px; line-height:1.4">${p.caption || ""}</p>
                         <span style="color:var(--accent); font-weight:bold; font-size:11px">${p.tags || ""}</span>
-                        <div style="margin-top:8px; cursor:pointer; font-size:16px" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
+                        <div style="margin-top:10px; display:flex; align-items:center; gap:5px; cursor:pointer;" onclick="window.lk('${p.id}')">
+                            <span style="font-size:18px">❤️</span> <b>${p.likes || 0}</b>
+                        </div>
                     </div>
-                    <div style="padding:8px; border-top:1px solid #eee; background:#fdfdfd; max-height:60px; overflow-y:auto">
-                        ${comms || "<small>Sin comentarios</small>"}
-                    </div>
-                    <div style="display:flex; padding:8px; gap:5px; border-top:1px solid #eee">
-                        <input type="text" id="in-${p.id}" style="flex:1; font-size:11px; padding:4px" placeholder="Comentar...">
-                        <button class="btn" style="padding:4px 8px" onclick="window.cm('${p.id}')">></button>
+                    <div style="padding:10px; background:#fafafa; border-top:1px solid #eee;">
+                        <div style="max-height:80px; overflow-y:auto; margin-bottom:8px">${comms || "<small style='color:gray'>Sin comentarios</small>"}</div>
+                        <div style="display:flex; gap:5px">
+                            <input type="text" id="in-${p.id}" style="flex:1; font-size:11px; border:1px solid #ddd; border-radius:5px; padding:3px" placeholder="Comentar...">
+                            <button class="btn" style="padding:2px 8px" onclick="window.cm('${p.id}')">></button>
+                        </div>
                     </div>
                 </div>`;
         });
     });
 
-    window.delP = (id) => { if(confirm("¿Borrar publicación?")) remove(ref(db, `posts/${id}`)); };
-    window.delC = (pId, cId) => { if(confirm("¿Borrar comentario?")) remove(ref(db, `posts/${pId}/comments/${cId}`)); };
+    window.delP = (id) => { if(confirm("¿Eliminar esta obra de tu muro?")) remove(ref(db, `posts/${id}`)); };
+    window.delC = (pId, cId) => { if(confirm("¿Eliminar comentario?")) remove(ref(db, `posts/${pId}/comments/${cId}`)); };
 
     window.lk = async (id) => {
-        if (!userNow) return alert("Inicia sesión");
+        if (!userNow) return alert("Inicia sesión para dar like");
         const uLikeRef = ref(db, `posts/${id}/userLikes/${userNow.uid}`);
         const pRef = ref(db, `posts/${id}/likes`);
         await runTransaction(uLikeRef, (exists) => {
@@ -241,7 +239,7 @@
 
     onValue(ref(db, 'chat'), (s) => {
         const b = document.getElementById('chat-messages'); b.innerHTML = "";
-        s.forEach(m => { const d = m.val(); b.innerHTML += `<div class="msg"><b>${d.u}:</b> ${d.t}</div>`; });
+        s.forEach(m => { const d = m.val(); b.innerHTML += `<div style="padding:4px; margin-bottom:4px; background:rgba(255,255,255,0.05); border-radius:5px;"><b>${d.u}:</b> ${d.t}</div>`; });
         b.scrollTop = b.scrollHeight;
     });
 
