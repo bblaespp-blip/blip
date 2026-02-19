@@ -16,31 +16,33 @@
         .btn:hover { background: var(--accent); transform: scale(1.05); }
         .profile-pic { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; }
 
-        /* --- DISEÑO DE COLUMNAS PARA EL MURO --- */
         .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 1600px; margin: 20px auto; padding: 0 20px; }
         
+        /* --- EL MURO AHORA ES FLEX (UNA AL LADO DE OTRA) --- */
         #gallery { 
-            display: block;
-            column-count: 3; /* 3 columnas de arte */
-            column-gap: 15px;
-            width: 100%;
+            display: flex; 
+            flex-wrap: wrap; /* Salta de línea automáticamente */
+            gap: 20px; 
+            justify-content: flex-start; 
+            align-items: flex-start;
         }
 
         .card { 
-            break-inside: avoid; /* No corta la imagen */
             background: white; 
             border-radius: 15px; 
-            margin-bottom: 15px;
             overflow: hidden; 
             color: #333; 
-            display: inline-block; /* Flujo correcto en columnas */
-            width: 100%; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            /* 33.33% menos el espacio del gap para que quepan 3 por fila */
+            width: calc(33.33% - 14px); 
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            height: fit-content;
         }
 
         .card img.main { 
             width: 100%; 
-            height: auto; /* Muestra el arte completo sin recortes */
+            height: auto; 
             display: block;
         }
 
@@ -48,18 +50,19 @@
         .box { background: rgba(255,255,255,0.05); border: 2px solid white; border-radius: 20px; padding: 15px; }
         
         #chat-messages { height: 180px; overflow-y: auto; font-size: 11px; margin-bottom: 10px; }
-        .msg { padding: 5px 10px; border-radius: 10px; background: rgba(255,255,255,0.1); margin-bottom: 5px; }
+        .msg { padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.1); margin-bottom: 5px; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: var(--nav); padding: 25px; border-radius: 25px; border: 3px solid white; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
         input, textarea { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; }
 
-        @media (max-width: 1100px) { #gallery { column-count: 2; } }
+        /* Ajustes para que en tablets salgan 2 y en móviles 1 */
+        @media (max-width: 1200px) { .card { width: calc(50% - 10px); } }
         @media (max-width: 900px) {
             .layout { grid-template-columns: 1fr; }
-            #gallery { column-count: 1; }
-            .sidebar { position: static; height: auto; order: 2; }
+            .sidebar { order: 2; height: auto; position: static; }
         }
+        @media (max-width: 650px) { .card { width: 100%; } }
     </style>
 </head>
 <body>
@@ -78,9 +81,9 @@
     <div class="modal-content">
         <h3 style="text-align:center; margin:0">NUEVA OBRA</h3>
         <button class="btn" id="btn-upload">1. SELECCIONAR IMAGEN</button>
-        <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista para el muro</div>
-        <textarea id="p-cap" placeholder="Descripción de tu obra..."></textarea>
-        <input type="text" id="p-tag" placeholder="#Hashtags">
+        <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista</div>
+        <textarea id="p-cap" placeholder="Descripción..."></textarea>
+        <input type="text" id="p-tag" placeholder="#tags">
         <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
         <button class="btn" onclick="document.getElementById('pubModal').style.display='none'" style="background:transparent; border:1px solid gray">CANCELAR</button>
     </div>
@@ -93,7 +96,7 @@
             <h3>Chat Global</h3>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1" placeholder="Mensaje...">
+                <input type="text" id="chat-in" style="flex:1" placeholder="Escribe algo...">
                 <button id="chat-send" class="btn">🚀</button>
             </div>
         </div>
@@ -109,7 +112,7 @@
     import { getDatabase, ref, push, set, onValue, serverTimestamp, runTransaction, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2r1yhDkLcXsTg",
+        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
         authDomain: "almacenamiento-redsocial.firebaseapp.com",
         databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
         projectId: "almacenamiento-redsocial"
@@ -147,6 +150,7 @@
         });
         document.getElementById('pubModal').style.display = "none";
         finalUrl = ""; document.getElementById('status').style.display = "none";
+        document.getElementById('p-cap').value = "";
     };
 
     onValue(ref(db, 'posts'), (snap) => {
@@ -159,7 +163,7 @@
             if(p.comments) {
                 Object.entries(p.comments).forEach(([cId, c]) => {
                     const isMyComm = userNow && c.uid === userNow.uid;
-                    comms += `<div style="font-size:10px; margin-bottom:3px; display:flex; justify-content:space-between;">
+                    comms += `<div style="font-size:10px; margin-bottom:4px; display:flex; justify-content:space-between;">
                         <span><b>${c.u}:</b> ${c.t}</span>
                         ${isMyComm ? `<button style="background:none; border:none; color:red; cursor:pointer" onclick="window.delC('${p.id}', '${cId}')">×</button>` : ''}
                     </div>`;
@@ -177,16 +181,16 @@
                         ${isMyPost ? `<button style="background:red; color:white; border:none; border-radius:5px; font-size:9px; padding:3px 7px; cursor:pointer" onclick="window.delP('${p.id}')">Borrar</button>` : ''}
                     </div>
                     <img src="${p.imageUrl}" class="main">
-                    <div style="padding:10px">
-                        <p style="margin:0; font-size:12px">${p.caption || ""}</p>
+                    <div style="padding:12px">
+                        <p style="margin:0; font-size:13px">${p.caption || ""}</p>
                         <span style="color:var(--accent); font-weight:bold; font-size:11px">${p.tags || ""}</span>
-                        <div style="margin-top:8px; cursor:pointer; font-size:15px" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
+                        <div style="margin-top:10px; cursor:pointer; font-size:16px" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
                     </div>
-                    <div style="padding:8px; border-top:1px solid #eee; background:#fafafa;">
-                        <div style="max-height:60px; overflow-y:auto">${comms || "<small>Sin comentarios</small>"}</div>
-                        <div style="display:flex; gap:5px; margin-top:5px">
-                            <input type="text" id="in-${p.id}" style="flex:1; font-size:10px; border:1px solid #ddd; padding:3px" placeholder="Comentar...">
-                            <button class="btn" style="padding:2px 8px" onclick="window.cm('${p.id}')">></button>
+                    <div style="padding:10px; border-top:1px solid #eee; background:#fafafa;">
+                        <div style="max-height:80px; overflow-y:auto; margin-bottom:5px">${comms || "<small>Sin comentarios</small>"}</div>
+                        <div style="display:flex; gap:5px">
+                            <input type="text" id="in-${p.id}" style="flex:1; font-size:11px; border:1px solid #ddd; padding:4px; border-radius:5px" placeholder="Comentar...">
+                            <button class="btn" style="padding:4px 10px" onclick="window.cm('${p.id}')">></button>
                         </div>
                     </div>
                 </div>`;
