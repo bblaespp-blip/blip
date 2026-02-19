@@ -1,320 +1,227 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BLIP - Comunidad de Artistas</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLIP - Galería de Artistas</title>
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 
-<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+    <style>
+        :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; overflow-x: hidden; }
+        
+        /* NAVBAR */
+        nav { background: var(--nav); padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--accent); }
+        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; }
 
-<style>
-:root{
-    --bg:#0f0026;
-    --nav:#1a0044;
-    --accent:#7b2cbf;
-    --white:#fff;
-}
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .layout { 
+            display: flex; 
+            gap: 20px; 
+            max-width: 1400px; 
+            margin: 20px auto; 
+            padding: 0 20px; 
+            align-items: flex-start; 
+        }
 
-body{
-    margin:0;
-    background:var(--bg);
-    font-family:Segoe UI, sans-serif;
-    color:white;
-}
+        /* --- BARRA LATERAL (ARTISTAS Y CHAT) --- */
+        .sidebar { 
+            width: 300px; 
+            flex-shrink: 0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            position: sticky; 
+            top: 80px; 
+        }
 
-nav{
-    background:var(--nav);
-    padding:10px 25px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:2px solid var(--accent);
-    position:sticky;
-    top:0;
-    z-index:1000;
-}
+        .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; }
+        #chat-messages { height: 250px; overflow-y: auto; font-size: 12px; margin-bottom: 10px; }
+        .user-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
 
-.btn{
-    background:#2a0066;
-    color:white;
-    border:none;
-    padding:10px 18px;
-    border-radius:20px;
-    cursor:pointer;
-    font-weight:bold;
-    font-size:11px;
-    transition:.25s;
-}
+        /* --- EL MURO (SOLUCIÓN AL AMONTONAMIENTO) --- */
+        #gallery { 
+            flex-grow: 1;
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 20px; 
+        }
 
-.btn:hover{ background:var(--accent); }
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            color: #333; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            height: fit-content;
+        }
 
-.layout{
-    display:flex;
-    gap:30px;
-    max-width:1500px;
-    margin:20px auto;
-    padding:0 20px;
-    align-items:flex-start;
-}
+        .card img.main { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            object-fit: contain; 
+        }
 
-.sidebar{
-    width:320px;
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-    position:sticky;
-    top:80px;
-}
+        .btn-del { background: #ff4d4d; color: white; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 10px; }
 
-.box{
-    background:rgba(255,255,255,.05);
-    border:2px solid white;
-    border-radius:20px;
-    padding:15px;
-}
+        /* MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--nav); padding: 25px; border-radius: 20px; width: 350px; display: flex; flex-direction: column; gap: 15px; }
 
-/* FEED ANTI-AMONTONAMIENTO */
-#gallery{
-    flex-grow:1;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:22px;
-    align-items:start;
-}
-
-.card{
-    background:white;
-    border-radius:15px;
-    overflow:hidden;
-    color:#333;
-    display:flex;
-    flex-direction:column;
-    box-shadow:0 8px 25px rgba(0,0,0,.6);
-}
-
-.card img.main{
-    width:100%;
-    aspect-ratio:1/1;
-    object-fit:cover;
-    background:#ddd;
-    display:block;
-}
-
-.actions{
-    padding:10px;
-    display:flex;
-    gap:15px;
-    border-top:1px solid #eee;
-    font-size:14px;
-}
-
-.like-btn{
-    cursor:pointer;
-    transition:.2s;
-}
-
-.like-btn:hover{ transform:scale(1.15); }
-
-.comm-section{
-    background:#f9f9f9;
-    padding:10px;
-    max-height:120px;
-    overflow-y:auto;
-    font-size:11px;
-    border-top:1px solid #eee;
-}
-
-.hashtag{ color:var(--accent); font-weight:bold; }
-
-.modal{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.85);
-    z-index:2000;
-    align-items:center;
-    justify-content:center;
-}
-
-.modal-content{
-    background:var(--nav);
-    padding:25px;
-    border-radius:25px;
-    border:3px solid white;
-    width:350px;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-
-@media(max-width:1000px){
-    .layout{ flex-direction:column; }
-    .sidebar{ width:100%; position:static; }
-}
-</style>
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; position: static; }
+        }
+    </style>
 </head>
-
 <body>
 
 <nav>
-<div style="font-weight:bold;font-size:20px">BLIP</div>
-<button class="btn" id="openModal" style="background:var(--accent)">PUBLICAR</button>
-<div style="display:flex;gap:10px;align-items:center">
-    <button class="btn" id="loginBtn">ENTRAR</button>
-    <button class="btn" id="logoutBtn" style="display:none">SALIR</button>
-    <div id="u-pic" style="width:35px;height:35px;border-radius:50%;background-size:cover;border:1px solid white"></div>
-</div>
+    <div style="font-weight: bold; font-size: 18px;">BLIP</div>
+    <button class="btn" id="openModal" style="background: var(--accent);">PUBLICAR OBRA</button>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn" id="loginBtn">ENTRAR</button>
+        <button class="btn" id="logoutBtn" style="display:none">SALIR</button>
+        <div id="u-pic" style="width:35px; height:35px; border-radius:50%; background-size:cover; border:1px solid white"></div>
+    </div>
 </nav>
 
 <div class="modal" id="pubModal">
-<div class="modal-content">
-<h3 style="text-align:center;margin:0">NUEVA OBRA</h3>
-<button class="btn" id="btn-upload">1. SELECCIONAR IMAGEN</button>
-<div id="status" style="font-size:10px;color:#00ff00;text-align:center;display:none">✓ Lista</div>
-<textarea id="p-cap" placeholder="Usa #hashtags..." style="padding:8px;border-radius:10px"></textarea>
-<button class="btn" id="btn-post" style="background:var(--accent)">2. PUBLICAR</button>
-<button class="btn" onclick="pubModal.style.display='none'">CANCELAR</button>
-</div>
+    <div class="modal-content">
+        <button class="btn" id="btn-upload">1. ELEGIR IMAGEN</button>
+        <div id="status" style="color:#00ff00; font-size:11px; text-align:center; display:none">✓ Imagen lista</div>
+        <textarea id="p-cap" placeholder="¿De qué trata tu obra?" style="padding:10px; background:black; color:white; border:1px solid var(--accent); border-radius:10px"></textarea>
+        <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
+        <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CANCELAR</button>
+    </div>
 </div>
 
 <div class="layout">
-<aside class="sidebar">
-    <div class="box"><h3>Artistas</h3><div id="users-dir"></div></div>
-    <div class="box">
-        <h3>Chat Global</h3>
-        <div id="chat-messages" style="height:200px;overflow-y:auto;font-size:12px;margin-bottom:10px"></div>
-        <div style="display:flex;gap:5px">
-            <input id="chat-in" placeholder="Escribe..." style="flex:1;background:black;color:white;border:1px solid var(--accent);padding:5px;border-radius:5px">
-            <button id="chat-send" class="btn">🚀</button>
+    <aside class="sidebar">
+        <div class="box">
+            <h4 style="margin:0 0 10px 0">Artistas</h4>
+            <div id="users-dir"></div>
         </div>
-    </div>
-</aside>
+        <div class="box">
+            <h4 style="margin:0 0 10px 0">Chat Global</h4>
+            <div id="chat-messages"></div>
+            <input type="text" id="chat-in" style="width:90%; background:black; color:white; border:1px solid #7b2cbf; border-radius:5px; padding:5px" placeholder="Escribe algo...">
+        </div>
+    </aside>
 
-<main id="gallery"></main>
+    <main id="gallery"></main>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getDatabase, ref, push, set, onValue, serverTimestamp, runTransaction, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getDatabase, ref, push, set, onValue, serverTimestamp, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey:"AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
-    authDomain:"almacenamiento-redsocial.firebaseapp.com",
-    databaseURL:"https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
-    projectId:"almacenamiento-redsocial"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+        authDomain: "almacenamiento-redsocial.firebaseapp.com",
+        databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+        projectId: "almacenamiento-redsocial"
+    };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const provider = new GoogleAuthProvider();
+    let userNow = null;
+    let finalUrl = "";
 
-let userNow=null;
-let finalUrl="";
+    // AUTH
+    document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-loginBtn.onclick=()=>signInWithPopup(auth,provider);
-logoutBtn.onclick=()=>signOut(auth);
-
-onAuthStateChanged(auth,u=>{
-    userNow=u;
-    loginBtn.style.display=u?"none":"block";
-    logoutBtn.style.display=u?"block":"none";
-    if(u){
-        u-pic.style.backgroundImage=`url(${u.photoURL})`;
-        set(ref(db,'users/'+u.uid),{n:u.displayName,p:u.photoURL});
-    }
-});
-
-const widget=cloudinary.createUploadWidget({
-    cloudName:"dz9s37bk0",
-    uploadPreset:"blip_unsigned"
-},(e,r)=>{
-    if(!e&&r.event==="success"){
-        finalUrl=r.info.secure_url;
-        status.style.display="block";
-    }
-});
-
-btn-upload.onclick=()=>widget.open();
-
-btn-post.onclick=async()=>{
-    if(!userNow||!finalUrl) return alert("Sube imagen y entra");
-    await push(ref(db,'posts'),{
-        imageUrl:finalUrl,
-        caption:p-cap.value,
-        userName:userNow.displayName,
-        uid:userNow.uid,
-        likes:0,
-        timestamp:serverTimestamp()
+    onAuthStateChanged(auth, u => {
+        userNow = u;
+        document.getElementById('loginBtn').style.display = u ? "none" : "block";
+        document.getElementById('logoutBtn').style.display = u ? "block" : "none";
+        if(u) {
+            document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
+            set(ref(db, 'users/' + u.uid), { n: u.displayName, p: u.photoURL });
+        }
     });
-    pubModal.style.display="none";
-    finalUrl=""; status.style.display="none"; p-cap.value="";
-};
 
-const formatTxt=t=>t.replace(/#(\w+)/g,'<span class="hashtag">#$1</span>');
-
-onValue(ref(db,'posts'),snap=>{
-    gallery.innerHTML="";
-    let arr=[];
-    snap.forEach(d=>arr.push({id:d.key,...d.val()}));
-    arr.reverse().forEach(p=>{
-        let c="";
-        if(p.comments) Object.values(p.comments).forEach(x=>c+=`<div><b>${x.u}:</b> ${x.t}</div>`);
-        gallery.innerHTML+=`
-        <div class="card">
-            <div style="padding:10px;display:flex;justify-content:space-between;background:#eee">
-                <b style="font-size:11px">${p.userName}</b>
-                ${userNow&&p.uid===userNow.uid?`<button onclick="delP('${p.id}')" style="background:red;color:white;border:none;border-radius:5px;font-size:9px">ELIMINAR</button>`:""}
-            </div>
-            <img src="${p.imageUrl}" class="main">
-            <div style="padding:10px;font-size:13px">${formatTxt(p.caption||"")}</div>
-            <div class="actions">
-                <span class="like-btn" onclick="lk('${p.id}')">❤️ ${p.likes||0}</span>
-            </div>
-            <div class="comm-section">${c||"Sin comentarios"}</div>
-            <div style="padding:8px;display:flex;gap:5px;background:#eee">
-                <input id="in-${p.id}" style="flex:1;font-size:10px" placeholder="Comentar...">
-                <button onclick="cm('${p.id}')" class="btn" style="padding:5px">></button>
-            </div>
-        </div>`;
+    // CLOUDINARY
+    const myWidget = cloudinary.createUploadWidget({
+        cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned"
+    }, (error, result) => {
+        if (!error && result.event === "success") {
+            finalUrl = result.info.secure_url;
+            document.getElementById('status').style.display = "block";
+        }
     });
-});
+    document.getElementById('btn-upload').onclick = () => myWidget.open();
 
-window.cm=id=>{
-    const v=document.getElementById(`in-${id}`).value;
-    if(userNow&&v.trim()) push(ref(db,`posts/${id}/comments`),{u:userNow.displayName,t:v});
-};
+    // PUBLICAR
+    document.getElementById('btn-post').onclick = async () => {
+        if (!finalUrl || !userNow) return alert("Sube imagen e inicia sesión");
+        await push(ref(db, 'posts'), {
+            imageUrl: finalUrl,
+            caption: document.getElementById('p-cap').value,
+            userName: userNow.displayName,
+            uid: userNow.uid,
+            timestamp: serverTimestamp()
+        });
+        document.getElementById('pubModal').style.display = "none";
+        finalUrl = ""; document.getElementById('status').style.display = "none";
+    };
 
-window.lk=async id=>{
-    if(!userNow) return alert("Inicia sesión");
-    const u=ref(db,`posts/${id}/userLikes/${userNow.uid}`);
-    const p=ref(db,`posts/${id}/likes`);
-    await runTransaction(u,x=>{
-        if(x){ runTransaction(p,c=>(c||1)-1); return null; }
-        else{ runTransaction(p,c=>(c||0)+1); return true; }
+    // CARGAR MURO Y ARTISTAS
+    onValue(ref(db, 'posts'), (snap) => {
+        const gal = document.getElementById('gallery');
+        gal.innerHTML = "";
+        let posts = [];
+        snap.forEach(d => posts.push({id: d.key, ...d.val()}));
+        posts.reverse().forEach(p => {
+            const isOwner = userNow && p.uid === userNow.uid;
+            gal.innerHTML += `
+                <div class="card">
+                    <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#f4f4f4">
+                        <span style="font-size:11px; font-weight:bold">${p.userName}</span>
+                        ${isOwner ? `<button class="btn-del" onclick="window.borrarPost('${p.id}')">ELIMINAR</button>` : ''}
+                    </div>
+                    <img src="${p.imageUrl}" class="main">
+                    <div style="padding:10px; font-size:12px; line-height:1.4">${p.caption || ""}</div>
+                </div>`;
+        });
     });
-};
 
-window.delP=id=>confirm("¿Eliminar?")&&remove(ref(db,`posts/${id}`));
+    onValue(ref(db, 'users'), snap => {
+        const dir = document.getElementById('users-dir');
+        dir.innerHTML = "";
+        snap.forEach(u => {
+            const d = u.val();
+            dir.innerHTML += `<div class="user-item"><img src="${d.p}" style="width:25px; height:25px; border-radius:50%"> ${d.n}</div>`;
+        });
+    });
 
-onValue(ref(db,'users'),snap=>{
-    users-dir.innerHTML="";
-    snap.forEach(u=>users-dir.innerHTML+=`<div><img src="${u.val().p}" style="width:25px;height:25px;border-radius:50%"> ${u.val().n}</div>`);
-});
+    window.borrarPost = (id) => { if(confirm("¿Borrar post?")) remove(ref(db, `posts/${id}`)); };
 
-onValue(ref(db,'chat'),snap=>{
-    chat-messages.innerHTML="";
-    snap.forEach(m=>chat-messages.innerHTML+=`<div><b>${m.val().u}:</b> ${m.val().t}</div>`);
-    chat-messages.scrollTop=chat-messages.scrollHeight;
-});
+    // CHAT
+    onValue(ref(db, 'chat'), snap => {
+        const chat = document.getElementById('chat-messages');
+        chat.innerHTML = "";
+        snap.forEach(m => {
+            chat.innerHTML += `<div style="margin-bottom:8px"><b>${m.val().u}:</b> ${m.val().t}</div>`;
+        });
+        chat.scrollTop = chat.scrollHeight;
+    });
 
-chat-send.onclick=()=>{
-    if(userNow&&chat-in.value.trim()) push(ref(db,'chat'),{u:userNow.displayName,t:chat-in.value});
-    chat-in.value="";
-};
+    document.getElementById('chat-in').onkeypress = (e) => {
+        if(e.key === 'Enter' && userNow && e.target.value.trim()) {
+            push(ref(db, 'chat'), { u: userNow.displayName, t: e.target.value });
+            e.target.value = "";
+        }
+    };
 
-openModal.onclick=()=>userNow?pubModal.style.display="flex":alert("Inicia sesión");
+    document.getElementById('openModal').onclick = () => { if(userNow) document.getElementById('pubModal').style.display = "flex"; else alert("Entra primero"); };
 </script>
 </body>
 </html>
