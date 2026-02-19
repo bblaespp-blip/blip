@@ -6,122 +6,57 @@
     <title>BLIP - Muro de Arte</title>
     <style>
         :root { --bg: #050010; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
-        
-        /* Reset para evitar movimientos raros */
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* NAVBAR FIJA ARRIBA */
-        nav { 
-            background: var(--nav); 
-            padding: 0 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            height: 65px; 
-            border-bottom: 2px solid var(--accent); 
-            z-index: 1000; 
-            flex-shrink: 0; 
-        }
-        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; transition: 0.3s; }
-        .btn:hover { background: var(--accent); }
+        /* NAVBAR */
+        nav { background: var(--nav); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 65px; border-bottom: 2px solid var(--accent); z-index: 1000; flex-shrink: 0; }
+        .nav-logo { font-weight: bold; font-size: 24px; letter-spacing: 1px; }
 
-        /* CONTENEDOR QUE DIVIDE SIDEBAR DE MURO */
-        .main-container { 
-            display: flex; 
-            flex: 1; 
-            width: 100%; 
-            overflow: hidden; /* Importante para que el scroll sea interno */
-        }
+        .main-container { display: flex; flex: 1; width: 100%; overflow: hidden; }
 
-        /* SIDEBAR IZQUIERDO FIJO */
-        .sidebar { 
-            width: 300px; 
-            background: rgba(0,0,0,0.6); 
-            border-right: 1px solid var(--accent); 
-            display: flex; 
-            flex-direction: column; 
-            padding: 15px; 
-            gap: 15px; 
-            flex-shrink: 0; /* Evita que el muro lo aplaste */
-        }
+        /* SIDEBAR IZQUIERDO */
+        .sidebar { width: 300px; background: rgba(0,0,0,0.6); border-right: 1px solid var(--accent); display: flex; flex-direction: column; padding: 15px; gap: 15px; flex-shrink: 0; }
         .box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; border: 1px solid rgba(123, 44, 191, 0.3); }
-        #chat-messages { flex: 1; overflow-y: auto; font-size: 12px; margin-bottom: 10px; }
+        #chat-messages { flex: 1; overflow-y: auto; font-size: 12px; margin-bottom: 10px; height: 200px; }
         .msg { background: rgba(123, 44, 191, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 5px; border-left: 2px solid var(--accent); }
 
-        /* EL MURO - SCROLL INDEPENDIENTE */
-        .gallery-wrapper { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 40px 20px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Centra las imágenes */
-            background: #020008;
-        }
+        /* EL MURO (SCROLL INDEPENDIENTE) */
+        .gallery-wrapper { flex: 1; overflow-y: auto; padding: 40px 10px; display: flex; flex-direction: column; align-items: center; background: #020008; }
+        
+        #feed { width: 100%; max-width: 550px; display: flex; flex-direction: column; gap: 60px; }
 
-        /* CONTENEDOR DE POSTS EN FILA INDIA */
-        #gallery {
-            width: 100%;
-            max-width: 550px; /* Ancho controlado para que no se desparrame */
-            display: flex;
-            flex-direction: column;
-            gap: 60px; /* DISTANCIA SAGRADA ENTRE POSTS */
-        }
+        /* ESTILO DE TARJETA (TU DISEÑO) */
+        .card { width: 100%; background: var(--card-bg); border-radius: 20px; color: #1a1a1a; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7); flex-shrink: 0; }
+        .card img { width: 100%; height: auto; display: block; object-fit: contain; background: #000; }
+        .card .info { padding: 15px 20px; }
+        .card .info h3 { margin: 0 0 5px 0; font-size: 18px; color: #000; }
+        .card .info p { margin: 0; font-size: 14px; color: var(--accent); font-weight: bold; }
 
-        .card { 
-            width: 100%;
-            background: var(--card-bg); 
-            border-radius: 15px; 
-            color: #1a1a1a; 
-            overflow: hidden; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            flex-shrink: 0; /* Fundamental: que no se colapse el tamaño */
-        }
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 12px; text-decoration: none; }
 
-        .card img.main { 
-            width: 100%; 
-            height: auto; 
-            display: block; 
-            object-fit: contain;
-            background: #000;
-        }
-
-        .post-header { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
-        .post-body { padding: 15px; }
-        .liked { color: #ff0055; font-size: 22px; cursor: pointer; }
-
-        /* RESPONSIVO PARA MÓVILES */
+        /* RESPONSIVO */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; max-height: 300px; border-right: none; border-bottom: 1px solid var(--accent); }
-            .gallery-wrapper { padding: 20px 10px; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--accent); }
+            .gallery-wrapper { padding: 20px 5px; }
         }
-
-        /* Scrollbar estética */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-weight:bold; font-size:22px;">BLIP</div>
+    <div class="nav-logo">BLIP</div>
     <div style="display:flex; gap:12px; align-items:center;">
-        <a href="publicar.html" class="btn" style="background:var(--accent)">+ SUBIR OBRA</a>
-        <button class="btn" id="loginBtn">ENTRAR</button>
-        <button class="btn" id="logoutBtn" style="display:none">SALIR</button>
+        <a href="publicar.html" class="btn" id="btnOpenUpload">+ PUBLICAR</a>
+        <button class="btn" id="btnLogin" style="background:#2a0066">ENTRAR</button>
     </div>
 </nav>
 
 <div class="main-container">
     <aside class="sidebar">
         <div class="box">
-            <h4 style="margin:0 0 8px 0; font-size:10px; color:var(--accent);">ARTISTAS ONLINE</h4>
-            <div id="users-dir"></div>
-        </div>
-        <div class="box" style="flex:1; display:flex; flex-direction:column;">
-            <h4 style="margin:0 0 10px 0; font-size:10px;">CHAT GLOBAL</h4>
+            <h4 style="margin:0 0 8px 0; font-size:10px; color:var(--accent);">CHAT GLOBAL</h4>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px">
                 <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:12px;" placeholder="Escribe...">
@@ -131,94 +66,73 @@
     </aside>
 
     <main class="gallery-wrapper">
-        <div id="gallery"></div>
+        <div id="feed"></div>
     </main>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, remove, query, limitToLast, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+    import { getDatabase, ref, push, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", 
-        authDomain: "almacenamiento-redsocial.firebaseapp.com", 
-        databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", 
-        projectId: "almacenamiento-redsocial" 
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+        authDomain: "almacenamiento-redsocial.firebaseapp.com",
+        databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+        projectId: "almacenamiento-redsocial"
     };
-    
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
     const provider = new GoogleAuthProvider();
-    let userNow = null;
+    let userActual = null;
 
-    onAuthStateChanged(auth, u => {
-        userNow = u;
-        document.getElementById('loginBtn').style.display = u ? "none" : "block";
-        document.getElementById('logoutBtn').style.display = u ? "block" : "none";
-        if(u) {
-            const myRef = ref(db, 'online_users/' + u.uid);
-            set(myRef, { n: u.displayName, p: u.photoURL });
-            onDisconnect(myRef).remove();
-        }
+    // MANEJO DE SESIÓN
+    onAuthStateChanged(auth, user => {
+        userActual = user;
+        document.getElementById('btnOpenUpload').style.display = user ? 'block' : 'none';
+        document.getElementById('btnLogin').innerText = user ? 'SALIR' : 'ENTRAR';
     });
 
-    document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-    document.getElementById('logoutBtn').onclick = async () => { if(userNow) await remove(ref(db, 'online_users/' + userNow.uid)); signOut(auth); };
+    document.getElementById('btnLogin').onclick = () => {
+        if(userActual) signOut(auth);
+        else signInWithPopup(auth, provider);
+    };
 
-    onValue(ref(db, 'online_users'), snap => {
-        const dir = document.getElementById('users-dir');
-        let h = ""; snap.forEach(u => { h += `<div class="user-row"><img src="${u.val().p}"><span>${u.val().n}</span></div>`; });
-        dir.innerHTML = h || "<small>Nadie online</small>";
-    });
-
-    onValue(query(ref(db, 'chat'), limitToLast(30)), snap => {
+    // CHAT (Tu lógica de mensajes)
+    onValue(query(ref(db, 'chat'), limitToLast(20)), snap => {
         const c = document.getElementById('chat-messages');
-        let h = ""; snap.forEach(m => { h += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
+        let h = "";
+        snap.forEach(m => { h += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
         c.innerHTML = h; c.scrollTop = c.scrollHeight;
     });
 
     document.getElementById('chat-send').onclick = () => {
         const i = document.getElementById('chat-in');
-        if(userNow && i.value.trim()) { push(ref(db, 'chat'), { u: userNow.displayName, t: i.value }); i.value = ""; }
+        if(userActual && i.value.trim()) {
+            push(ref(db, 'chat'), { u: userActual.displayName.split(' ')[0], t: i.value });
+            i.value = "";
+        }
     };
 
+    // CARGAR FEED (Tu lógica de tarjetas optimizada)
     onValue(ref(db, 'posts'), snap => {
-        const gal = document.getElementById('gallery');
-        let posts = [];
-        snap.forEach(d => posts.push({id: d.key, ...d.val()}));
-        
-        gal.innerHTML = posts.reverse().map(p => {
-            const hasLk = userNow && p.likers && p.likers[userNow.uid];
-            const lkCt = p.likers ? Object.keys(p.likers).length : 0;
-
-            return `
-            <div class="card">
-                <div class="post-header">
-                    <div style="display:flex; align-items:center; gap:8px; font-weight:bold;">
-                        <img src="${p.userPic}" style="width:28px; height:28px; border-radius:50%;">
-                        <span>${p.userName}</span>
-                    </div>
-                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="color:red; background:none; border:none; cursor:pointer;">✖</button>` : ''}
-                </div>
-                <img src="${p.imageUrl}" class="main">
-                <div class="post-body">
-                    <p style="margin:0 0 10px 0; font-size:14px;">${p.caption || ""}</p>
-                    <div onclick="window.lk('${p.id}')" style="cursor:pointer; display:inline-block;">
-                        <span class="${hasLk?'liked':''}">❤️</span> <b>${lkCt}</b>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+        const feed = document.getElementById('feed');
+        feed.innerHTML = "";
+        snap.forEach(p => {
+            const d = p.val();
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <img src="${d.url || d.imageUrl}">
+                <div class="info">
+                    <h3>${d.title || d.caption || "Sin título"}</h3>
+                    <p>@${d.userName || d.userEmail?.split('@')[0] || "Artista"}</p>
+                </div>`;
+            feed.prepend(card); // El más nuevo arriba
+        });
     });
-
-    window.lk = (id) => { 
-        if(!userNow) return alert("Inicia sesión"); 
-        const r = ref(db, `posts/${id}/likers/${userNow.uid}`); 
-        onValue(r, s => { if(s.exists()) remove(r); else set(r, true); }, {onlyOnce:true}); 
-    };
-    window.delP = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, `posts/${id}`)); };
 </script>
 </body>
 </html>
