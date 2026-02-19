@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLIP</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h2>BLIP</h2>
+    <button onclick="logout()">Salir</button>
+</header>
+
+<main>
+
+<section class="upload-box">
+    <input type="file" id="imageInput">
+    <textarea id="caption" placeholder="Escribe algo..."></textarea>
+    <button onclick="uploadPost()">Publicar</button>
+</section>
+
+<section id="feed"></section>
+
+<section class="chat-box">
+    <h3>Chat Global</h3>
+    <div id="chat"></div>
+    <input id="msg" placeholder="Mensaje">
+    <button onclick="sendMessage()">Enviar</button>
+</section>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script src="app.js"></script>
+<script src="chat.js"></script>
+
+</body>
+</html>
