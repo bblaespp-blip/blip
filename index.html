@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Comunidad de Artistas</title>
+    <title>BLIP - Galería de Artistas</title>
     <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 
     <style>
@@ -18,7 +18,6 @@
 
         .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; max-width: 1600px; margin: 20px auto; padding: 0 20px; }
         
-        /* MURO EN GRID - 3 COLUMNAS */
         #gallery { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
@@ -43,15 +42,13 @@
         .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 80px; height: calc(100vh - 100px); }
         .box { background: rgba(255,255,255,0.05); border: 2px solid white; border-radius: 20px; padding: 15px; }
         
-        /* ESTILOS CHAT Y ARTISTAS */
         #chat-messages { height: 200px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
         .msg { padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.1); color: white; word-wrap: break-word; }
         
         #users-dir { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         .user-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: white; }
 
-        /* COMENTARIOS */
-        .comm-box { max-height: 80px; overflow-y: auto; font-size: 10px; padding: 5px; border-top: 1px solid #eee; background: #fafafa; }
+        .comm-box { max-height: 80px; overflow-y: auto; font-size: 10px; padding: 8px; border-top: 1px solid #eee; background: #f9f9f9; color: #555; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
         .modal-content { background: var(--nav); padding: 25px; border-radius: 25px; border: 3px solid white; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
@@ -82,7 +79,7 @@
         <h3 style="text-align:center; margin:0">NUEVA OBRA</h3>
         <button class="btn" id="btn-upload">1. SELECCIONAR IMAGEN</button>
         <div id="status" style="font-size:10px; color: #00ff00; text-align:center; display:none">✓ Imagen lista</div>
-        <textarea id="p-cap" placeholder="Descripción de tu arte..."></textarea>
+        <textarea id="p-cap" placeholder="Descripción..."></textarea>
         <button class="btn" id="btn-post" style="background: var(--accent);">2. SUBIR A BLIP</button>
         <button class="btn" onclick="document.getElementById('pubModal').style.display='none'">CANCELAR</button>
     </div>
@@ -90,15 +87,12 @@
 
 <div class="layout">
     <aside class="sidebar">
-        <div class="box">
-            <h3>Artistas</h3>
-            <div id="users-dir"></div>
-        </div>
+        <div class="box"><h3>Artistas</h3><div id="users-dir"></div></div>
         <div class="box">
             <h3>Chat Global</h3>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1" placeholder="Escribe...">
+                <input type="text" id="chat-in" style="flex:1; color:white;" placeholder="Escribe...">
                 <button id="chat-send" class="btn" style="padding:5px 10px">🚀</button>
             </div>
         </div>
@@ -111,8 +105,9 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getDatabase, ref, push, set, onValue, serverTimestamp, runTransaction, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
+    // API KEY CORREGIDA SEGÚN TU PROYECTO
     const firebaseConfig = {
-        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2r1yhDkLcXsTg",
+        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
         authDomain: "almacenamiento-redsocial.firebaseapp.com",
         databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
         projectId: "almacenamiento-redsocial"
@@ -125,6 +120,29 @@
     let userNow = null;
     let finalUrl = "";
 
+    // Lógica de Login
+    document.getElementById('login').onclick = () => {
+        signInWithPopup(auth, provider)
+            .then((result) => console.log("Usuario entró:", result.user.displayName))
+            .catch((error) => {
+                console.error("Error al entrar:", error.message);
+                alert("Error de login: " + error.message);
+            });
+    };
+
+    document.getElementById('logout').onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, u => {
+        userNow = u;
+        document.getElementById('login').style.display = u ? "none" : "block";
+        document.getElementById('logout').style.display = u ? "block" : "none";
+        if(u) {
+            document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
+            set(ref(db, 'users/' + u.uid), { n: u.displayName, p: u.photoURL });
+        }
+    });
+
+    // Cloudinary
     const myWidget = cloudinary.createUploadWidget({
         cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned"
     }, (error, result) => {
@@ -136,7 +154,7 @@
     document.getElementById('btn-upload').onclick = () => myWidget.open();
 
     document.getElementById('btn-post').onclick = async () => {
-        if (!finalUrl || !userNow) return alert("Falta imagen o login");
+        if (!finalUrl || !userNow) return alert("Sube una imagen e inicia sesión primero");
         await push(ref(db, 'posts'), {
             imageUrl: finalUrl,
             caption: document.getElementById('p-cap').value,
@@ -148,10 +166,9 @@
         });
         document.getElementById('pubModal').style.display = "none";
         finalUrl = ""; document.getElementById('status').style.display = "none";
-        document.getElementById('p-cap').value = "";
     };
 
-    // --- LEER POSTS Y COMENTARIOS ---
+    // Muro y Comentarios
     onValue(ref(db, 'posts'), (snap) => {
         const gal = document.getElementById('gallery');
         gal.innerHTML = "";
@@ -161,15 +178,15 @@
             let commsHtml = "";
             if (p.comments) {
                 Object.entries(p.comments).forEach(([cId, c]) => {
-                    commsHtml += `<div><b>${c.u}:</b> ${c.t}</div>`;
+                    commsHtml += `<div style="margin-bottom:4px"><b>${c.u}:</b> ${c.t}</div>`;
                 });
             }
             const isMyPost = userNow && p.uid === userNow.uid;
             gal.innerHTML += `
                 <div class="card">
-                    <div style="padding:10px; display:flex; justify-content:space-between; background:#f0f0f0; align-items:center">
+                    <div style="padding:10px; display:flex; justify-content:space-between; background:#eee; align-items:center">
                         <span style="font-size:11px; font-weight:bold">${p.userName}</span>
-                        ${isMyPost ? `<button onclick="window.delP('${p.id}')" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold">X</button>` : ''}
+                        ${isMyPost ? `<button onclick="window.delP('${p.id}')" style="color:red; border:none; background:none; cursor:pointer">X</button>` : ''}
                     </div>
                     <img src="${p.imageUrl}" class="main">
                     <div style="padding:10px">
@@ -177,22 +194,22 @@
                         <div style="margin-top:8px; cursor:pointer" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
                     </div>
                     <div class="comm-box">${commsHtml || "Sin comentarios"}</div>
-                    <div style="padding:5px; display:flex; gap:3px; background:#eee">
-                        <input type="text" id="in-${p.id}" style="flex:1; font-size:10px; padding:3px; color:black; background:white" placeholder="Comentar...">
-                        <button onclick="window.cm('${p.id}')" style="background:var(--accent); color:white; border:none; padding:2px 8px; border-radius:5px">></button>
+                    <div style="padding:5px; display:flex; gap:3px; background:#f0f0f0">
+                        <input type="text" id="in-${p.id}" style="flex:1; font-size:10px; padding:4px; color:black; background:white; border:1px solid #ccc" placeholder="Comentar...">
+                        <button onclick="window.cm('${p.id}')" style="background:var(--accent); color:white; border:none; padding:3px 10px; border-radius:5px; cursor:pointer">></button>
                     </div>
                 </div>`;
         });
     });
 
-    // --- FUNCIONES COMENTAR Y LIKE ---
     window.cm = (id) => {
         const t = document.getElementById(`in-${id}`).value;
         if(userNow && t.trim()) {
             push(ref(db, `posts/${id}/comments`), { u: userNow.displayName, t: t, uid: userNow.uid });
             document.getElementById(`in-${id}`).value = "";
-        }
+        } else if(!userNow) alert("Inicia sesión para comentar");
     };
+
     window.lk = async (id) => {
         if (!userNow) return alert("Inicia sesión");
         const uLikeRef = ref(db, `posts/${id}/userLikes/${userNow.uid}`);
@@ -202,15 +219,16 @@
             else { runTransaction(pRef, (c) => (c || 0) + 1); return true; }
         });
     };
-    window.delP = (id) => { if(confirm("¿Borrar?")) remove(ref(db, `posts/${id}`)); };
 
-    // --- ARTISTAS Y CHAT REESTABLECIDOS ---
+    window.delP = (id) => { if(confirm("¿Eliminar obra?")) remove(ref(db, `posts/${id}`)); };
+
+    // Chat y Artistas
     onValue(ref(db, 'users'), (snap) => {
         const dir = document.getElementById('users-dir');
         dir.innerHTML = "";
         snap.forEach(u => {
-            const data = u.val();
-            dir.innerHTML += `<div class="user-item"><img src="${data.p}" style="width:20px; height:20px; border-radius:50%"> ${data.n}</div>`;
+            const d = u.val();
+            dir.innerHTML += `<div class="user-item"><img src="${d.p}" style="width:20px; height:20px; border-radius:50%"> ${d.n}</div>`;
         });
     });
 
@@ -218,8 +236,8 @@
         const chat = document.getElementById('chat-messages');
         chat.innerHTML = "";
         snap.forEach(m => {
-            const data = m.val();
-            chat.innerHTML += `<div class="msg"><b>${data.u}:</b> ${data.t}</div>`;
+            const d = m.val();
+            chat.innerHTML += `<div class="msg"><b>${d.u}:</b> ${d.t}</div>`;
         });
         chat.scrollTop = chat.scrollHeight;
     });
@@ -232,19 +250,7 @@
         }
     };
 
-    onAuthStateChanged(auth, u => {
-        userNow = u;
-        document.getElementById('login').style.display = u ? "none" : "block";
-        document.getElementById('logout').style.display = u ? "block" : "none";
-        if(u) {
-            document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
-            set(ref(db, 'users/' + u.uid), { n: u.displayName, p: u.photoURL });
-        }
-    });
-
-    document.getElementById('login').onclick = () => signInWithPopup(auth, provider);
-    document.getElementById('logout').onclick = () => signOut(auth);
-    document.getElementById('openModal').onclick = () => { if(userNow) document.getElementById('pubModal').style.display = "flex"; };
+    document.getElementById('openModal').onclick = () => { if(userNow) document.getElementById('pubModal').style.display = "flex"; else alert("Inicia sesión"); };
 </script>
 </body>
 </html>
