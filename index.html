@@ -1,38 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BLIP - Red Social de Arte</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLIP — Red Social de Arte</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 </head>
+
 <body>
 
-<header>
-    <h1>BLIP</h1>
-    <nav>
-        <button id="btnFeed">Inicio</button>
-        <button id="btnUpload">Subir</button>
-        <button id="btnLogout">Salir</button>
-    </nav>
+<header class="nav">
+  <div class="logo-circle">blip</div>
+
+  <div class="search-box">
+    <input placeholder="Buscar artistas, estilos, tags...">
+  </div>
+
+  <div class="menu">
+    <button id="btnFeed">MURO</button>
+    <button id="btnUpload">PUBLICAR</button>
+    <button id="btnChat">CHAT</button>
+    <button id="btnLogout">SALIR</button>
+  </div>
+
+  <div class="avatar"></div>
 </header>
 
-<main id="feed">
-    </main>
+<main id="feed" class="feed"></main>
 
-<section id="chat">
-    <h3>💬 Chat Global</h3>
-    <div id="globalChatBox"></div>
-    <div style="display: flex; gap: 5px;">
-        <input id="globalInput" placeholder="Escribe un mensaje...">
-        <button id="btnSendChat">Enviar</button>
-    </div>
-</section>
+<div id="chatPanel" class="chat-panel hidden">
+  <h3>💬 Chat Global</h3>
+  <div id="globalChatBox" class="chat-box"></div>
+  <input id="globalInput" placeholder="Escribe un mensaje...">
+</div>
 
 <script type="module" src="app.js"></script>
-<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-<script type="module" src="app.js"></script>
+
 </body>
 </html>
-
