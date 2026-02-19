@@ -57,4 +57,94 @@ function listenGlobalChat() {
 
   chatBox.innerHTML = "";
 
-  onChildAdded(ref(db, "globa
+  onChildAdded(ref(db, "globalChat"), snap => {
+    const msg = snap.val();
+
+    const div = document.createElement("div");
+    div.className = "chat-msg";
+    div.innerHTML = `
+      <span class="chat-user">${msg.user}</span>
+      <span class="chat-text">${msg.text}</span>
+    `;
+
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+}
+
+// =================== CLOUDINARY ===================
+
+window.openCloudinaryWidget = function () {
+  if (!userActual) return alert("Iniciando sesión...");
+
+  window.cloudinary.openUploadWidget({
+    cloudName,
+    uploadPreset,
+    sources: ["local", "camera"],
+    theme: "purple"
+  }, (error, result) => {
+    if (!error && result && result.event === "success") {
+      push(ref(db, "posts"), {
+        user: "Artista_" + userActual.uid.substring(0, 4),
+        image: result.info.secure_url,
+        time: Date.now()
+      });
+
+      showFeed();
+    }
+  });
+};
+
+// =================== FEED ===================
+
+window.showFeed = function () {
+  feed.innerHTML = `<div class="feed-grid" id="galeria"></div>`;
+  const galeria = document.getElementById("galeria");
+
+  onChildAdded(ref(db, "posts"), snap => {
+    const post = snap.val();
+
+    const card = document.createElement("div");
+    card.className = "post";
+
+    card.innerHTML = `
+      <img src="${post.image}" loading="lazy">
+      <div class="post-footer">Por ${post.user}</div>
+    `;
+
+    galeria.prepend(card);
+  });
+};
+
+// =================== UPLOAD VIEW ===================
+
+window.showUpload = function () {
+  feed.innerHTML = `
+    <div class="upload-box">
+      <h2>📤 Publicar nueva obra</h2>
+      <p>Comparte tu arte con la comunidad BLIP</p>
+      <button id="btnRealUpload">Subir imagen</button>
+    </div>
+  `;
+};
+
+// =================== EVENTS ===================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  document.getElementById("btnFeed")?.addEventListener("click", showFeed);
+  document.getElementById("btnUpload")?.addEventListener("click", showUpload);
+  document.getElementById("btnLogout")?.addEventListener("click", () => signOut(auth));
+
+  document.addEventListener("click", e => {
+    if (e.target.id === "btnRealUpload") openCloudinaryWidget();
+  });
+
+  const chatInput = document.getElementById("globalInput");
+  chatInput?.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendGlobalMessage();
+  });
+
+  document.getElementById("btnSendChat")?.addEventListener("click", sendGlobalMessage);
+
+});
