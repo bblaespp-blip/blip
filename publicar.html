@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Publicar - BLIP</title>
+    <style>
+        body { background:#050010; color:white; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; padding:50px; }
+        .box { background:rgba(255,255,255,0.1); padding:20px; border-radius:15px; width:300px; }
+        input { width:100%; margin:10px 0; }
+        button { background:#7b2cbf; color:white; border:none; padding:10px; width:100%; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h3>Publicar Obra</h3>
+        <input type="file" id="file">
+        <button id="btn">SUBIR</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+            authDomain: "almacenamiento-redsocial.firebaseapp.com",
+            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+            projectId: "almacenamiento-redsocial"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        document.getElementById('btn').onclick = async () => {
+            const file = document.getElementById('file').files[0];
+            if(!file || !auth.currentUser) return alert("Error");
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'blip_unsigned');
+
+            const res = await fetch('https://api.cloudinary.com/v1_1/dz9s37bk0/image/upload', { method:'POST', body:formData });
+            const data = await res.json();
+
+            push(ref(db, 'posts'), {
+                url: data.secure_url,
+                uid: auth.currentUser.uid,
+                userName: auth.currentUser.displayName,
+                userPic: auth.currentUser.photoURL
+            }).then(() => location.href = 'index.html');
+        };
+    </script>
+</body>
+</html>
