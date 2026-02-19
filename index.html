@@ -8,11 +8,10 @@
 
     <style>
         :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; }
-        
         body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         nav { background: var(--nav); padding: 0 15px; display: flex; align-items: center; justify-content: space-between; min-height: 60px; border-bottom: 2px solid var(--accent); z-index: 1000; }
-        .btn { background: #2a0066; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 10px; }
+        .btn { background: #2a0066; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 10px; transition: 0.3s; }
+        .btn:hover { background: var(--accent); }
 
         .main-container { display: flex; flex: 1; overflow: hidden; width: 100%; }
 
@@ -20,21 +19,20 @@
         .sidebar { width: 300px; background: rgba(0,0,0,0.4); border-right: 2px solid var(--accent); display: flex; flex-direction: column; padding: 15px; gap: 15px; }
         .box { background: rgba(255,255,255,0.05); border: 1px solid white; border-radius: 15px; padding: 12px; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* LISTA DE ARTISTAS PEQUEÑA (CORREGIDO) */
+        /* LISTA DE ARTISTAS PEQUEÑA */
         #users-dir { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
-        .user-row { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 10px; font-size: 12px; }
-        .user-row img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
+        .user-row { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 10px; font-size: 11px; }
+        .user-row img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
+        .online-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; margin-left: auto; box-shadow: 0 0 5px #00ff00; }
 
         #chat-messages { flex: 1; overflow-y: auto; font-size: 13px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding-right: 5px; }
         .msg { background: rgba(123, 44, 191, 0.2); padding: 8px; border-radius: 10px; border-left: 3px solid var(--accent); word-break: break-word; }
 
         .gallery-wrapper { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #08001a; }
         .card { width: 100%; max-width: 500px; background: white; border-radius: 15px; color: #333; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); flex-shrink: 0; }
-
         .post-header { padding: 10px; display: flex; align-items: center; justify-content: space-between; background: #f8f8f8; }
         .post-user-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
         .card img.main { width: 100%; height: auto; display: block; }
-        .hashtag { color: var(--accent); font-weight: bold; }
 
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
@@ -62,7 +60,7 @@
 <div class="main-container">
     <aside class="sidebar">
         <div class="box">
-            <h4 style="margin:0 0 8px 0; font-size:13px; color:var(--accent)">Artistas en línea</h4>
+            <h4 style="margin:0 0 8px 0; font-size:12px; color:var(--accent); text-transform: uppercase;">Artistas Online</h4>
             <div id="users-dir"></div>
         </div>
 
@@ -84,7 +82,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, serverTimestamp, runTransaction, remove, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue, serverTimestamp, runTransaction, remove, query, limitToLast, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
@@ -100,32 +98,48 @@
     let userNow = null;
     let finalUrl = "";
 
+    // --- LÓGICA DE PRESENCIA (ONLINE/OFFLINE) ---
     onAuthStateChanged(auth, u => {
         userNow = u;
         document.getElementById('loginBtn').style.display = u ? "none" : "block";
         document.getElementById('logoutBtn').style.display = u ? "block" : "none";
+        
         if(u) {
             document.getElementById('u-pic').style.backgroundImage = `url(${u.photoURL})`;
-            set(ref(db, 'users/' + u.uid), { n: u.displayName, p: u.photoURL });
+            
+            // Referencia del usuario en la lista de artistas
+            const myUserRef = ref(db, 'online_users/' + u.uid);
+            
+            // Al conectar: Guardar datos
+            set(myUserRef, { n: u.displayName, p: u.photoURL });
+            
+            // Al desconectar (cerrar pestaña): Borrar datos automáticamente
+            onDisconnect(myUserRef).remove();
         }
     });
 
     document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-    document.getElementById('logoutBtn').onclick = () => signOut(auth);
+    document.getElementById('logoutBtn').onclick = async () => {
+        if(userNow) await remove(ref(db, 'online_users/' + userNow.uid));
+        signOut(auth);
+    };
 
-    // ARTISTAS MINI (CORREGIDO)
-    onValue(ref(db, 'users'), snap => {
+    // --- RENDERIZAR ARTISTAS EN TIEMPO REAL ---
+    onValue(ref(db, 'online_users'), snap => {
         const dir = document.getElementById('users-dir');
         let html = "";
         snap.forEach(u => {
-            html += `<div class="user-row"><img src="${u.val().p}"> <span>${u.val().n}</span></div>`;
+            html += `<div class="user-row">
+                <img src="${u.val().p}"> 
+                <span>${u.val().n}</span>
+                <div class="online-dot"></div>
+            </div>`;
         });
-        dir.innerHTML = html;
+        dir.innerHTML = html || "<small style='color:gray'>Nadie online</small>";
     });
 
-    // CHAT
-    const qChat = query(ref(db, 'chat'), limitToLast(50));
-    onValue(qChat, snap => {
+    // --- CHAT ---
+    onValue(query(ref(db, 'chat'), limitToLast(50)), snap => {
         const c = document.getElementById('chat-messages');
         let h = "";
         snap.forEach(m => { h += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
@@ -138,9 +152,7 @@
         if(userNow && i.value.trim()) { push(ref(db, 'chat'), { u: userNow.displayName, t: i.value }); i.value = ""; }
     };
 
-    // MURO
-    const procesarHashtags = (t) => t ? t.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>') : "";
-
+    // --- MURO ---
     onValue(ref(db, 'posts'), snap => {
         const gal = document.getElementById('gallery');
         let posts = [];
@@ -155,7 +167,7 @@
                     ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:#ff4d4d; color:white; border:none; border-radius:5px; padding:3px 7px; font-size:9px; cursor:pointer">BORRAR</button>` : ''}
                 </div>
                 <img src="${p.imageUrl}" class="main">
-                <div style="padding:12px; font-size:13px;">${procesarHashtags(p.caption)}</div>
+                <div style="padding:12px; font-size:13px;">${p.caption || ""}</div>
                 <div style="padding:0 12px 12px; cursor:pointer" onclick="window.lk('${p.id}')">❤️ ${p.likes || 0}</div>
             </div>
         `).join('');
@@ -164,7 +176,7 @@
     window.lk = (id) => { if(userNow) runTransaction(ref(db, `posts/${id}/likes`), c => (c || 0) + 1); };
     window.delP = (id) => { if(confirm("¿Borrar obra?")) remove(ref(db, `posts/${id}`)); };
 
-    // CLOUDINARY
+    // --- CLOUDINARY ---
     const myWidget = cloudinary.createUploadWidget({ cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned" }, (e, r) => {
         if (!e && r.event === "success") { finalUrl = r.info.secure_url; document.getElementById('status').style.display = "block"; }
     });
