@@ -41,42 +41,42 @@
         .sidebar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 90px; height: calc(100vh - 120px); }
         .box { background: rgba(255, 255, 255, 0.05); border: 3px solid var(--border-white); border-radius: 20px; padding: 15px; }
         .box h3 { margin-top: 0; border-bottom: 1px solid var(--accent); padding-bottom: 8px; font-size: 14px; text-align: center; }
-        .user-list { display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; }
+        .user-list { display: flex; flex-direction: column; gap: 8px; max-height: 120px; overflow-y: auto; }
         .user-item { display: flex; align-items: center; gap: 10px; font-size: 13px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 10px; }
-        .user-item img { width: 28px; height: 28px; border-radius: 50%; }
+        .user-item img { width: 25px; height: 25px; border-radius: 50%; }
 
-        /* --- CHAT --- */
+        /* --- CHAT GLOBAL --- */
         .chat-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        #chat-messages { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        #chat-messages { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; padding-right: 5px; }
         .msg { font-size: 12px; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.1); max-width: 85%; }
+        .msg b { color: #00ffff; display: block; font-size: 10px; }
         .my-msg { align-self: flex-end; background: var(--accent); }
 
-        /* --- VENTANA MODAL DE PUBLICAR --- */
+        /* --- MODAL PUBLICAR --- */
         .modal {
             display: none; position: fixed; z-index: 2000; left: 0; top: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+            width: 100%; height: 100%; background: rgba(0,0,0,0.85);
             align-items: center; justify-content: center;
         }
         .modal-content {
-            background: var(--nav-bg); padding: 30px; border-radius: 30px;
-            border: 4px solid var(--border-white); width: 90%; max-width: 500px;
-            display: flex; flex-direction: column; gap: 15px;
+            background: var(--nav-bg); padding: 25px; border-radius: 25px;
+            border: 3px solid var(--border-white); width: 90%; max-width: 450px;
+            display: flex; flex-direction: column; gap: 12px;
         }
-        .modal-content h2 { margin: 0; color: white; text-align: center; }
-        .modal-input {
-            background: #000; border: 1px solid var(--accent); color: white;
-            padding: 12px; border-radius: 15px; outline: none; font-family: inherit;
-        }
-        #preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 10px; display: none; }
+        .modal-input { background: #000; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 10px; outline: none; }
+        #preview-img { width: 100%; max-height: 150px; object-fit: contain; display: none; margin-bottom: 10px; }
 
         /* --- FEED --- */
-        #muro-frame { border: 6px solid var(--border-white); border-radius: 30px; padding: 25px; min-height: 85vh; background: rgba(255,255,255,0.02); }
-        .art-grid { display: flex; flex-direction: column; align-items: center; gap: 30px; }
-        .art-card { background: white; border-radius: 20px; overflow: hidden; width: 100%; max-width: 600px; color: #333; }
-        .main-art { width: 100%; max-height: 550px; object-fit: contain; background: #000; }
-        .post-desc { padding: 10px 15px; font-size: 14px; border-bottom: 1px solid #eee; }
+        #muro-frame { border: 6px solid var(--border-white); border-radius: 30px; padding: 20px; background: rgba(255,255,255,0.02); }
+        .art-card { background: white; border-radius: 20px; overflow: hidden; width: 100%; max-width: 550px; color: #333; margin: 0 auto 30px; }
+        .main-art { width: 100%; max-height: 500px; object-fit: contain; background: #000; }
+        .post-info { padding: 10px 15px; }
         .hashtag { color: var(--accent); font-weight: bold; }
         
+        .comments-section { border-top: 1px solid #eee; padding: 10px 15px; background: #f9f9f9; font-size: 12px; }
+        .comment-form { display: flex; padding: 8px 15px; border-top: 1px solid #eee; gap: 5px; }
+        .comment-input { flex: 1; border: 1px solid #ddd; border-radius: 15px; padding: 6px 12px; outline: none; }
+
         @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
     </style>
 </head>
@@ -84,9 +84,7 @@
 
 <nav>
     <div class="nav-left"><div class="logo-img"></div></div>
-    <div class="nav-center">
-        <button class="btn" id="open-publish-btn" style="background: var(--accent);">PUBLICAR OBRA</button>
-    </div>
+    <div class="nav-center"><button class="btn" id="open-publish-btn" style="background: var(--accent);">PUBLICAR OBRA</button></div>
     <div class="nav-right">
         <button class="btn" id="login-btn">ENTRAR</button>
         <button class="btn" id="logout-btn" style="display:none;">SALIR</button>
@@ -96,25 +94,29 @@
 
 <div id="publish-modal" class="modal">
     <div class="modal-content">
-        <h2>Nueva Publicación</h2>
-        <button class="btn" id="select-art-btn">1. Seleccionar Arte</button>
+        <h3 style="text-align:center; margin:0">NUEVA OBRA</h3>
+        <button class="btn" id="select-art-btn">SELECCIONAR IMAGEN</button>
         <img id="preview-img">
-        <textarea id="post-caption" class="modal-input" placeholder="Escribe algo sobre tu obra..."></textarea>
-        <input type="text" id="post-tags" class="modal-input" placeholder="#Hashtags #Arte #Blip">
-        <button class="btn" id="final-publish-btn" style="background: var(--accent);">COMPARTIR EN EL MURO</button>
-        <button class="btn" onclick="document.getElementById('publish-modal').style.display='none'">Cancelar</button>
+        <textarea id="post-caption" class="modal-input" placeholder="Descripción..."></textarea>
+        <input type="text" id="post-tags" class="modal-input" placeholder="#Hashtags">
+        <button class="btn" id="final-publish-btn" style="background: var(--accent);">SUBIR A BLIP</button>
+        <button class="btn" onclick="document.getElementById('publish-modal').style.display='none'">CANCELAR</button>
     </div>
 </div>
 
 <div class="layout">
     <aside class="sidebar">
         <div class="box"><h3>Artistas</h3><div id="user-directory" class="user-list"></div></div>
-        <div class="box chat-container"><h3>Chat Global</h3><div id="chat-messages"></div>
-            <div style="display:flex; gap:5px"><input type="text" id="chat-input" class="chat-input" placeholder="Mensaje..."><button id="send-chat" class="btn">🚀</button></div>
+        <div class="box chat-container">
+            <h3>Chat Global</h3>
+            <div id="chat-messages"></div>
+            <div style="display:flex; gap:5px">
+                <input type="text" id="chat-input" style="flex:1; background:#000; color:white; border:1px solid var(--accent); padding:8px; border-radius:10px" placeholder="Mensaje...">
+                <button id="send-chat-btn" class="btn" style="padding:5px 10px">🚀</button>
+            </div>
         </div>
     </aside>
-
-    <main id="muro-frame"><div class="art-grid" id="art-gallery"></div></main>
+    <main id="muro-frame"><div id="art-gallery"></div></main>
 </div>
 
 <script type="module">
@@ -139,78 +141,98 @@
     let userGlobal = null;
     let tempImgUrl = "";
 
-    // --- LÓGICA DE SUBIDA PERSONALIZADA ---
-    const cloudName = "dz9s37bk0";
-    const uploadPreset = "bblip_unsigned";
+    // --- CHAT CORREGIDO ---
+    const enviarChat = () => {
+        const input = document.getElementById('chat-input');
+        if (!userGlobal || !input.value.trim()) return;
+        push(ref(db, 'chat'), { user: userGlobal.displayName, uid: userGlobal.uid, text: input.value, time: serverTimestamp() });
+        input.value = "";
+    };
+    document.getElementById('send-chat-btn').onclick = enviarChat;
+    document.getElementById('chat-input').onkeypress = (e) => { if(e.key === 'Enter') enviarChat(); };
 
-    const widget = cloudinary.createUploadWidget({ cloudName, uploadPreset }, (err, res) => {
-        if (!err && res.event === "success") {
-            tempImgUrl = res.info.secure_url;
+    onValue(query(ref(db, 'chat'), limitToLast(15)), (snap) => {
+        const box = document.getElementById('chat-messages');
+        box.innerHTML = "";
+        snap.forEach(c => {
+            const m = c.val();
+            const isMe = userGlobal && m.uid === userGlobal.uid;
+            box.innerHTML += `<div class="msg ${isMe ? 'my-msg' : ''}"><b>${m.user}</b>${m.text}</div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    // --- COMENTARIOS Y LIKES ---
+    window.darLike = (id) => { if(!userGlobal) return; runTransaction(ref(db, `posts/${id}/likes`), c => (c || 0) + 1); };
+    window.comentar = (id) => {
+        const input = document.getElementById(`in-${id}`);
+        if(!userGlobal || !input.value.trim()) return;
+        push(ref(db, `posts/${id}/comments`), { user: userGlobal.displayName, text: input.value });
+        input.value = "";
+    };
+
+    // --- FEED Y PUBLICACIÓN ---
+    const widget = cloudinary.createUploadWidget({ cloudName: "dz9s37bk0", uploadPreset: "blip_uploads" }, (err, res) => {
+        if (!err && res.event === "success") { 
+            tempImgUrl = res.info.secure_url; 
             document.getElementById('preview-img').src = tempImgUrl;
             document.getElementById('preview-img').style.display = "block";
         }
     });
 
-    document.getElementById('open-publish-btn').onclick = () => {
-        if(!userGlobal) return alert("Inicia sesión primero");
-        document.getElementById('publish-modal').style.display = "flex";
-    };
-
+    document.getElementById('open-publish-btn').onclick = () => { if(userGlobal) document.getElementById('publish-modal').style.display="flex"; };
     document.getElementById('select-art-btn').onclick = () => widget.open();
 
     document.getElementById('final-publish-btn').onclick = () => {
-        const caption = document.getElementById('post-caption').value;
-        const tags = document.getElementById('post-tags').value;
-        
-        if(!tempImgUrl) return alert("Primero selecciona una imagen");
-
+        if(!tempImgUrl) return;
         push(ref(db, 'posts'), {
-            imageUrl: tempImgUrl,
-            caption: caption,
-            tags: tags,
-            userName: userGlobal.displayName,
-            userPhoto: userGlobal.photoURL,
-            likes: 0,
-            timestamp: serverTimestamp()
+            imageUrl: tempImgUrl, caption: document.getElementById('post-caption').value,
+            tags: document.getElementById('post-tags').value, userName: userGlobal.displayName,
+            userPhoto: userGlobal.photoURL, likes: 0, timestamp: serverTimestamp()
         });
-
         document.getElementById('publish-modal').style.display = "none";
-        document.getElementById('post-caption').value = "";
-        document.getElementById('post-tags').value = "";
-        document.getElementById('preview-img').style.display = "none";
         tempImgUrl = "";
     };
 
-    // --- RENDERIZADO DEL FEED ---
     onValue(ref(db, 'posts'), (snap) => {
         const gallery = document.getElementById('art-gallery');
         gallery.innerHTML = "";
-        const posts = [];
-        snap.forEach(c => posts.push({id: c.key, ...c.val()}));
-        
-        posts.reverse().forEach(p => {
+        const items = [];
+        snap.forEach(c => items.push({id: c.key, ...c.val()}));
+        items.reverse().forEach(p => {
+            let commsHtml = "";
+            if(p.comments) Object.values(p.comments).forEach(c => commsHtml += `<div><b>${c.user}:</b> ${c.text}</div>`);
             gallery.innerHTML += `
                 <div class="art-card">
-                    <div style="padding:10px; display:flex; align-items:center; gap:10px; font-weight:bold">
-                        <img src="${p.userPhoto}" style="width:30px; height:30px; border-radius:50%">
-                        <span>${p.userName}</span>
+                    <div style="padding:10px; display:flex; align-items:center; gap:8px; font-weight:bold">
+                        <img src="${p.userPhoto}" style="width:30px; height:30px; border-radius:50%"><span>${p.userName}</span>
                     </div>
                     <img src="${p.imageUrl}" class="main-art">
-                    <div class="post-desc">
-                        <div>${p.caption || ""}</div>
-                        <div class="hashtag">${p.tags || ""}</div>
+                    <div class="post-info">
+                        <div>${p.caption || ""}</div><div class="hashtag">${p.tags || ""}</div>
+                        <button class="btn" style="background:none; color:red; padding:5px 0" onclick="darLike('${p.id}')">❤️ ${p.likes || 0}</button>
                     </div>
-                    <div style="padding:10px">❤️ ${p.likes || 0}</div>
+                    <div class="comments-section">${commsHtml || "Sin comentarios..."}</div>
+                    <div class="comment-form">
+                        <input type="text" id="in-${p.id}" class="comment-input" placeholder="Comentar...">
+                        <button class="btn" style="padding:5px 10px" onclick="comentar('${p.id}')">></button>
+                    </div>
                 </div>`;
         });
     });
 
-    // --- CHAT Y AUTH (Igual que antes) ---
     onAuthStateChanged(auth, u => {
         userGlobal = u;
+        if(u) set(ref(db, 'users/' + u.uid), { name: u.displayName, photo: u.photoURL });
         document.getElementById('login-btn').style.display = u ? "none" : "block";
         document.getElementById('logout-btn').style.display = u ? "block" : "none";
         document.getElementById('user-photo').style.backgroundImage = u ? `url(${u.photoURL})` : "";
+    });
+
+    onValue(ref(db, 'users'), (snap) => {
+        const dir = document.getElementById('user-directory');
+        dir.innerHTML = "";
+        snap.forEach(c => { const u = c.val(); dir.innerHTML += `<div class="user-item"><img src="${u.photo}"><span>${u.name}</span></div>`; });
     });
 
     document.getElementById('login-btn').onclick = () => signInWithPopup(auth, provider);
