@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLIP - Red Social de Arte</title>
+    <title>BLIP - Comunidad de Artistas</title>
     <style>
         :root { --bg: #050010; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
         * { box-sizing: border-box; }
@@ -26,12 +26,12 @@
         #chat-messages { flex: 1; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
         .msg { background: rgba(123, 44, 191, 0.15); padding: 8px; border-radius: 8px; border-left: 3px solid var(--accent); }
 
-        /* EL MURO */
+        /* EL MURO (SCROLL) */
         .gallery-wrapper { flex: 1; overflow-y: auto; padding: 40px 10px; display: flex; flex-direction: column; align-items: center; background: #020008; }
         #feed { width: 100%; max-width: 550px; display: flex; flex-direction: column; gap: 60px; }
 
-        /* TARJETAS INTERACTIVAS */
-        .card { width: 100%; background: var(--card-bg); border-radius: 20px; color: #1a1a1a; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7); flex-shrink: 0; }
+        /* TARJETAS */
+        .card { width: 100%; background: var(--card-bg); border-radius: 20px; color: #1a1a1a; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7); flex-shrink: 0; margin-bottom: 20px; }
         .post-header { padding: 12px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; }
         .post-header img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); }
         .post-header b { font-size: 14px; color: #333; }
@@ -42,22 +42,22 @@
         .post-info h3 { margin: 0; font-size: 16px; color: #222; font-weight: 500; }
         .hashtag { color: var(--accent); font-weight: bold; }
 
-        /* INTERACCIONES */
+        /* ACCIONES */
         .actions { display: flex; gap: 20px; padding: 10px 15px; border-top: 1px solid #eee; font-size: 20px; }
         .action-btn { cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .action-btn span { font-size: 14px; font-weight: bold; color: #666; }
         .liked { color: #ff0055; }
 
-        /* SECCIÓN DE COMENTARIOS */
-        .comments-section { background: #f9f9f9; padding: 10px 15px; font-size: 13px; max-height: 150px; overflow-y: auto; border-top: 1px solid #eee; }
-        .comment { margin-bottom: 5px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; color: #333; }
+        /* COMENTARIOS */
+        .comments-section { background: #f9f9f9; padding: 12px; font-size: 13px; max-height: 120px; overflow-y: auto; border-top: 1px solid #eee; color: #333; }
+        .comment { margin-bottom: 5px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; }
         .comment b { color: var(--accent); }
 
-        .comment-input-area { display: flex; padding: 10px; gap: 8px; border-top: 1px solid #eee; }
+        .comment-input-area { display: flex; padding: 10px; gap: 8px; border-top: 1px solid #eee; background: #fff; }
         .comment-input-area input { flex: 1; border: 1px solid #ddd; padding: 8px 12px; border-radius: 20px; font-size: 12px; outline: none; }
 
         .btn { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 12px; text-decoration: none; }
-
+        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
@@ -116,7 +116,6 @@
     const provider = new GoogleAuthProvider();
     let userActual = null;
 
-    // Lógica de Hashtags
     const procesarHashtags = (texto) => texto ? texto.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>') : "";
 
     onAuthStateChanged(auth, user => {
@@ -132,14 +131,13 @@
 
     document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : signInWithPopup(auth, provider);
 
-    // FEED CON TODAS LAS FUNCIONES
+    // FEED
     onValue(ref(db, 'posts'), snap => {
         const feed = document.getElementById('feed');
         feed.innerHTML = "";
         snap.forEach(p => {
             const d = p.val();
             const id = p.key;
-            
             const likesCount = d.likes ? Object.keys(d.likes).length : 0;
             const userHasLiked = userActual && d.likes && d.likes[userActual.uid];
 
@@ -160,7 +158,7 @@
                 </div>
                 <img src="${d.url}" class="main-pic" loading="lazy">
                 <div class="post-info">
-                    <h3>${procesarHashtags(d.title || d.caption)}</h3>
+                    <h3>${procesarHashtags(d.title)}</h3>
                 </div>
                 <div class="actions">
                     <div class="action-btn" onclick="window.darLike('${id}')">
@@ -169,17 +167,16 @@
                     </div>
                     <div class="action-btn">💬 <span>${d.comments ? Object.keys(d.comments).length : 0}</span></div>
                 </div>
-                <div class="comments-section">${commentsHtml || '<small style="color:gray">Sin comentarios...</small>'}</div>
+                <div class="comments-section">${commentsHtml || '<small style="color:gray">Sé el primero en comentar...</small>'}</div>
                 <div class="comment-input-area">
-                    <input type="text" id="com-in-${id}" placeholder="Comentar...">
-                    <button class="btn" onclick="window.comentar('${id}')" style="padding:5px 12px;">Post</button>
+                    <input type="text" id="com-in-${id}" placeholder="Escribe un comentario...">
+                    <button class="btn" onclick="window.comentar('${id}')" style="padding:5px 12px; font-size:10px;">POST</button>
                 </div>
             `;
             feed.prepend(card);
         });
     });
 
-    // FUNCIONES GLOBALES DE INTERACCIÓN
     window.darLike = (postId) => {
         if(!userActual) return alert("Inicia sesión");
         const likeRef = ref(db, `posts/${postId}/likes/${userActual.uid}`);
@@ -188,7 +185,7 @@
 
     window.comentar = (postId) => {
         const input = document.getElementById(`com-in-${postId}`);
-        if(!userActual) return alert("Inicia sesión");
+        if(!userActual) return alert("Inicia sesión para comentar");
         if(input.value.trim()){
             push(ref(db, `posts/${postId}/comments`), { u: userActual.displayName.split(' ')[0], t: input.value });
             input.value = "";
@@ -210,10 +207,13 @@
         c.innerHTML = h; c.scrollTop = c.scrollHeight;
     });
 
-    document.getElementById('chat-send').onclick = () => {
+    const sendMsg = () => {
         const i = document.getElementById('chat-in');
         if(userActual && i.value.trim()) { push(ref(db, 'chat'), { u: userActual.displayName.split(' ')[0], t: i.value }); i.value = ""; }
     };
+    document.getElementById('chat-send').onclick = sendMsg;
+    document.getElementById('chat-in').onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
+
 </script>
 </body>
 </html>
