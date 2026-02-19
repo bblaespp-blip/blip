@@ -3,111 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLIP - Comunidad de Artistas</title>
+    <title>BLIP - Cascada de Arte</title>
     <style>
         :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
         
-        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* NAVBAR */
-        nav { background: var(--nav); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; min-height: 70px; border-bottom: 3px solid var(--accent); z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .nav-logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px var(--accent); }
-        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; }
+        nav { background: var(--nav); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; min-height: 70px; border-bottom: 3px solid var(--accent); z-index: 1000; }
+        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; transition: 0.3s; }
         .btn:hover { background: var(--accent); transform: translateY(-2px); }
 
-        /* ESTRUCTURA PRINCIPAL */
         .main-container { display: flex; flex: 1; overflow: hidden; width: 100%; }
 
-        /* SIDEBAR (ARTISTAS Y CHAT) */
-        .sidebar { width: 320px; background: rgba(0,0,0,0.6); border-right: 2px solid var(--accent); display: flex; flex-direction: column; padding: 20px; gap: 20px; box-sizing: border-box; }
-        .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 15px; display: flex; flex-direction: column; overflow: hidden; }
-        .box h4 { margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; }
+        /* SIDEBAR */
+        .sidebar { width: 300px; background: rgba(0,0,0,0.8); border-right: 2px solid var(--accent); display: flex; flex-direction: column; padding: 20px; gap: 20px; box-sizing: border-box; }
+        .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; }
+        #users-dir { max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .user-row { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 5px; }
+        .user-row img { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--accent); }
+        #chat-messages { flex: 1; overflow-y: auto; font-size: 12px; margin-bottom: 10px; }
+        .msg { background: rgba(123, 44, 191, 0.2); padding: 8px; border-radius: 10px; margin-bottom: 5px; }
 
-        /* LISTA ARTISTAS */
-        #users-dir { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .user-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); padding: 6px 12px; border-radius: 12px; font-size: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .user-row img { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--accent); object-fit: cover; }
-        .online-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; margin-left: auto; box-shadow: 0 0 8px #00ff00; }
-
-        /* CHAT */
-        #chat-messages { flex: 1; overflow-y: auto; font-size: 13px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; padding-right: 5px; }
-        .msg { background: rgba(123, 44, 191, 0.15); padding: 10px; border-radius: 15px; border-left: 4px solid var(--accent); line-height: 1.4; }
-
-        /* MURO (GALERIA) - AQUÍ EVITAMOS EL AMONTONAMIENTO */
-        .gallery-wrapper { flex: 1; overflow-y: auto; padding: 50px 20px; display: flex; flex-direction: column; align-items: center; gap: 70px; /* Espacio extra entre cards */ background: #050010; }
-        
-        .card { width: 100%; max-width: 550px; background: var(--card-bg); border-radius: 25px; color: #1a1a1a; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.7); flex-shrink: 0; transition: transform 0.3s; }
-        .card:hover { transform: scale(1.01); }
-
-        .post-header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: #fdfdfd; border-bottom: 1px solid #eee; }
-        .post-user-pic { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
-        
-        .card img.main { width: 100%; height: auto; max-height: 750px; /* Límite para que no ocupe toda la pantalla vertical */ object-fit: contain; background: #000; display: block; }
-
-        .post-body { padding: 20px; }
-        .hashtag { color: var(--accent); font-weight: bold; }
-        .liked { color: #ff0055; text-shadow: 0 0 5px rgba(255, 0, 85, 0.3); }
-
-        .comm-area { background: #f9f9f9; padding: 15px; max-height: 120px; overflow-y: auto; font-size: 13px; border-top: 1px solid #eee; color: #444; }
-        .comm-area div { margin-bottom: 6px; border-bottom: 1px dashed #ddd; padding-bottom: 4px; }
-        
-        .comm-input-box { display: flex; gap: 8px; padding: 15px 20px; background: #fff; border-top: 1px solid #eee; }
-        .comm-input-box input { flex: 1; border: 1px solid #ddd; padding: 10px 15px; border-radius: 20px; font-size: 13px; outline: none; }
-        .comm-input-box input:focus { border-color: var(--accent); }
-
-        /* RESPONSIVO */
-        @media (max-width: 850px) {
-            .main-container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 2px solid var(--accent); order: 2; padding: 15px; }
-            .gallery-wrapper { order: 1; padding: 30px 10px; gap: 40px; }
-            #users-dir { max-height: 80px; }
-            #chat-messages { height: 150px; }
+        /* --- EFECTO CASCADA (MASONRY) --- */
+        .gallery-wrapper { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            background: #050010; 
         }
 
-        /* SCROLLBARS */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        #gallery {
+            column-count: 2; /* Dos columnas por defecto */
+            column-gap: 20px; /* Espacio entre columnas */
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card { 
+            break-inside: avoid; /* Evita que la tarjeta se corte entre columnas */
+            margin-bottom: 20px; /* Espacio vertical entre tarjetas */
+            background: var(--card-bg); 
+            border-radius: 15px; 
+            color: #1a1a1a; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .card img.main { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+        }
+
+        .post-header { padding: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; border-bottom: 1px solid #eee; }
+        .post-user-pic { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+        .post-body { padding: 10px; font-size: 12px; }
+        .hashtag { color: var(--accent); font-weight: bold; }
+        .liked { color: #ff0055; }
+
+        /* RESPONSIVO CASCADA */
+        @media (max-width: 1000px) { #gallery { column-count: 2; } }
+        @media (max-width: 600px) { 
+            #gallery { column-count: 1; } /* En móviles una sola columna para que no se vea muy pequeño */
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; order: 2; }
+            .gallery-wrapper { order: 1; }
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-logo">BLIP</div>
-    <div style="display:flex; gap:12px; align-items:center;">
-        <a href="publicar.html" class="btn" style="background:var(--accent); border:2px solid #fff;">+ SUBIR OBRA</a>
+    <div style="font-weight:bold; font-size:20px;">BLIP</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <a href="publicar.html" class="btn" style="background:var(--accent)">+ SUBIR</a>
         <button class="btn" id="loginBtn">ENTRAR</button>
         <button class="btn" id="logoutBtn" style="display:none">SALIR</button>
-        <div id="u-pic" style="width:40px; height:40px; border-radius:50%; background-size:cover; background-position:center; border:2px solid #fff; background-color:#333; display:none;"></div>
     </div>
 </nav>
 
 <div class="main-container">
     <aside class="sidebar">
         <div class="box">
-            <h4>Artistas Online</h4>
+            <h4 style="margin:0; font-size:10px; color:var(--accent);">ONLINE</h4>
             <div id="users-dir"></div>
         </div>
-        <div class="box" style="flex:1">
-            <h4>Chat de la Comunidad</h4>
+        <div class="box" style="flex:1; display:flex; flex-direction:column;">
+            <h4 style="margin:0 0 10px 0; font-size:10px;">CHAT</h4>
             <div id="chat-messages"></div>
-            <div style="display:flex; gap:8px">
-                <input type="text" id="chat-in" style="flex:1; background:#111; color:#fff; border:1px solid var(--accent); padding:10px; border-radius:12px; font-size:13px;" placeholder="Escribe un mensaje...">
-                <button id="chat-send" class="btn" style="font-size:16px;">🚀</button>
+            <div style="display:flex; gap:5px">
+                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:10px; font-size:11px;" placeholder="Mensaje...">
+                <button id="chat-send" class="btn">🚀</button>
             </div>
         </div>
     </aside>
 
     <main class="gallery-wrapper">
-        <div id="gallery" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+        <div id="gallery"></div>
     </main>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, runTransaction, remove, query, limitToLast, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue, remove, query, limitToLast, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-    // CONFIGURACIÓN FIREBASE
     const firebaseConfig = { 
         apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", 
         authDomain: "almacenamiento-redsocial.firebaseapp.com", 
@@ -121,50 +127,29 @@
     const provider = new GoogleAuthProvider();
     let userNow = null;
 
-    // MANEJO DE SESIÓN Y PRESENCIA
     onAuthStateChanged(auth, u => {
         userNow = u;
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const uPic = document.getElementById('u-pic');
-        
+        document.getElementById('loginBtn').style.display = u ? "none" : "block";
+        document.getElementById('logoutBtn').style.display = u ? "block" : "none";
         if(u) {
-            loginBtn.style.display = "none";
-            logoutBtn.style.display = "block";
-            uPic.style.display = "block";
-            uPic.style.backgroundImage = `url(${u.photoURL})`;
-            
             const myUserRef = ref(db, 'online_users/' + u.uid);
             set(myUserRef, { n: u.displayName, p: u.photoURL });
             onDisconnect(myUserRef).remove();
-        } else {
-            loginBtn.style.display = "block";
-            logoutBtn.style.display = "none";
-            uPic.style.display = "none";
         }
     });
 
     document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-    document.getElementById('logoutBtn').onclick = async () => { 
-        if(userNow) await remove(ref(db, 'online_users/' + userNow.uid)); 
-        signOut(auth); 
-    };
+    document.getElementById('logoutBtn').onclick = async () => { if(userNow) await remove(ref(db, 'online_users/' + userNow.uid)); signOut(auth); };
 
-    // RENDERIZAR ARTISTAS ONLINE
     onValue(ref(db, 'online_users'), snap => {
         const dir = document.getElementById('users-dir');
-        let html = "";
-        snap.forEach(u => { 
-            html += `<div class="user-row"><img src="${u.val().p}"><span>${u.val().n}</span><div class="online-dot"></div></div>`; 
-        });
-        dir.innerHTML = html || "<small style='color:gray'>No hay nadie conectado</small>";
+        let h = ""; snap.forEach(u => { h += `<div class="user-row"><img src="${u.val().p}"><span>${u.val().n.split(' ')[0]}</span></div>`; });
+        dir.innerHTML = h;
     });
 
-    // CHAT
-    onValue(query(ref(db, 'chat'), limitToLast(40)), snap => {
+    onValue(query(ref(db, 'chat'), limitToLast(30)), snap => {
         const c = document.getElementById('chat-messages');
-        let h = "";
-        snap.forEach(m => { h += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
+        let h = ""; snap.forEach(m => { h += `<div class="msg"><b>${m.val().u}:</b> ${m.val().t}</div>`; });
         c.innerHTML = h; c.scrollTop = c.scrollHeight;
     });
 
@@ -173,7 +158,6 @@
         if(userNow && i.value.trim()) { push(ref(db, 'chat'), { u: userNow.displayName, t: i.value }); i.value = ""; }
     };
 
-    // PROCESAMIENTO DE MURO Y HASHTAGS
     const procesarHashtags = (t) => t ? t.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>') : "";
 
     onValue(ref(db, 'posts'), snap => {
@@ -182,60 +166,36 @@
         snap.forEach(d => posts.push({id: d.key, ...d.val()}));
         
         gal.innerHTML = posts.reverse().map(p => {
-            let hCom = ""; 
-            if(p.comments) Object.values(p.comments).forEach(c => hCom += `<div><b>${c.u}:</b> ${c.t}</div>`);
-            
             const hasLk = userNow && p.likers && p.likers[userNow.uid];
             const lkCt = p.likers ? Object.keys(p.likers).length : 0;
 
             return `
             <div class="card">
                 <div class="post-header">
-                    <div style="display:flex; align-items:center; gap:10px; font-weight:bold; font-size:13px;">
-                        <img src="${p.userPic || 'https://via.placeholder.com/30'}" class="post-user-pic">
-                        <span>${p.userName}</span>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <img src="${p.userPic}" class="post-user-pic">
+                        <span style="font-weight:bold;">${p.userName.split(' ')[0]}</span>
                     </div>
-                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:#ff4444; color:white; border:none; border-radius:8px; padding:5px 12px; font-size:10px; cursor:pointer; font-weight:bold;">BORRAR</button>` : ''}
+                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">✖</button>` : ''}
                 </div>
-                
                 <img src="${p.imageUrl}" class="main" loading="lazy">
-                
                 <div class="post-body">
-                    <div style="font-size:14px; margin-bottom:15px; line-height:1.5;">${procesarHashtags(p.caption)}</div>
-                    <div style="font-size:22px; cursor:pointer; display:inline-flex; align-items:center; gap:8px;" onclick="window.lk('${p.id}')">
-                        <span class="${hasLk?'liked':''}">❤️</span> 
-                        <span style="font-size:16px; font-weight:bold; color:#555;">${lkCt}</span>
+                    <div>${procesarHashtags(p.caption)}</div>
+                    <div style="margin-top:8px; cursor:pointer; font-size:14px;" onclick="window.lk('${p.id}')">
+                        <span class="${hasLk?'liked':''}">❤️</span> <b>${lkCt}</b>
                     </div>
-                </div>
-
-                <div class="comm-area">${hCom || "<small style='color:gray'>Sé el primero en comentar...</small>"}</div>
-                
-                <div class="comm-input-box">
-                    <input type="text" id="in-${p.id}" placeholder="Escribe un comentario...">
-                    <button class="btn" style="padding:10px 15px;" onclick="window.cm('${p.id}')">ENVIAR</button>
                 </div>
             </div>`;
-        }).join('<div style="height:70px;"></div>'); // Espaciador manual entre cada post
+        }).join('');
     });
 
-    // FUNCIONES GLOBALES
     window.lk = (id) => { 
-        if(!userNow) return alert("Debes iniciar sesión para dar like"); 
+        if(!userNow) return alert("Inicia sesión"); 
         const r = ref(db, `posts/${id}/likers/${userNow.uid}`); 
         onValue(r, s => { if(s.exists()) remove(r); else set(r, true); }, {onlyOnce:true}); 
     };
 
-    window.cm = (id) => { 
-        const i = document.getElementById(`in-${id}`); 
-        if(userNow && i.value.trim()){ 
-            push(ref(db, `posts/${id}/comments`), {u:userNow.displayName, t:i.value}); 
-            i.value=""; 
-        } else if(!userNow) {
-            alert("Inicia sesión para comentar");
-        }
-    };
-
-    window.delP = (id) => { if(confirm("¿Estás seguro de eliminar esta obra?")) remove(ref(db, `posts/${id}`)); };
+    window.delP = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, `posts/${id}`)); };
 </script>
 </body>
 </html>
