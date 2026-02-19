@@ -3,49 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Publicar Obra</title>
-    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <title>Publicar Obra - BLIP</title>
     <style>
-        :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: var(--nav); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .btn { background: #2a0066; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        textarea { width: 100%; height: 100px; background: #000; color: #fff; border: 1px solid var(--accent); border-radius: 10px; padding: 10px; margin: 15px 0; box-sizing: border-box; }
-        #status { color: #00ff00; text-align: center; margin: 10px 0; display: none; font-weight: bold; }
+        :root { --bg: #050010; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
+        body { 
+            margin: 0; 
+            background: var(--bg); 
+            font-family: 'Segoe UI', sans-serif; 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+        }
+
+        nav { 
+            width: 100%; 
+            background: var(--nav); 
+            padding: 0 20px; 
+            display: flex; 
+            align-items: center; 
+            height: 65px; 
+            border-bottom: 2px solid var(--accent); 
+            margin-bottom: 40px;
+        }
+
+        .upload-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--accent);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        h2 { margin-top: 0; color: var(--accent); }
+
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+
+        input[type="text"], input[type="file"] {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            background: #000;
+            color: white;
+            outline: none;
+        }
+
+        input[type="text"]:focus { border-color: var(--accent); }
+
+        .preview-box {
+            width: 100%;
+            height: 250px;
+            border: 2px dashed #444;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #000;
+        }
+
+        .preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .btn-pub {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-pub:disabled { background: #444; cursor: not-allowed; }
+
+        .btn-back {
+            margin-top: 15px;
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2 style="text-align:center; margin:0 0 20px 0;">Nueva Publicación</h2>
-    <button class="btn" id="btn-up" style="background:var(--accent)">1. SELECCIONAR IMAGEN</button>
-    <div id="status">✓ LISTO PARA PUBLICAR</div>
-    <textarea id="p-cap" placeholder="Descripción... #arte #dibujo"></textarea>
-    <button class="btn" id="btn-post">2. PUBLICAR EN EL MURO</button>
-    <button class="btn" onclick="window.location.href='index.html'" style="background:transparent; color:#aaa;">VOLVER</button>
+
+<nav>
+    <div style="font-weight:bold; font-size:24px; cursor:pointer;" onclick="location.href='index.html'">BLIP</div>
+</nav>
+
+<div class="upload-container">
+    <h2>Nueva Publicación</h2>
+    
+    <div class="form-group">
+        <label>Vista previa:</label>
+        <div class="preview-box" id="previewBox">
+            <span style="color:#666">Selecciona una imagen</span>
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="form-group">
+        <label>Título de la obra:</label>
+        <input type="text" id="postTitle" placeholder="Ej: Atardecer en neón...">
+    </div>
+
+    <button class="btn-pub" id="btnDoUpload">PUBLICAR AHORA</button>
+    <center><button class="btn-back" onclick="location.href='index.html'">Cancelar y volver</button></center>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", authDomain: "almacenamiento-redsocial.firebaseapp.com", databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", projectId: "almacenamiento-redsocial" };
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+        authDomain: "almacenamiento-redsocial.firebaseapp.com",
+        databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+        projectId: "almacenamiento-redsocial"
+    };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-    let userNow = null; let finalUrl = "";
+    let userActual = null;
 
-    onAuthStateChanged(auth, u => { if(!u) window.location.href='index.html'; userNow = u; });
+    // CLOUDINARY
+    const CLOUD_NAME = "dz9s37bk0"; 
+    const PRESET = "blip_unsigned"; 
 
-    const myWidget = cloudinary.createUploadWidget({ cloudName: "dz9s37bk0", uploadPreset: "blip_unsigned" }, (e, r) => {
-        if (!e && r.event === "success") { finalUrl = r.info.secure_url; document.getElementById('status').style.display = "block"; }
+    // Verificar si el usuario está logueado
+    onAuthStateChanged(auth, user => {
+        if (!user) {
+            alert("Debes iniciar sesión para publicar");
+            location.href = 'index.html';
+        }
+        userActual = user;
     });
-    document.getElementById('btn-up').onclick = () => myWidget.open();
 
-    document.getElementById('btn-post').onclick = async () => {
-        if (!finalUrl) return alert("Sube una imagen");
-        await push(ref(db, 'posts'), { imageUrl: finalUrl, caption: document.getElementById('p-cap').value, userName: userNow.displayName, userPic: userNow.photoURL, uid: userNow.uid, timestamp: serverTimestamp() });
-        window.location.href = 'index.html';
+    // Vista previa de imagen
+    document.getElementById('fileInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('previewBox').innerHTML = `<img src="${event.target.result}">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Lógica de subida
+    document.getElementById('btnDoUpload').onclick = async () => {
+        const file = document.getElementById('fileInput').files[0];
+        const title = document.getElementById('postTitle').value;
+        const btn = document.getElementById('btnDoUpload');
+
+        if (!file || !title.trim()) return alert("Completa todos los campos");
+
+        btn.innerText = "Subiendo artes...";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', PRESET);
+
+        try {
+            // 1. Subir a Cloudinary
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.secure_url) {
+                // 2. Guardar en Firebase con los campos que espera tu index.html
+                await push(ref(db, 'posts'), {
+                    url: data.secure_url,
+                    title: title,
+                    userName: userActual.displayName,
+                    userPic: userActual.photoURL,
+                    uid: userActual.uid,
+                    timestamp: Date.now()
+                });
+
+                alert("¡Publicado con éxito!");
+                location.href = 'index.html';
+            } else {
+                alert("Error al subir imagen");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error de conexión");
+        } finally {
+            btn.innerText = "PUBLICAR AHORA";
+            btn.disabled = false;
+        }
     };
 </script>
 </body>
