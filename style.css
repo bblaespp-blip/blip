@@ -137,3 +137,80 @@ body {
         max-width: 100%;
     }
 }
+.feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+}
+
+.post {
+    background: linear-gradient(135deg, rgba(80,0,200,.45), rgba(25,0,90,.5));
+    border-radius: 16px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 0 18px rgba(120,0,255,.35);
+    transition: .25s;
+}
+
+.post:hover {
+    transform: scale(1.03);
+}
+
+.post img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+}
+
+.post-footer {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #d6c7ff;
+}
+
+/* UPLOAD */
+
+.upload-box {
+    max-width: 420px;
+    margin: 60px auto;
+    background: linear-gradient(135deg, rgba(80,0,200,.55), rgba(25,0,90,.55));
+    border-radius: 22px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 0 30px rgba(140,0,255,.45);
+}
+
+.upload-box button {
+    margin-top: 20px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #ff4ecd, #7b00ff);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255,70,200,.8);
+    transition: .25s;
+}
+
+.upload-box button:hover {
+    transform: scale(1.08);
+}
+
+/* CHAT */
+
+.chat-msg {
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.chat-user {
+    font-weight: 700;
+    color: #a78bff;
+}
+
+.chat-text {
+    margin-left: 6px;
+}
+
