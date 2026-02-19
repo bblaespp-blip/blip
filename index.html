@@ -3,86 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLIP - Cascada de Arte</title>
+    <title>BLIP - Muro de Arte</title>
     <style>
-        :root { --bg: #0f0026; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
+        :root { --bg: #050010; --nav: #1a0044; --accent: #7b2cbf; --card-bg: #ffffff; }
         
         body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        nav { background: var(--nav); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; min-height: 70px; border-bottom: 3px solid var(--accent); z-index: 1000; }
-        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; transition: 0.3s; }
-        .btn:hover { background: var(--accent); transform: translateY(-2px); }
+        /* BARRA SUPERIOR */
+        nav { background: var(--nav); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; min-height: 65px; border-bottom: 2px solid var(--accent); z-index: 1000; flex-shrink: 0; }
+        .btn { background: #2a0066; color: white; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 11px; text-decoration: none; transition: 0.3s; }
+        .btn:hover { background: var(--accent); }
 
         .main-container { display: flex; flex: 1; overflow: hidden; width: 100%; }
 
-        /* SIDEBAR */
-        .sidebar { width: 300px; background: rgba(0,0,0,0.8); border-right: 2px solid var(--accent); display: flex; flex-direction: column; padding: 20px; gap: 20px; box-sizing: border-box; }
-        .box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; }
-        #users-dir { max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
-        .user-row { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 5px; }
-        .user-row img { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--accent); }
-        #chat-messages { flex: 1; overflow-y: auto; font-size: 12px; margin-bottom: 10px; }
-        .msg { background: rgba(123, 44, 191, 0.2); padding: 8px; border-radius: 10px; margin-bottom: 5px; }
+        /* BARRA LATERAL (FIJA) */
+        .sidebar { width: 280px; background: rgba(0,0,0,0.5); border-right: 1px solid var(--accent); display: flex; flex-direction: column; padding: 15px; gap: 15px; flex-shrink: 0; }
+        .box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; border: 1px solid rgba(123, 44, 191, 0.3); }
+        #users-dir { max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+        .user-row { display: flex; align-items: center; gap: 8px; }
+        .user-row img { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--accent); }
+        #chat-messages { flex: 1; overflow-y: auto; font-size: 12px; margin-bottom: 10px; padding-right: 5px; }
+        .msg { background: rgba(123, 44, 191, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 5px; border-left: 2px solid var(--accent); }
 
-        /* --- EFECTO CASCADA (MASONRY) --- */
+        /* --- EL MURO (ORDEN VERTICAL) --- */
         .gallery-wrapper { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 20px; 
-            background: #050010; 
+            padding: 30px 0; /* Espacio arriba y abajo */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-behavior: smooth;
         }
 
         #gallery {
-            column-count: 2; /* Dos columnas por defecto */
-            column-gap: 20px; /* Espacio entre columnas */
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 90%;
+            max-width: 600px; /* Ancho ideal para que no se deformen las fotos */
+            display: flex;
+            flex-direction: column;
+            gap: 50px; /* ESPACIO REAL ENTRE IMÁGENES PARA QUE NO SE TAPEN */
         }
 
         .card { 
-            break-inside: avoid; /* Evita que la tarjeta se corte entre columnas */
-            margin-bottom: 20px; /* Espacio vertical entre tarjetas */
+            width: 100%;
             background: var(--card-bg); 
             border-radius: 15px; 
             color: #1a1a1a; 
             overflow: hidden; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
+        /* HEADER DEL POST */
+        .post-header { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
+        .post-user-info { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 13px; }
+        .post-user-pic { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+
+        /* IMAGEN PRINCIPAL */
         .card img.main { 
             width: 100%; 
-            height: auto; 
+            height: auto; /* Se ajusta al tamaño real de la imagen */
+            max-height: 85vh; /* Evita que una imagen sea más alta que la pantalla */
             display: block; 
+            object-fit: contain;
+            background: #000;
         }
 
-        .post-header { padding: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; border-bottom: 1px solid #eee; }
-        .post-user-pic { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-        .post-body { padding: 10px; font-size: 12px; }
+        .post-body { padding: 15px; }
+        .caption { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
         .hashtag { color: var(--accent); font-weight: bold; }
+        .like-section { font-size: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .liked { color: #ff0055; }
 
-        /* RESPONSIVO CASCADA */
-        @media (max-width: 1000px) { #gallery { column-count: 2; } }
-        @media (max-width: 600px) { 
-            #gallery { column-count: 1; } /* En móviles una sola columna para que no se vea muy pequeño */
+        /* RESPONSIVO */
+        @media (max-width: 768px) {
             .main-container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; order: 2; }
-            .gallery-wrapper { order: 1; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--accent); order: 2; }
+            .gallery-wrapper { order: 1; padding: 20px 0; }
+            #gallery { width: 95%; gap: 30px; }
         }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-weight:bold; font-size:20px;">BLIP</div>
-    <div style="display:flex; gap:10px; align-items:center;">
-        <a href="publicar.html" class="btn" style="background:var(--accent)">+ SUBIR</a>
+    <div style="font-weight:bold; font-size:22px; letter-spacing:1px;">BLIP</div>
+    <div style="display:flex; gap:12px; align-items:center;">
+        <a href="publicar.html" class="btn" style="background:var(--accent)">+ PUBLICAR</a>
         <button class="btn" id="loginBtn">ENTRAR</button>
         <button class="btn" id="logoutBtn" style="display:none">SALIR</button>
     </div>
@@ -91,14 +102,14 @@
 <div class="main-container">
     <aside class="sidebar">
         <div class="box">
-            <h4 style="margin:0; font-size:10px; color:var(--accent);">ONLINE</h4>
+            <h4 style="margin:0 0 8px 0; font-size:10px; color:var(--accent);">ARTISTAS ONLINE</h4>
             <div id="users-dir"></div>
         </div>
         <div class="box" style="flex:1; display:flex; flex-direction:column;">
-            <h4 style="margin:0 0 10px 0; font-size:10px;">CHAT</h4>
+            <h4 style="margin:0 0 10px 0; font-size:10px;">CHAT GLOBAL</h4>
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px">
-                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:10px; font-size:11px;" placeholder="Mensaje...">
+                <input type="text" id="chat-in" style="flex:1; background:#000; color:#fff; border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:12px;" placeholder="Escribe...">
                 <button id="chat-send" class="btn">🚀</button>
             </div>
         </div>
@@ -132,9 +143,9 @@
         document.getElementById('loginBtn').style.display = u ? "none" : "block";
         document.getElementById('logoutBtn').style.display = u ? "block" : "none";
         if(u) {
-            const myUserRef = ref(db, 'online_users/' + u.uid);
-            set(myUserRef, { n: u.displayName, p: u.photoURL });
-            onDisconnect(myUserRef).remove();
+            const myRef = ref(db, 'online_users/' + u.uid);
+            set(myRef, { n: u.displayName, p: u.photoURL });
+            onDisconnect(myRef).remove();
         }
     });
 
@@ -143,8 +154,8 @@
 
     onValue(ref(db, 'online_users'), snap => {
         const dir = document.getElementById('users-dir');
-        let h = ""; snap.forEach(u => { h += `<div class="user-row"><img src="${u.val().p}"><span>${u.val().n.split(' ')[0]}</span></div>`; });
-        dir.innerHTML = h;
+        let h = ""; snap.forEach(u => { h += `<div class="user-row"><img src="${u.val().p}"><span>${u.val().n}</span></div>`; });
+        dir.innerHTML = h || "<small>Nadie online</small>";
     });
 
     onValue(query(ref(db, 'chat'), limitToLast(30)), snap => {
@@ -165,37 +176,39 @@
         let posts = [];
         snap.forEach(d => posts.push({id: d.key, ...d.val()}));
         
+        // .reverse() asegura que el post más reciente esté arriba
         gal.innerHTML = posts.reverse().map(p => {
             const hasLk = userNow && p.likers && p.likers[userNow.uid];
             const lkCt = p.likers ? Object.keys(p.likers).length : 0;
 
             return `
-            <div class="card">
+            <article class="card">
                 <div class="post-header">
-                    <div style="display:flex; align-items:center; gap:5px;">
+                    <div class="post-user-info">
                         <img src="${p.userPic}" class="post-user-pic">
-                        <span style="font-weight:bold;">${p.userName.split(' ')[0]}</span>
+                        <span>${p.userName}</span>
                     </div>
-                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">✖</button>` : ''}
+                    ${userNow && p.uid === userNow.uid ? `<button onclick="window.delP('${p.id}')" style="background:none; border:none; color:#ff4444; cursor:pointer; font-weight:bold;">ELIMINAR</button>` : ''}
                 </div>
                 <img src="${p.imageUrl}" class="main" loading="lazy">
                 <div class="post-body">
-                    <div>${procesarHashtags(p.caption)}</div>
-                    <div style="margin-top:8px; cursor:pointer; font-size:14px;" onclick="window.lk('${p.id}')">
-                        <span class="${hasLk?'liked':''}">❤️</span> <b>${lkCt}</b>
+                    <div class="caption">${procesarHashtags(p.caption)}</div>
+                    <div class="like-section" onclick="window.lk('${p.id}')">
+                        <span class="${hasLk?'liked':''}">❤️</span>
+                        <span style="font-size:15px; font-weight:bold; color:#444;">${lkCt}</span>
                     </div>
                 </div>
-            </div>`;
+            </article>`;
         }).join('');
     });
 
     window.lk = (id) => { 
-        if(!userNow) return alert("Inicia sesión"); 
+        if(!userNow) return alert("Inicia sesión para dar like"); 
         const r = ref(db, `posts/${id}/likers/${userNow.uid}`); 
         onValue(r, s => { if(s.exists()) remove(r); else set(r, true); }, {onlyOnce:true}); 
     };
 
-    window.delP = (id) => { if(confirm("¿Eliminar?")) remove(ref(db, `posts/${id}`)); };
+    window.delP = (id) => { if(confirm("¿Eliminar esta obra?")) remove(ref(db, `posts/${id}`)); };
 </script>
 </body>
 </html>
