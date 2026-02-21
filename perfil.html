@@ -2,73 +2,184 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - BLIP</title>
     <style>
-        :root { --bg: #050010; --accent: #7b2cbf; }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; }
-        nav { background: #1a0044; padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--accent); }
-        .header { text-align: center; padding: 40px; background: linear-gradient(to bottom, #1a0044, #050010); }
-        .header img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 20px; }
-        .grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; border: 1px solid #333; }
-        .stats { display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-weight: bold; }
-        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; text-decoration: none; }
+        :root { --bg: #050010; --accent: #7b2cbf; --card-bg: #ffffff; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        nav { background: #0a0020; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(123, 44, 191, 0.3); position: sticky; top: 0; z-index: 1000; }
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .btn:hover { opacity: 0.8; transform: scale(1.05); }
+        .header { text-align: center; padding: 60px 20px; background: linear-gradient(to bottom, #0a0020, #050010); }
+        #perf-pic { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent); object-fit: cover; box-shadow: 0 0 20px rgba(123, 44, 191, 0.5); background: #000; }
+        .gallery { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1100px; margin: auto; }
+        .gallery img { width: 100%; height: 250px; object-fit: cover; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer; }
+        .gallery img:hover { transform: translateY(-5px); border-color: var(--accent); }
+        #comment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:8000; justify-content:center; align-items:center; }
+        .modal-container { background: #fff; width: 90%; max-width: 900px; height: 80vh; border-radius: 20px; display: flex; overflow: hidden; color: #000; }
+        #modal-img-container { flex: 1.2; background: #000; display: flex; align-items: center; justify-content: center; }
+        #modal-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-side { flex: 1; display: flex; flex-direction: column; background: white; position: relative; }
+        #comments-list { flex: 1; overflow-y: auto; padding: 15px; }
+        .comment-item { position: relative; padding: 10px; border-radius: 10px; background: #f8f9fa; margin-bottom: 8px; color: #333; padding-right: 30px; }
+        .comment-options-btn { position: absolute; right: 10px; top: 10px; cursor: pointer; color: #999; font-size: 18px; font-weight: bold; }
+        .options-menu { display: none; position: absolute; right: 10px; top: 30px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 9999; min-width: 120px; border: 1px solid #eee; }
+        .options-menu button { display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer; font-size: 12px; }
+        .btn-delete { color: #ff0055 !important; border-top: 1px solid #eee !important; }
+        .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; flex-direction: column; gap: 10px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <nav><b style="font-size: 20px;">BLIP</b> <a href="index.html" class="btn">Volver</a></nav>
-    <div class="header">
-        <img id="uImg" src="">
-        <h2 id="uName">Cargando...</h2>
-        <div class="stats"><span id="pCount">0</span> Obras | <span id="sCount">0</span> Seguidores</div>
+
+<nav>
+    <div style="font-weight: 900; font-size: 26px; cursor: pointer; color: white; letter-spacing: 2px;" onclick="location.href='index.html'">BLIP</div>
+    <a href="index.html" class="btn">VOLVER</a>
+</nav>
+
+<div class="header">
+    <img id="perf-pic" src="">
+    <h1 id="perf-name">Cargando...</h1>
+    <div id="perf-stats">
+        <span id="count-obras">0</span> Obras | <span id="count-followers">0</span> Seguidores
     </div>
-    <div class="grid" id="uGrid"></div>
+    <div id="actions-perfil" class="hidden" style="margin-top: 25px; display: flex; gap: 10px; justify-content: center;">
+        <button id="btn-follow" class="btn" style="background: transparent; border: 2px solid white;">SEGUIR</button>
+        <button id="btn-msj" class="btn">ENVIAR MENSAJE</button>
+    </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-        import { getDatabase, ref, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+<div class="gallery" id="perf-gallery"></div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
-            authDomain: "almacenamiento-redsocial.firebaseapp.com",
-            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
-            projectId: "almacenamiento-redsocial"
-        };
+<div id="comment-modal">
+    <div class="modal-container">
+        <div id="modal-img-container"><img id="modal-img" src=""></div>
+        <div class="modal-side">
+            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; font-weight:bold;">
+                INTERACCIONES <span onclick="cerrarComentarios()" style="cursor:pointer; font-size:24px;">&times;</span>
+            </div>
+            <div id="comments-list"></div>
+            <div class="modal-footer">
+                <div id="modal-likes-count" style="color: #e91e63; font-weight:bold; cursor:pointer;">❤️ 0 likes</div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="comm-in" style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd;" placeholder="Comentar...">
+                    <button id="comm-btn" class="btn">🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        const id = new URLSearchParams(window.location.search).get('id');
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+    import { getDatabase, ref, onValue, push, set, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-        onAuthStateChanged(auth, user => {
-            const uid = id || (user ? user.uid : null);
-            if(!uid) return location.href = 'index.html';
+    const firebaseConfig = { apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", authDomain: "almacenamiento-redsocial.firebaseapp.com", databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", projectId: "almacenamiento-redsocial" };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-            onValue(ref(db, 'online_users/' + uid), s => {
-                if(s.exists()){
-                    document.getElementById('uName').innerText = s.val().n;
-                    document.getElementById('uImg').src = s.val().p;
+    let userActual = null, postActivoId = null;
+
+    onAuthStateChanged(auth, user => {
+        userActual = user;
+        const params = new URLSearchParams(window.location.search);
+        const finalUid = params.get('uid') || (user ? user.uid : null);
+        
+        if(!finalUid) return location.href = 'index.html';
+
+        if(user && user.uid !== finalUid) {
+            document.getElementById('actions-perfil').classList.remove('hidden');
+        }
+
+        onValue(ref(db, 'online_users/' + finalUid), snap => {
+            if(snap.exists()) {
+                const data = snap.val();
+                document.getElementById('perf-name').innerText = data.n;
+                document.getElementById('perf-pic').src = data.p;
+                
+                document.getElementById('btn-msj').onclick = () => {
+                    localStorage.setItem('openChat', `${finalUid}|${data.n}`);
+                    location.href = 'index.html';
+                };
+            }
+        });
+
+        onValue(ref(db, 'posts'), snap => {
+            const gallery = document.getElementById('perf-gallery'); 
+            gallery.innerHTML = "";
+            let obras = 0;
+            snap.forEach(p => {
+                if(p.val().uid === finalUid) {
+                    obras++;
+                    const img = document.createElement('img');
+                    img.src = p.val().url;
+                    img.onclick = () => abrirModalInteraccion(p.key, p.val().url);
+                    gallery.appendChild(img);
                 }
             });
+            document.getElementById('count-obras').innerText = obras;
+        });
+    });
 
-            onValue(query(ref(db, 'posts'), orderByChild('uid'), equalTo(uid)), snap => {
-                const g = document.getElementById('uGrid'); g.innerHTML = "";
-                let count = 0;
-                snap.forEach(p => {
-                    count++;
-                    const img = document.createElement('img'); img.src = p.val().url;
-                    g.prepend(img);
-                });
-                document.getElementById('pCount').innerText = count;
-            });
-
-            onValue(ref(db, 'seguidores'), snap => {
-                let s = 0;
-                snap.forEach(u => { if(u.hasChild(uid)) s++; });
-                document.getElementById('sCount').innerText = s;
+    window.abrirModalInteraccion = (postId, url) => {
+        postActivoId = postId;
+        document.getElementById('modal-img').src = url;
+        document.getElementById('comment-modal').style.display = 'flex';
+        
+        onValue(ref(db, 'comments/' + postId), snap => {
+            const list = document.getElementById('comments-list'); 
+            list.innerHTML = "";
+            snap.forEach(c => {
+                const d = c.val(), cid = c.key;
+                const esMio = userActual && (userActual.displayName === d.u);
+                const item = document.createElement('div');
+                item.className = "comment-item";
+                item.innerHTML = `
+                    <b>${d.u}:</b> <span>${d.m}</span>
+                    <div class="comment-options-btn" onclick="event.stopPropagation(); toggleMenu('${cid}')">⋮</div>
+                    <div id="menu-${cid}" class="options-menu">
+                        ${esMio ? `<button onclick="editarComentario('${postId}','${cid}','${d.m}')">✏️ Editar</button>` : ''}
+                        ${esMio ? `<button class="btn-delete" onclick="borrarComentario('${postId}','${cid}')">🗑️ Borrar</button>` : `<button onclick="alert('Reportado')">🚩 Reportar</button>`}
+                    </div>`;
+                list.appendChild(item);
             });
         });
-    </script>
+
+        onValue(ref(db, `posts/${postId}/likes`), snap => {
+            document.getElementById('modal-likes-count').innerText = `❤️ ${snap.size || 0} likes`;
+        });
+    };
+
+    window.toggleMenu = (id) => {
+        const m = document.getElementById('menu-'+id);
+        const open = m.style.display === 'block';
+        document.querySelectorAll('.options-menu').forEach(x => x.style.display = 'none');
+        if(!open) m.style.display = 'block';
+    };
+
+    window.borrarComentario = (pid, cid) => { if(confirm("¿Borrar comentario?")) remove(ref(db, `comments/${pid}/${cid}`)); };
+    window.editarComentario = (pid, cid, txt) => {
+        const n = prompt("Editar comentario:", txt);
+        if(n && n.trim()) update(ref(db, `comments/${pid}/${cid}`), {m: n.trim()});
+    };
+    window.cerrarComentarios = () => document.getElementById('comment-modal').style.display = 'none';
+
+    document.getElementById('comm-btn').onclick = () => {
+        const i = document.getElementById('comm-in');
+        if(userActual && i.value.trim() && postActivoId) {
+            push(ref(db, 'comments/' + postActivoId), { u: userActual.displayName, m: i.value.trim() });
+            
+            get(ref(db, `posts/${postActivoId}/uid`)).then(s => {
+                if(s.exists() && s.val() !== userActual.uid) {
+                    push(ref(db, 'notis/' + s.val()), { from: userActual.displayName, msg: "comentó tu obra", read: false });
+                }
+            });
+            i.value = "";
+        }
+    };
+    document.addEventListener('click', () => document.querySelectorAll('.options-menu').forEach(m => m.style.display = 'none'));
+</script>
 </body>
 </html>
