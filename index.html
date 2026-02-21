@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLIP - Red Social de Artistas</title>
     <style>
-        :root { --bg: #050010; --nav: #0a0020; --accent: #7b2cbf; --glass: rgba(255, 255, 255, 0.05); --card-bg: #ffffff; --noti: #ff0055; --link-blue: #3b82f6; }
+        :root { 
+            --bg: #050010; --nav: #0a0020; --accent: #7b2cbf; 
+            --glass: rgba(255, 255, 255, 0.05); --card-bg: #ffffff; 
+            --noti: #ff0055; --link-blue: #3b82f6; 
+        }
+        
         body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
         /* NAVBAR */
@@ -24,28 +29,35 @@
         .gallery-wrapper { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; background: #020008; }
         #feed { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 25px; }
 
-        /* CARDS */
+        /* CARDS & MENU */
         .card { width: 100%; background: var(--card-bg); border-radius: 20px; color: #111; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
         .post-header { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; }
-        .post-desc { padding: 0 15px 10px; font-size: 14px; }
+        .post-desc { padding: 0 15px 15px; font-size: 14px; line-height: 1.4; }
         .main-pic { width: 100%; cursor: pointer; display: block; }
         .post-actions { padding: 12px 20px; display: flex; gap: 20px; border-top: 1px solid #eee; background: #fafafa; font-weight: bold; }
-
-        /* NOTIFICACIONES */
-        #noti-box { display: none; position: absolute; top: 65px; right: 100px; width: 300px; background: white; border-radius: 15px; color: black; box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 5000; overflow: hidden; }
-        .noti-item { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; transition: 0.2s; }
-        .noti-unread { background: #f0e6ff; border-left: 4px solid var(--accent); }
-
-        /* CHAT PRIVADO */
-        #private-chat { display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 420px; background: white; border-radius: 20px; border: 2px solid var(--accent); flex-direction: column; z-index: 7000; color: black; box-shadow: 0 10px 50px rgba(0,0,0,0.9); overflow: hidden; }
-        #private-msgs { flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:8px; background: #fdfdfd; }
         
-        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 12px; }
-        .hashtag { color: var(--accent); font-weight: bold; cursor: pointer; }
+        .options-btn { cursor: pointer; padding: 5px 10px; font-size: 20px; color: #888; border-radius: 50%; }
+        .options-btn:hover { background: #eee; }
+        .hashtag { color: var(--accent); font-weight: bold; }
+        .mention { color: var(--link-blue); font-weight: bold; }
 
-        /* MENÚS */
-        .dropdown-menu { display: none; position: absolute; right: 10px; top: 40px; background: white; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); z-index: 9999; min-width: 150px; border: 1px solid #eee; }
-        .dropdown-menu button { display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer; }
+        /* MODAL INTERACCIONES */
+        #modal-inter { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { display: flex; width: 90%; max-width: 1000px; height: 80vh; background: white; border-radius: 20px; overflow: hidden; }
+        .modal-img-side { flex: 1.5; background: black; display: flex; align-items: center; justify-content: center; }
+        .modal-img-side img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-info-side { flex: 1; display: flex; flex-direction: column; color: #111; }
+        #comment-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .comment-item { background: #f0f2f5; padding: 10px; border-radius: 12px; position: relative; }
+        .del-com { position: absolute; right: 10px; top: 10px; color: #ff0055; cursor: pointer; font-size: 12px; }
+
+        /* CHAT PRIVADO & NOTIS */
+        #noti-box { display: none; position: absolute; top: 65px; right: 100px; width: 300px; background: white; border-radius: 15px; color: black; box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 5000; }
+        .noti-item { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; }
+        #private-chat { display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 420px; background: white; border-radius: 20px; border: 2px solid var(--accent); flex-direction: column; z-index: 7000; color: black; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
+        #private-msgs { flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:8px; }
+        
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -58,24 +70,44 @@
             🔔 <span id="noti-count" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--noti); color:white; font-size:10px; padding:2px 5px; border-radius:10px;">0</span>
         </div>
         <img id="user-pic-nav" onclick="location.href='perfil.html'">
-        <a href="publicar.html" class="btn" id="btnUpload" style="display:none;">+ PUBLICAR</a>
+        <a href="publicar.html" class="btn" id="btnUpload" style="display:none; text-decoration:none;">+ PUBLICAR</a>
         <button class="btn" id="btnLogin">ENTRAR</button>
     </div>
 </nav>
 
 <div id="noti-box">
-    <div style="padding:10px; background:#eee; font-weight:bold; font-size:12px; color:#555;">NOTIFICACIONES</div>
-    <div id="noti-list" style="max-height: 350px; overflow-y: auto;"></div>
+    <div style="padding:10px; background:#eee; font-weight:bold; font-size:12px;">NOTIFICACIONES</div>
+    <div id="noti-list" style="max-height: 300px; overflow-y: auto;"></div>
+</div>
+
+<div id="modal-inter" onclick="if(event.target==this) cerrarModal()">
+    <div class="modal-content">
+        <div class="modal-img-side"><img id="modal-img" src=""></div>
+        <div class="modal-info-side">
+            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <b>INTERACCIONES</b>
+                <span onclick="cerrarModal()" style="cursor:pointer; font-size:20px;">&times;</span>
+            </div>
+            <div id="comment-list"></div>
+            <div style="padding:15px; border-top:1px solid #eee;">
+                <div style="color:var(--noti); font-weight:bold; margin-bottom:10px;">❤️ <span id="modal-likes">0</span> likes</div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="com-in" placeholder="Comentar..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd; outline:none;">
+                    <button id="com-btn" class="btn">🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="main-container">
     <aside class="sidebar">
-        <div style="color:var(--accent); font-size:11px; font-weight:bold; letter-spacing:1px;">ARTISTAS ONLINE</div>
+        <div style="color:var(--accent); font-size:11px; font-weight:bold;">ARTISTAS ONLINE</div>
         <div id="online-list"></div>
         <div class="chat-section">
             <div id="chat-messages"></div>
             <div style="display:flex; gap:5px;">
-                <input type="text" id="chat-in" style="flex:1; background:#000; border:1px solid var(--accent); color:white; padding:8px; border-radius:15px; outline:none;" placeholder="Chat global...">
+                <input type="text" id="chat-in" style="flex:1; background:#000; border:1px solid var(--accent); color:white; padding:8px; border-radius:15px;" placeholder="Chat global...">
                 <button id="chat-btn" class="btn">🚀</button>
             </div>
         </div>
@@ -84,12 +116,12 @@
 </div>
 
 <div id="private-chat">
-    <div style="padding:15px; background:var(--accent); color:white; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
-        <span id="chat-with-name">Chat</span> <span onclick="cerrarPrivado()" style="cursor:pointer; font-size:20px;">&times;</span>
+    <div style="padding:12px; background:var(--accent); color:white; font-weight:bold; display:flex; justify-content:space-between;">
+        <span id="chat-with-name">Chat</span> <span onclick="cerrarPrivado()" style="cursor:pointer;">&times;</span>
     </div>
     <div id="private-msgs"></div>
-    <div style="padding:12px; border-top:1px solid #eee; display:flex; gap:8px;">
-        <input type="text" id="priv-in" style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd; outline:none;" placeholder="Escribe un mensaje...">
+    <div style="padding:10px; border-top:1px solid #eee; display:flex; gap:5px;">
+        <input type="text" id="priv-in" style="flex:1; padding:8px; border-radius:15px; border:1px solid #ddd;" placeholder="Mensaje...">
         <button id="priv-btn" class="btn">🚀</button>
     </div>
 </div>
@@ -104,7 +136,12 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
     const provider = new GoogleAuthProvider();
-    let userActual = null, chatConUid = null;
+    let userActual = null, postAbiertoId = null, chatConUid = null;
+
+    function formatearTexto(texto) {
+        if(!texto) return "";
+        return texto.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>').replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+    }
 
     onAuthStateChanged(auth, user => {
         userActual = user;
@@ -115,8 +152,7 @@
             document.getElementById('user-pic-nav').style.display = 'block';
             set(ref(db, 'online_users/'+user.uid), {n: user.displayName, p: user.photoURL});
             escucharNotificaciones();
-            
-            // Si venimos de un perfil, abrir chat
+            // Abrir chat pendiente si existe
             const pending = localStorage.getItem('openChat');
             if(pending) {
                 const [uid, name] = pending.split('|');
@@ -127,48 +163,92 @@
         cargarMuro(); cargarOnline(); escucharChatGlobal();
     });
 
-    // SISTEMA DE NOTIFICACIONES REAL
-    function escucharNotificaciones() {
-        onValue(ref(db, 'notis/' + userActual.uid), snap => {
-            const count = document.getElementById('noti-count'); 
-            const list = document.getElementById('noti-list');
-            let unread = 0; list.innerHTML = "";
-            
-            snap.forEach(n => {
-                const d = n.val();
-                const nid = n.key;
-                if(!d.read) unread++;
-                
-                const item = document.createElement('div');
-                item.className = `noti-item ${d.read ? '' : 'noti-unread'}`;
-                item.innerHTML = `<b>${d.from}</b> ${d.msg}`;
-                item.onclick = () => {
-                    update(ref(db, `notis/${userActual.uid}/${nid}`), { read: true });
-                    if(d.msg.includes("mensaje")) {
-                        document.getElementById('noti-box').style.display = 'none';
-                    }
-                };
-                list.prepend(item);
+    // --- ELIMINAR POST Y COMENTARIOS ---
+    window.eliminarPost = (pid) => {
+        if(confirm("¿Seguro que quieres borrar este post?")) {
+            remove(ref(db, `posts/${pid}`));
+        }
+    };
+
+    window.eliminarComentario = (pid, cid) => {
+        if(confirm("¿Borrar comentario?")) {
+            remove(ref(db, `posts/${pid}/comments/${cid}`));
+        }
+    };
+
+    // --- MURO ---
+    function cargarMuro() {
+        onValue(ref(db, 'posts'), snap => {
+            const feed = document.getElementById('feed'); feed.innerHTML = "";
+            snap.forEach(p => {
+                const d = p.val(); const pid = p.key;
+                const esMio = userActual && d.uid === userActual.uid;
+                const card = document.createElement('div'); card.className = "card";
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="location.href='perfil.html?uid=${d.uid}'">
+                            <img src="${d.userPic}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <b>${d.userName}</b>
+                        </div>
+                        ${esMio ? `<div class="options-btn" onclick="eliminarPost('${pid}')">🗑️</div>` : ''}
+                    </div>
+                    <div class="post-desc">${formatearTexto(d.desc)}</div>
+                    <img src="${d.url}" class="main-pic" onclick="abrirInteracciones('${pid}', '${d.url}')">
+                    <div class="post-actions">
+                        <span onclick="darLike('${pid}')" style="cursor:pointer">❤️ ${d.likes ? Object.keys(d.likes).length : 0}</span>
+                        <span onclick="abrirInteracciones('${pid}', '${d.url}')" style="cursor:pointer">💬 Comentar</span>
+                    </div>`;
+                feed.prepend(card);
             });
-            count.innerText = unread;
-            count.style.display = unread > 0 ? 'block' : 'none';
         });
     }
 
-    // CHAT PRIVADO
-    window.abrirPrivado = (uid, nombre) => {
+    // --- MODAL & LIKES ---
+    window.abrirInteracciones = (pid, imgUrl) => {
+        postAbiertoId = pid;
+        document.getElementById('modal-img').src = imgUrl;
+        document.getElementById('modal-inter').style.display = 'flex';
+        onValue(ref(db, `posts/${pid}/likes`), snap => {
+            document.getElementById('modal-likes').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+        });
+        onValue(ref(db, `posts/${pid}/comments`), snap => {
+            const list = document.getElementById('comment-list'); list.innerHTML = "";
+            snap.forEach(c => {
+                const d = c.val(); const cid = c.key;
+                const esMioCom = userActual && d.uid === userActual.uid;
+                list.innerHTML += `<div class="comment-item">
+                    <b>${d.u}:</b> ${d.m}
+                    ${esMioCom ? `<span class="del-com" onclick="eliminarComentario('${pid}', '${cid}')">🗑️</span>` : ''}
+                </div>`;
+            });
+        });
+    };
+
+    document.getElementById('com-btn').onclick = () => {
+        const i = document.getElementById('com-in');
+        if(userActual && i.value.trim() && postAbiertoId) {
+            push(ref(db, `posts/${postAbiertoId}/comments`), { u: userActual.displayName, m: i.value.trim(), uid: userActual.uid });
+            i.value = "";
+        }
+    };
+
+    window.darLike = (pid) => {
         if(!userActual) return;
-        chatConUid = uid; 
+        const likeRef = ref(db, `posts/${pid}/likes/${userActual.uid}`);
+        get(likeRef).then(s => s.exists() ? remove(likeRef) : set(likeRef, true));
+    };
+
+    // --- CHAT PRIVADO (FIXED) ---
+    window.abrirPrivado = (uid, nombre) => {
+        chatConUid = uid;
         document.getElementById('chat-with-name').innerText = nombre;
         document.getElementById('private-chat').style.display = 'flex';
         const cid = userActual.uid < uid ? userActual.uid + uid : uid + userActual.uid;
-        
-        onValue(query(ref(db, `direct_chats/${cid}`), limitToLast(30)), snap => {
+        onValue(query(ref(db, `direct_chats/${cid}`), limitToLast(20)), snap => {
             const box = document.getElementById('private-msgs'); box.innerHTML = "";
             snap.forEach(m => {
-                const d = m.val(); 
-                const s = d.sender === userActual.uid ? 'align-self:flex-end; background:var(--accent); color:white;' : 'align-self:flex-start; background:#eee; color:black;';
-                box.innerHTML += `<div style="${s} padding:8px 12px; border-radius:15px; max-width:80%; font-size:14px; margin-bottom:2px;">${d.m}</div>`;
+                const d = m.val();
+                const s = d.sender === userActual.uid ? 'align-self:flex-end; background:var(--accent); color:white;' : 'align-self:flex-start; background:#eee;';
+                box.innerHTML += `<div style="${s} padding:8px 12px; border-radius:15px; font-size:13px; max-width:80%;">${d.m}</div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
@@ -178,42 +258,36 @@
         const i = document.getElementById('priv-in');
         if(userActual && i.value.trim() && chatConUid) {
             const cid = userActual.uid < chatConUid ? userActual.uid + chatConUid : chatConUid + userActual.uid;
-            push(ref(db, `direct_chats/${cid}`), { sender: userActual.uid, m: i.value.trim(), t: Date.now() });
-            // ENVIAR NOTIFICACIÓN AL OTRO
-            push(ref(db, 'notis/' + chatConUid), { from: userActual.displayName, msg: "te envió un mensaje", read: false });
+            push(ref(db, `direct_chats/${cid}`), { sender: userActual.uid, m: i.value.trim() });
+            push(ref(db, 'notis/' + chatConUid), { from: userActual.displayName, msg: "te envió un mensaje" });
             i.value = "";
         }
     };
 
-    function cargarMuro() {
-        onValue(ref(db, 'posts'), snap => {
-            const feed = document.getElementById('feed'); feed.innerHTML = "";
-            snap.forEach(p => {
-                const d = p.val();
-                const card = document.createElement('div'); card.className = "card";
-                card.innerHTML = `
-                    <div class="post-header">
-                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="location.href='perfil.html?uid=${d.uid}'">
-                            <img src="${d.userPic}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <b>${d.userName}</b>
-                        </div>
-                    </div>
-                    <div class="post-desc">${d.desc}</div>
-                    <img src="${d.url}" class="main-pic">
-                    <div class="post-actions">
-                        <span onclick="alert('❤️')" style="cursor:pointer">❤️ ${d.likes ? Object.keys(d.likes).length : 0}</span>
-                        <span style="cursor:pointer">💬 Comentar</span>
-                    </div>`;
-                feed.prepend(card);
+    function escucharNotificaciones() {
+        onValue(ref(db, 'notis/' + userActual.uid), snap => {
+            const list = document.getElementById('noti-list'); list.innerHTML = "";
+            let count = 0;
+            snap.forEach(n => {
+                count++;
+                list.innerHTML += `<div class="noti-item"><b>${n.val().from}</b> ${n.val().msg}</div>`;
             });
+            document.getElementById('noti-count').innerText = count;
+            document.getElementById('noti-count').style.display = count > 0 ? 'block' : 'none';
         });
     }
 
+    // Funciones base
+    window.cerrarModal = () => document.getElementById('modal-inter').style.display = 'none';
+    window.cerrarPrivado = () => document.getElementById('private-chat').style.display = 'none';
+    window.toggleNotis = () => { const b = document.getElementById('noti-box'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; };
+    
     function cargarOnline() {
         onValue(ref(db, 'online_users'), snap => {
             const l = document.getElementById('online-list'); l.innerHTML = "";
             snap.forEach(u => { 
                 if(userActual && u.key !== userActual.uid) {
-                    l.innerHTML += `<div onclick="location.href='perfil.html?uid=${u.key}'" style="display:flex; align-items:center; gap:10px; font-size:12px; cursor:pointer; background:rgba(255,255,255,0.05); padding:8px; border-radius:12px;">
+                    l.innerHTML += `<div onclick="abrirPrivado('${u.key}', '${u.val().n}')" style="display:flex; align-items:center; gap:10px; font-size:12px; cursor:pointer; background:rgba(255,255,255,0.05); padding:8px; border-radius:12px;">
                         <img src="${u.val().p}" style="width:25px;height:25px;border-radius:50%;"> ${u.val().n} 🟢
                     </div>`;
                 }
@@ -224,7 +298,7 @@
     function escucharChatGlobal() {
         onValue(query(ref(db, 'chat_global'), limitToLast(20)), snap => {
             const box = document.getElementById('chat-messages'); box.innerHTML = "";
-            snap.forEach(m => { box.innerHTML += `<div><b style="color:var(--accent)">${m.val().u}:</b> ${m.val().m}</div>`; });
+            snap.forEach(m => { box.innerHTML += `<div><b>${m.val().u}:</b> ${m.val().m}</div>`; });
             box.scrollTop = box.scrollHeight;
         });
     }
@@ -234,12 +308,6 @@
         if(userActual && i.value.trim()) { push(ref(db, 'chat_global'), { u: userActual.displayName, m: i.value.trim() }); i.value = ""; }
     };
 
-    window.toggleNotis = () => {
-        const b = document.getElementById('noti-box');
-        b.style.display = b.style.display === 'block' ? 'none' : 'block';
-    };
-
-    window.cerrarPrivado = () => { document.getElementById('private-chat').style.display = 'none'; chatConUid = null; };
     document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : signInWithPopup(auth, provider);
 </script>
 </body>
