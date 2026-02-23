@@ -1,315 +1,375 @@
 <!DOCTYPE html>
-<html lang="es">
+<html class="dark" lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLIP - Alfa 1.0.0</title>
-    <style>
-        :root { 
-            --bg: #050010; --nav: #0a0020; --accent: #7b2cbf; 
-            --glass: rgba(255, 255, 255, 0.05); --card-bg: #ffffff; 
-            --noti: #ff0055; --link-blue: #3b82f6; 
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>BLIP - Sistema Integral</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: { colors: { "primary": "#7b2cbf", "accent": "#ff0055", "background-dark": "#050010" } } }
         }
-        
-        body { margin: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* NAVBAR */
-        nav { background: var(--nav); padding: 0 25px; display: flex; align-items: center; justify-content: space-between; height: 70px; border-bottom: 1px solid rgba(123, 44, 191, 0.4); z-index: 1000; flex-shrink: 0; gap: 20px; }
-        .nav-logo { font-weight: 900; font-size: 28px; cursor: pointer; text-shadow: 0 0 15px var(--accent); letter-spacing: 3px; }
-        .search-container { flex: 1; max-width: 400px; }
-        .search-container input { width: 100%; background: var(--glass); border: 1px solid rgba(123, 44, 191, 0.5); padding: 10px 20px; border-radius: 30px; color: white; outline: none; }
-        #user-pic-nav { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 2px solid var(--accent); object-fit: cover; display: none; }
-        
-        /* LAYOUT */
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 300px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(123, 44, 191, 0.2); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-        #online-list { display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; }
-        .chat-section { flex: 1; display: flex; flex-direction: column; background: var(--glass); border-radius: 20px; border: 1px solid rgba(123, 44, 191, 0.2); padding: 15px; overflow: hidden; }
-        #chat-messages { flex: 1; overflow-y: auto; font-size: 13px; color: #ccc; margin-bottom: 10px; }
-        .gallery-wrapper { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; align-items: center; background: #020008; }
-        #feed { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 25px; }
-
-        /* CARDS & MENU */
-        .card { width: 100%; background: var(--card-bg); border-radius: 20px; color: #111; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
-        .post-header { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; }
-        .post-desc { padding: 0 15px 15px; font-size: 14px; line-height: 1.4; }
-        .main-pic { width: 100%; cursor: pointer; display: block; }
-        .post-actions { padding: 12px 20px; display: flex; gap: 20px; border-top: 1px solid #eee; background: #fafafa; font-weight: bold; }
-        
-        .options-btn { cursor: pointer; padding: 5px 10px; font-size: 20px; color: #888; border-radius: 50%; }
-        .options-btn:hover { background: #eee; }
-        .hashtag { color: var(--accent); font-weight: bold; }
-        .mention { color: var(--link-blue); font-weight: bold; }
-
-        /* MODAL INTERACCIONES */
-        #modal-inter { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { display: flex; width: 90%; max-width: 1000px; height: 80vh; background: white; border-radius: 20px; overflow: hidden; }
-        .modal-img-side { flex: 1.5; background: black; display: flex; align-items: center; justify-content: center; }
-        .modal-img-side img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .modal-info-side { flex: 1; display: flex; flex-direction: column; color: #111; }
-        #comment-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .comment-item { background: #f0f2f5; padding: 10px; border-radius: 12px; position: relative; }
-        .del-com { position: absolute; right: 10px; top: 10px; color: #ff0055; cursor: pointer; font-size: 12px; }
-
-        /* CHAT PRIVADO & NOTIS */
-        #noti-box { display: none; position: absolute; top: 65px; right: 100px; width: 300px; background: white; border-radius: 15px; color: black; box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 5000; }
-        .noti-item { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; }
-        #private-chat { display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 420px; background: white; border-radius: 20px; border: 2px solid var(--accent); flex-direction: column; z-index: 7000; color: black; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
-        #private-msgs { flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:8px; }
-        
-        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+    </script>
+    <style>
+        body { background-color: #050010; color: white; font-family: 'Spline Sans', sans-serif; overflow: hidden; height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(123, 44, 191, 0.2); }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #7b2cbf; border-radius: 10px; }
+        .active-tab { background: rgba(123, 44, 191, 0.2); color: #7b2cbf; border-radius: 1.5rem; font-weight: bold; }
+        section { height: calc(100vh - 80px); overflow-y: auto; padding-bottom: 100px; }
+        .hashtag-link { color: #ff0055; font-weight: bold; text-shadow: 0 0 8px rgba(255, 0, 85, 0.3); }
+        .mention-link { color: #7b2cbf; font-weight: bold; }
+        .fill-1 { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     </style>
 </head>
-<body>
+<body class="custom-scrollbar">
 
-<nav>
-    <div class="nav-logo" onclick="location.href='index.html'">BLIP</div>
-    <div class="search-container"><input type="text" id="main-search" placeholder="Busca artistas..."></div>
-    <div style="display:flex; gap:15px; align-items:center;">
-        <div onclick="toggleNotis()" style="cursor:pointer; position:relative; font-size:22px;">
-            🔔 <span id="noti-count" style="display:none; position:absolute; top:-5px; right:-5px; background:var(--noti); color:white; font-size:10px; padding:2px 5px; border-radius:10px;">0</span>
-        </div>
-        <img id="user-pic-nav" onclick="location.href='perfil.html'">
-        <a href="publicar.html" class="btn" id="btnUpload" style="display:none; text-decoration:none;">+ PUBLICAR</a>
-        <button class="btn" id="btnLogin">ENTRAR</button>
-    </div>
-</nav>
-
-<div id="noti-box">
-    <div style="padding:10px; background:#eee; font-weight:bold; font-size:12px;">NOTIFICACIONES</div>
-    <div id="noti-list" style="max-height: 300px; overflow-y: auto;"></div>
-</div>
-
-<div id="modal-inter" onclick="if(event.target==this) cerrarModal()">
-    <div class="modal-content">
-        <div class="modal-img-side"><img id="modal-img" src=""></div>
-        <div class="modal-info-side">
-            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <b>INTERACCIONES</b>
-                <span onclick="cerrarModal()" style="cursor:pointer; font-size:20px;">&times;</span>
+    <nav class="sticky top-0 z-50 w-full border-b border-primary/30 bg-background-dark/80 backdrop-blur-md h-[70px] flex items-center">
+        <div class="max-w-7xl mx-auto w-full px-6 flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+                <span class="material-symbols-outlined text-primary text-4xl font-bold">bolt</span>
+                <span class="text-2xl font-black italic tracking-tighter uppercase">BLIP</span>
             </div>
-            <div id="comment-list"></div>
-            <div style="padding:15px; border-top:1px solid #eee;">
-                <div style="color:var(--noti); font-weight:bold; margin-bottom:10px;">❤️ <span id="modal-likes">0</span> likes</div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="com-in" placeholder="Comentar..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd; outline:none;">
-                    <button id="com-btn" class="btn">🚀</button>
+            <div class="flex items-center gap-5">
+                <div id="auth-section">
+                    <button id="btn-login" class="bg-primary px-6 py-2 rounded-full font-bold text-sm">CONECTAR</button>
+                </div>
+                <div id="user-ui" class="hidden flex items-center gap-5">
+                    <button id="btn-logout" class="text-[10px] text-slate-500 hover:text-accent font-bold uppercase tracking-widest transition-colors">Salir</button>
+                    <img id="my-avatar" src="" class="w-10 h-10 rounded-full border-2 border-primary cursor-pointer" onclick="irMiPerfil()">
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </nav>
 
-<div class="main-container">
-    <aside class="sidebar">
-        <div style="color:var(--accent); font-size:11px; font-weight:bold;">ARTISTAS ONLINE</div>
-        <div id="online-list"></div>
-        <div class="chat-section">
-            <div id="chat-messages"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="chat-in" style="flex:1; background:#000; border:1px solid var(--accent); color:white; padding:8px; border-radius:15px;" placeholder="Chat global...">
-                <button id="chat-btn" class="btn">🚀</button>
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[240px_1fr_300px] gap-8 p-6">
+        <aside class="hidden lg:flex flex-col gap-4">
+            <div class="glass rounded-[2rem] p-5 space-y-2">
+                <button onclick="showTab('feed')" id="tab-feed" class="w-full flex items-center gap-4 p-3 active-tab transition-all"><span class="material-symbols-outlined">home</span> Inicio</button>
+                <button onclick="showTab('explorar')" id="tab-explorar" class="w-full flex items-center gap-4 p-3 hover:bg-white/5 rounded-2xl transition-all"><span class="material-symbols-outlined">explore</span> Explorar</button>
+                <button onclick="showTab('mensajes')" id="tab-mensajes" class="w-full flex items-center gap-4 p-3 hover:bg-white/5 rounded-2xl transition-all"><span class="material-symbols-outlined">chat_bubble</span> Mensajes</button>
+                <button onclick="irMiPerfil()" class="w-full flex items-center gap-4 p-3 hover:bg-white/5 rounded-2xl transition-all"><span class="material-symbols-outlined">person</span> Perfil</button>
             </div>
-        </div>
-    </aside>
-    <main class="gallery-wrapper"><div id="feed"></div></main>
-</div>
+        </aside>
 
-<div id="private-chat">
-    <div style="padding:12px; background:var(--accent); color:white; font-weight:bold; display:flex; justify-content:space-between;">
-        <span id="chat-with-name">Chat</span> <span onclick="cerrarPrivado()" style="cursor:pointer;">&times;</span>
-    </div>
-    <div id="private-msgs"></div>
-    <div style="padding:10px; border-top:1px solid #eee; display:flex; gap:5px;">
-        <input type="text" id="priv-in" style="flex:1; padding:8px; border-radius:15px; border:1px solid #ddd;" placeholder="Mensaje...">
-        <button id="priv-btn" class="btn">🚀</button>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, remove, query, limitToLast, get, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
-
-    const firebaseConfig = { apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", authDomain: "almacenamiento-redsocial.firebaseapp.com", databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", projectId: "almacenamiento-redsocial" };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const provider = new GoogleAuthProvider();
-    let userActual = null, postAbiertoId = null, chatConUid = null;
-
-    function formatearTexto(texto) {
-        if(!texto) return "";
-        return texto.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>').replace(/@(\w+)/g, '<span class="mention">@$1</span>');
-    }
-
-    onAuthStateChanged(auth, user => {
-        userActual = user;
-        document.getElementById('btnLogin').innerText = user ? 'SALIR' : 'ENTRAR';
-        document.getElementById('btnUpload').style.display = user ? 'block' : 'none';
-        if(user) {
-            document.getElementById('user-pic-nav').src = user.photoURL;
-            document.getElementById('user-pic-nav').style.display = 'block';
-            set(ref(db, 'online_users/'+user.uid), {n: user.displayName, p: user.photoURL});
-            escucharNotificaciones();
-            // Abrir chat pendiente si existe
-            const pending = localStorage.getItem('openChat');
-            if(pending) {
-                const [uid, name] = pending.split('|');
-                localStorage.removeItem('openChat');
-                abrirPrivado(uid, name);
-            }
-        }
-        cargarMuro(); cargarOnline(); escucharChatGlobal();
-    });
-
-    // --- ELIMINAR POST Y COMENTARIOS ---
-    window.eliminarPost = (pid) => {
-        if(confirm("¿Seguro que quieres borrar este post?")) {
-            remove(ref(db, `posts/${pid}`));
-        }
-    };
-
-    window.eliminarComentario = (pid, cid) => {
-        if(confirm("¿Borrar comentario?")) {
-            remove(ref(db, `posts/${pid}/comments/${cid}`));
-        }
-    };
-
-    // --- MURO ---
-    function cargarMuro() {
-        onValue(ref(db, 'posts'), snap => {
-            const feed = document.getElementById('feed'); feed.innerHTML = "";
-            snap.forEach(p => {
-                const d = p.val(); const pid = p.key;
-                const esMio = userActual && d.uid === userActual.uid;
-                const card = document.createElement('div'); card.className = "card";
-                card.innerHTML = `
-                    <div class="post-header">
-                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="location.href='perfil.html?uid=${d.uid}'">
-                            <img src="${d.userPic}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"> <b>${d.userName}</b>
-                        </div>
-                        ${esMio ? `<div class="options-btn" onclick="eliminarPost('${pid}')">🗑️</div>` : ''}
+        <div class="flex flex-col">
+            <section id="sec-feed" class="flex flex-col gap-6 custom-scrollbar">
+                <div class="glass rounded-[2.5rem] p-6 shadow-xl">
+                    <div class="flex gap-4">
+                        <img id="post-avatar" src="" class="w-12 h-12 rounded-2xl bg-primary/10 border border-white/10">
+                        <textarea id="post-text" class="w-full bg-transparent border-none focus:ring-0 text-lg resize-none" placeholder="¿Qué estás creando?" rows="2"></textarea>
                     </div>
-                    <div class="post-desc">${formatearTexto(d.desc)}</div>
-                    <img src="${d.url}" class="main-pic" onclick="abrirInteracciones('${pid}', '${d.url}')">
-                    <div class="post-actions">
-                        <span onclick="darLike('${pid}')" style="cursor:pointer">❤️ ${d.likes ? Object.keys(d.likes).length : 0}</span>
-                        <span onclick="abrirInteracciones('${pid}', '${d.url}')" style="cursor:pointer">💬 Comentar</span>
-                    </div>`;
-                feed.prepend(card);
-            });
-        });
-    }
+                    <div id="preview-box" class="hidden mt-4"><img id="img-preview" class="rounded-3xl w-full max-h-80 object-cover border border-primary/20"></div>
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
+                        <label class="cursor-pointer text-primary hover:text-white transition-all">
+                            <span class="material-symbols-outlined text-3xl">image</span>
+                            <input type="file" id="file-input" class="hidden" accept="image/*">
+                        </label>
+                        <button id="btn-post" class="bg-primary px-10 py-3 rounded-2xl font-black text-sm tracking-widest shadow-lg shadow-primary/40">BLIP!</button>
+                    </div>
+                </div>
+                <div id="feed-container" class="flex flex-col gap-6"></div>
+            </section>
 
-    // --- MODAL & LIKES ---
-    window.abrirInteracciones = (pid, imgUrl) => {
-        postAbiertoId = pid;
-        document.getElementById('modal-img').src = imgUrl;
-        document.getElementById('modal-inter').style.display = 'flex';
-        onValue(ref(db, `posts/${pid}/likes`), snap => {
-            document.getElementById('modal-likes').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
-        });
-        onValue(ref(db, `posts/${pid}/comments`), snap => {
-            const list = document.getElementById('comment-list'); list.innerHTML = "";
-            snap.forEach(c => {
-                const d = c.val(); const cid = c.key;
-                const esMioCom = userActual && d.uid === userActual.uid;
-                list.innerHTML += `<div class="comment-item">
-                    <b>${d.u}:</b> ${d.m}
-                    ${esMioCom ? `<span class="del-com" onclick="eliminarComentario('${pid}', '${cid}')">🗑️</span>` : ''}
-                </div>`;
-            });
-        });
-    };
+            <section id="sec-explorar" class="hidden custom-scrollbar">
+                <div id="explorar-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+            </section>
 
-    document.getElementById('com-btn').onclick = () => {
-        const i = document.getElementById('com-in');
-        if(userActual && i.value.trim() && postAbiertoId) {
-            push(ref(db, `posts/${postAbiertoId}/comments`), { u: userActual.displayName, m: i.value.trim(), uid: userActual.uid });
-            i.value = "";
+            <section id="sec-mensajes" class="hidden flex glass rounded-[2.5rem] overflow-hidden h-[75vh]">
+                <div class="w-1/3 border-r border-white/10 p-4 bg-black/20 overflow-y-auto custom-scrollbar">
+                    <h3 class="text-[10px] font-bold uppercase text-primary mb-4 px-2 tracking-widest">Mis Contactos</h3>
+                    <div id="lista-contactos" class="space-y-2"></div>
+                </div>
+                <div class="w-2/3 flex flex-col bg-black/10">
+                    <div id="chat-header" class="p-4 border-b border-white/10 text-sm font-bold flex items-center gap-3">
+                        <span class="text-slate-500 italic text-xs">Selecciona un chat</span>
+                    </div>
+                    <div id="chat-mensajes" class="flex-1 p-4 overflow-y-auto flex flex-col gap-3 custom-scrollbar"></div>
+                    <div class="p-4 border-t border-white/10 flex gap-2">
+                        <input id="chat-input" type="text" class="flex-1 bg-transparent border-none focus:ring-0 text-sm" placeholder="Escribe un mensaje...">
+                        <button id="btn-send-chat" class="bg-primary p-3 rounded-xl flex items-center justify-center"><span class="material-symbols-outlined">send</span></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="hidden lg:flex flex-col gap-6">
+            <div class="glass rounded-[2rem] p-6">
+                <h3 class="text-xs font-bold text-primary mb-4 uppercase tracking-widest">En Línea</h3>
+                <div id="online-list" class="space-y-4"></div>
+            </div>
+        </aside>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getDatabase, ref, push, onValue, serverTimestamp, query, limitToLast, set, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
+            authDomain: "almacenamiento-redsocial.firebaseapp.com",
+            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
+            projectId: "almacenamiento-redsocial"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+        let userActual = null;
+        let chatDestinoUid = null;
+        let selectedFile = null;
+
+        function procesarTexto(texto) {
+            if (!texto) return "";
+            return texto.replace(/@(\w+)/g, '<span class="mention-link">@$1</span>').replace(/#(\w+)/g, '<span class="hashtag-link">#$1</span>');
         }
-    };
 
-    window.darLike = (pid) => {
-        if(!userActual) return;
-        const likeRef = ref(db, `posts/${pid}/likes/${userActual.uid}`);
-        get(likeRef).then(s => s.exists() ? remove(likeRef) : set(likeRef, true));
-    };
+        // --- AUTHENTICATION ---
+        document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
+        document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => location.reload());
 
-    // --- CHAT PRIVADO (FIXED) ---
-    window.abrirPrivado = (uid, nombre) => {
-        chatConUid = uid;
-        document.getElementById('chat-with-name').innerText = nombre;
-        document.getElementById('private-chat').style.display = 'flex';
-        const cid = userActual.uid < uid ? userActual.uid + uid : uid + userActual.uid;
-        onValue(query(ref(db, `direct_chats/${cid}`), limitToLast(20)), snap => {
-            const box = document.getElementById('private-msgs'); box.innerHTML = "";
-            snap.forEach(m => {
-                const d = m.val();
-                const s = d.sender === userActual.uid ? 'align-self:flex-end; background:var(--accent); color:white;' : 'align-self:flex-start; background:#eee;';
-                box.innerHTML += `<div style="${s} padding:8px 12px; border-radius:15px; font-size:13px; max-width:80%;">${d.m}</div>`;
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    };
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userActual = user;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('user-ui').classList.remove('hidden');
+                document.getElementById('my-avatar').src = user.photoURL;
+                document.getElementById('post-avatar').src = user.photoURL;
+                
+                set(ref(db, `online_users/${user.uid}`), { n: user.displayName, p: user.photoURL });
+                onDisconnect(ref(db, `online_users/${user.uid}`)).remove();
+                
+                escucharFeed(); 
+                escucharOnline();
 
-    document.getElementById('priv-btn').onclick = () => {
-        const i = document.getElementById('priv-in');
-        if(userActual && i.value.trim() && chatConUid) {
-            const cid = userActual.uid < chatConUid ? userActual.uid + chatConUid : chatConUid + userActual.uid;
-            push(ref(db, `direct_chats/${cid}`), { sender: userActual.uid, m: i.value.trim() });
-            push(ref(db, 'notis/' + chatConUid), { from: userActual.displayName, msg: "te envió un mensaje" });
-            i.value = "";
-        }
-    };
-
-    function escucharNotificaciones() {
-        onValue(ref(db, 'notis/' + userActual.uid), snap => {
-            const list = document.getElementById('noti-list'); list.innerHTML = "";
-            let count = 0;
-            snap.forEach(n => {
-                count++;
-                list.innerHTML += `<div class="noti-item"><b>${n.val().from}</b> ${n.val().msg}</div>`;
-            });
-            document.getElementById('noti-count').innerText = count;
-            document.getElementById('noti-count').style.display = count > 0 ? 'block' : 'none';
-        });
-    }
-
-    // Funciones base
-    window.cerrarModal = () => document.getElementById('modal-inter').style.display = 'none';
-    window.cerrarPrivado = () => document.getElementById('private-chat').style.display = 'none';
-    window.toggleNotis = () => { const b = document.getElementById('noti-box'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; };
-    
-    function cargarOnline() {
-        onValue(ref(db, 'online_users'), snap => {
-            const l = document.getElementById('online-list'); l.innerHTML = "";
-            snap.forEach(u => { 
-                if(userActual && u.key !== userActual.uid) {
-                    l.innerHTML += `<div onclick="abrirPrivado('${u.key}', '${u.val().n}')" style="display:flex; align-items:center; gap:10px; font-size:12px; cursor:pointer; background:rgba(255,255,255,0.05); padding:8px; border-radius:12px;">
-                        <img src="${u.val().p}" style="width:25px;height:25px;border-radius:50%;"> ${u.val().n} 🟢
-                    </div>`;
+                const abrirChatUid = localStorage.getItem('abrirChatCon');
+                if (abrirChatUid) {
+                    const nombre = localStorage.getItem('nombreChatCon');
+                    const foto = localStorage.getItem('fotoChatCon');
+                    showTab('mensajes');
+                    window.abrirChat(abrirChatUid, nombre, foto);
+                    localStorage.removeItem('abrirChatCon');
+                    localStorage.removeItem('nombreChatCon');
+                    localStorage.removeItem('fotoChatCon');
                 }
+            }
+        });
+
+        // --- POSTING ---
+        document.getElementById('file-input').onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if(selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (f) => {
+                    document.getElementById('img-preview').src = f.target.result;
+                    document.getElementById('preview-box').classList.remove('hidden');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        };
+
+        document.getElementById('btn-post').onclick = async () => {
+            const text = document.getElementById('post-text').value.trim();
+            if(!userActual || (!text && !selectedFile)) return;
+            const btn = document.getElementById('btn-post');
+            btn.disabled = true; btn.innerText = "...";
+
+            let finalUrl = "";
+            if(selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('upload_preset', 'blip_unsigned');
+                const res = await fetch('https://api.cloudinary.com/v1_1/dz9s37bk0/image/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                finalUrl = data.secure_url;
+            }
+
+            await push(ref(db, 'posts'), {
+                uid: userActual.uid,
+                uName: userActual.displayName,
+                uPic: userActual.photoURL,
+                content: text,
+                image: finalUrl,
+                timestamp: serverTimestamp()
             });
-        });
-    }
 
-    function escucharChatGlobal() {
-        onValue(query(ref(db, 'chat_global'), limitToLast(20)), snap => {
-            const box = document.getElementById('chat-messages'); box.innerHTML = "";
-            snap.forEach(m => { box.innerHTML += `<div><b>${m.val().u}:</b> ${m.val().m}</div>`; });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
+            document.getElementById('post-text').value = "";
+            document.getElementById('preview-box').classList.add('hidden');
+            selectedFile = null;
+            btn.disabled = false; btn.innerText = "BLIP!";
+        };
 
-    document.getElementById('chat-btn').onclick = () => {
-        const i = document.getElementById('chat-in');
-        if(userActual && i.value.trim()) { push(ref(db, 'chat_global'), { u: userActual.displayName, m: i.value.trim() }); i.value = ""; }
-    };
+        // --- FEED ---
+        async function escucharFeed() {
+            if (!userActual) return;
+            const siguiendoRef = ref(db, 'seguidores');
+            const snapSeg = await get(siguiendoRef);
+            const misSeguidos = [userActual.uid]; 
+            snapSeg.forEach(p => { if (p.hasChild(userActual.uid)) misSeguidos.push(p.key); });
 
-    document.getElementById('btnLogin').onclick = () => userActual ? signOut(auth) : signInWithPopup(auth, provider);
-</script>
+            onValue(query(ref(db, 'posts'), limitToLast(40)), (snap) => {
+                const container = document.getElementById('feed-container');
+                container.innerHTML = "";
+                let posts = [];
+                snap.forEach(c => {
+                    if (misSeguidos.includes(c.val().uid)) {
+                        posts.unshift({id: c.key, ...c.val()});
+                    }
+                });
+                posts.forEach(p => {
+                    const lCount = p.likes ? Object.keys(p.likes).length : 0;
+                    const hasLike = p.likes && p.likes[userActual.uid];
+                    container.innerHTML += `
+                        <div class="glass rounded-[2.5rem] p-6">
+                            <div class="flex items-center gap-3 mb-4 cursor-pointer" onclick="window.location.href='perfil.html?uid=${p.uid}'">
+                                <img src="${p.uPic}" class="w-10 h-10 rounded-full border border-primary/20">
+                                <h4 class="font-bold text-sm">${p.uName}</h4>
+                            </div>
+                            <p class="text-slate-300 mb-4">${procesarTexto(p.content)}</p>
+                            ${p.image ? `<img src="${p.image}" class="rounded-3xl w-full mb-4 border border-white/5 shadow-2xl">` : ""}
+                            <div class="flex gap-6 border-t border-white/5 pt-4">
+                                <button onclick="darLike('${p.id}')" class="flex items-center gap-2 ${hasLike ? 'text-accent' : 'text-slate-400'}">
+                                    <span class="material-symbols-outlined ${hasLike ? 'fill-1' : ''}">favorite</span><span class="text-xs font-bold">${lCount}</span>
+                                </button>
+                                <button onclick="toggleComentarios('${p.id}')" class="flex items-center gap-2 text-slate-400">
+                                    <span class="material-symbols-outlined">chat_bubble</span><span class="text-xs font-bold">Comentar</span>
+                                </button>
+                            </div>
+                            <div id="box-com-${p.id}" class="hidden mt-4 bg-black/20 p-4 rounded-2xl">
+                                <div id="lista-com-${p.id}" class="space-y-2 mb-3 max-h-32 overflow-y-auto custom-scrollbar"></div>
+                                <div class="flex gap-2">
+                                    <input id="in-com-${p.id}" type="text" class="flex-1 bg-white/5 border-none rounded-xl text-xs text-white" placeholder="Comentar...">
+                                    <button onclick="enviarComentario('${p.id}')" class="bg-primary p-2 rounded-xl"><span class="material-symbols-outlined text-sm">send</span></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        window.darLike = (id) => {
+            const r = ref(db, `posts/${id}/likes/${userActual.uid}`);
+            get(r).then(s => s.exists() ? remove(r) : set(r, true));
+        };
+
+        window.toggleComentarios = (id) => {
+            const b = document.getElementById(`box-com-${id}`); b.classList.toggle('hidden');
+            if(!b.classList.contains('hidden')) {
+                onValue(ref(db, `posts/${id}/comentarios`), s => {
+                    const l = document.getElementById(`lista-com-${id}`); l.innerHTML = "";
+                    s.forEach(c => { l.innerHTML += `<div class="text-[10px] bg-white/5 p-2 rounded-lg text-slate-300"><b class="text-primary">${c.val().uName}:</b> ${c.val().texto}</div>`; });
+                });
+            }
+        };
+
+        window.enviarComentario = (id) => {
+            const i = document.getElementById(`in-com-${id}`);
+            if(!i.value.trim()) return;
+            push(ref(db, `posts/${id}/comentarios`), { uName: userActual.displayName, texto: i.value });
+            i.value = "";
+        };
+
+        // --- CHAT LÓGICA ---
+        window.abrirChat = (uid, name, pic) => {
+            chatDestinoUid = uid;
+            document.getElementById('chat-header').innerHTML = `<img src="${pic}" class="w-8 h-8 rounded-full"> <span class="text-xs font-bold">${name}</span>`;
+            const chatId = userActual.uid < uid ? `${userActual.uid}_${uid}` : `${uid}_${userActual.uid}`;
+            
+            onValue(ref(db, `chats/${chatId}`), snap => {
+                const box = document.getElementById('chat-mensajes'); 
+                box.innerHTML = "";
+                snap.forEach(m => {
+                    const mio = m.val().s === userActual.uid;
+                    box.innerHTML += `<div class="max-w-[80%] ${mio ? 'self-end bg-primary shadow-lg shadow-primary/20' : 'self-start bg-white/10'} px-4 py-2 rounded-2xl text-[11px]">${m.val().t}</div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        };
+
+        document.getElementById('btn-send-chat').onclick = () => {
+            const i = document.getElementById('chat-input');
+            if(!chatDestinoUid || !i.value.trim()) return;
+            const chatId = userActual.uid < chatDestinoUid ? `${userActual.uid}_${chatDestinoUid}` : `${chatDestinoUid}_${userActual.uid}`;
+            push(ref(db, `chats/${chatId}`), { s: userActual.uid, t: i.value, time: serverTimestamp() });
+            i.value = "";
+        };
+
+        // --- CONTACTOS ---
+        async function cargarContactos() {
+            if(!userActual) return;
+            const list = document.getElementById('lista-contactos');
+            onValue(ref(db, 'seguidores'), (snap) => {
+                list.innerHTML = "";
+                snap.forEach(perfil => {
+                    if (perfil.hasChild(userActual.uid)) {
+                        const contactUid = perfil.key;
+                        get(ref(db, `online_users/${contactUid}`)).then(u => {
+                            const d = u.exists() ? u.val() : { n: "Artista", p: "https://via.placeholder.com/100" };
+                            list.innerHTML += `<div onclick="window.abrirChat('${contactUid}', '${d.n}', '${d.p}')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-2xl cursor-pointer">
+                                <img src="${d.p}" class="w-10 h-10 rounded-full border border-primary/20">
+                                <span class="text-xs font-bold">${d.n}</span>
+                            </div>`;
+                        });
+                    }
+                });
+            });
+        }
+
+        // --- NAVEGACIÓN ---
+        window.showTab = (t) => {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('aside button').forEach(b => b.classList.remove('active-tab'));
+            document.getElementById(`sec-${t}`).classList.remove('hidden');
+            const b = document.getElementById(`tab-${t}`); if(b) b.classList.add('active-tab');
+            if(t === 'mensajes') cargarContactos();
+            if(t === 'explorar') cargarExplorar();
+        };
+
+        function escucharOnline() {
+            onValue(ref(db, 'online_users'), snap => {
+                const l = document.getElementById('online-list'); l.innerHTML = "";
+                snap.forEach(u => {
+                    l.innerHTML += `<div onclick="window.location.href='perfil.html?uid=${u.key}'" class="flex items-center gap-3 cursor-pointer">
+                        <div class="relative"><img src="${u.val().p}" class="w-8 h-8 rounded-full border border-primary/20"><span class="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-background-dark"></span></div>
+                        <span class="text-xs font-bold">${u.val().n}</span></div>`;
+                });
+            });
+        }
+
+        // NUEVA FUNCIÓN EXPLORAR EDITADA
+        function cargarExplorar() {
+            onValue(ref(db, 'posts'), snap => {
+                const g = document.getElementById('explorar-grid'); 
+                g.innerHTML = "";
+                
+                snap.forEach(p => { 
+                    const post = p.val();
+                    if(post.image) {
+                        g.innerHTML += `
+                            <div class="relative group overflow-hidden rounded-2xl border border-white/5 bg-black/20 aspect-square">
+                                <img src="${post.image}" class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500">
+                                
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex items-end p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div class="flex items-center gap-2 cursor-pointer w-full" onclick="window.location.href='perfil.html?uid=${post.uid}'">
+                                        <img src="${post.uPic}" class="w-8 h-8 rounded-full border border-primary shadow-lg">
+                                        <div class="flex flex-col min-w-0">
+                                            <span class="text-[10px] font-bold text-white truncate">${post.uName}</span>
+                                            <span class="text-[8px] text-primary font-black uppercase tracking-widest">Ver Perfil</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    } 
+                });
+            });
+        }
+
+        window.irMiPerfil = () => window.location.href = `perfil.html?uid=${userActual.uid}`;
+    </script>
 </body>
 </html>
-
