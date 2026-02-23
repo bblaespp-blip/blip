@@ -21,12 +21,12 @@
             right: 0;
             top: 70px;
             width: 320px;
-            max-height: 450px;
+            max-height: 480px;
             z-index: 100;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
-        .noti-item { border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; background: rgba(255,255,255,0.02); margin-bottom: 4px; border-radius: 12px; }
-        .noti-item:hover { background: rgba(123, 44, 191, 0.2); transform: translateX(-5px); }
+        .noti-item { border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; background: rgba(255,255,255,0.02); margin-bottom: 6px; border-radius: 16px; }
+        .noti-item:hover { background: rgba(123, 44, 191, 0.2); transform: scale(1.02); }
     </style>
 </head>
 <body class="p-4 md:p-8 custom-scrollbar">
@@ -45,9 +45,9 @@
                 </button>
 
                 <div id="noti-panel" class="glass rounded-[2rem] p-4 overflow-hidden flex flex-col border border-primary/30">
-                    <h3 class="text-xs font-black p-2 mb-2 border-b border-white/10 italic uppercase tracking-widest text-primary">Avisos Recientes</h3>
-                    <div id="noti-list" class="overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-1 max-h-[350px]">
-                        <p class="text-xs text-slate-500 text-center py-8 text-white">Cargando avisos...</p>
+                    <h3 class="text-xs font-black p-2 mb-3 border-b border-white/10 italic uppercase tracking-widest text-primary">Avisos Recientes</h3>
+                    <div id="noti-list" class="overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-1 max-h-[380px]">
+                        <p class="text-xs text-slate-500 text-center py-8">Buscando señales...</p>
                     </div>
                 </div>
             </div>
@@ -74,14 +74,14 @@
             <div class="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
                 <label class="cursor-pointer text-primary hover:text-white transition-colors flex items-center gap-2">
                     <span class="material-symbols-outlined text-3xl">image</span>
-                    <span class="text-xs font-bold uppercase text-white">Añadir Obra</span>
+                    <span class="text-xs font-bold uppercase">Añadir Obra</span>
                     <input type="file" id="file-input" class="hidden" accept="image/*">
                 </label>
-                <button id="btn-post" class="bg-primary hover:bg-white hover:text-primary text-white px-10 py-2 rounded-2xl font-black transition-all shadow-lg shadow-primary/20 uppercase italic">BLIP!</button>
+                <button id="btn-post" class="bg-primary hover:bg-white hover:text-primary text-white px-10 py-2 rounded-2xl font-black transition-all shadow-lg shadow-primary/20 uppercase italic text-sm">BLIP!</button>
             </div>
         </div>
 
-        <div id="perfil-feed" class="flex flex-col gap-6 pb-20"></div>
+        <div id="perfil-feed" class="flex flex-col gap-6 pb-20 text-white"></div>
     </div>
 
     <script type="module">
@@ -123,14 +123,10 @@
         // --- SISTEMA DE NOTIFICACIONES ---
         function enviarNoti(uidDestino, msj, extra = {}) {
             if (!userActual || uidDestino === userActual.uid) return;
-            
-            // Forzamos el nombre actual para que no se pierda
-            const nombreRemitente = userActual.displayName || "Un usuario";
-            
             push(ref(db, `notificaciones/${uidDestino}`), {
-                u: nombreRemitente, 
+                u: userActual.displayName || "Artista", 
                 p: userActual.photoURL || "https://via.placeholder.com/100",
-                m: msj,
+                m: msj, // Este es el mensaje: "ha empezado a seguirte", etc.
                 t: Date.now(),
                 fromUid: userActual.uid,
                 ...extra 
@@ -151,23 +147,19 @@
                     list.innerHTML = "";
                     snap.forEach(n => {
                         const d = n.val();
-                        
-                        // Lógica de visualización: d.u es el nombre que guardamos en enviarNoti
-                        const nombreParaMostrar = d.u && d.u !== "undefined" ? d.u : "Alguien";
-                        const mensajeParaMostrar = d.m || "te envió una señal";
-                        const fotoParaMostrar = d.p || "https://via.placeholder.com/100";
-                        const tiempo = d.t ? new Date(d.t).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Reciente";
+                        const nombre = d.u || "Alguien";
+                        const mensaje = d.m || "te envió una señal";
+                        const foto = d.p || "https://via.placeholder.com/100";
+                        const hora = d.t ? new Date(d.t).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
 
                         const item = document.createElement('div');
-                        item.className = "noti-item p-3 flex items-center gap-3 cursor-pointer";
+                        item.className = "noti-item p-4 flex items-center gap-4 cursor-pointer";
                         item.innerHTML = `
-                            <img src="${fotoParaMostrar}" class="w-10 h-10 rounded-full object-cover border border-primary/20 shadow-lg">
-                            <div class="flex-1">
-                                <p class="text-[12px] text-slate-200 leading-tight">
-                                    <b class="text-white text-[13px]">${nombreParaMostrar}</b><br>
-                                    ${mensajeParaMostrar}
-                                </p>
-                                <span class="text-[9px] text-primary font-bold uppercase tracking-tighter">${tiempo}</span>
+                            <img src="${foto}" class="w-11 h-11 rounded-full object-cover border-2 border-primary/40 shadow-lg">
+                            <div class="flex-1 overflow-hidden">
+                                <p class="text-[13px] text-white font-bold leading-none mb-1">${nombre}</p>
+                                <p class="text-[12px] text-slate-400 leading-tight truncate">${mensaje}</p>
+                                <span class="text-[9px] text-primary font-black uppercase tracking-widest mt-1 block opacity-70">${hora}</span>
                             </div>
                         `;
                         item.onclick = () => {
@@ -177,13 +169,13 @@
                         list.prepend(item);
                     });
                 } else {
-                    list.innerHTML = "<p class='text-[10px] text-slate-500 text-center py-8 uppercase tracking-widest text-white'>Sin avisos</p>";
+                    list.innerHTML = "<p class='text-[10px] text-slate-600 text-center py-10 uppercase tracking-[0.2em] font-bold'>Cero avisos</p>";
                 }
                 primeraCargaNoti = false;
             });
         }
 
-        // --- MANEJO DE INTERFAZ ---
+        // Interfaz Campana
         document.getElementById('btn-noti').onclick = (e) => {
             e.stopPropagation();
             const panel = document.getElementById('noti-panel');
@@ -192,6 +184,7 @@
         };
         document.onclick = () => document.getElementById('noti-panel').style.display = 'none';
 
+        // --- LÓGICA PERFIL ---
         function cargarDatosPerfil() {
             if (userActual && userActual.uid === perfilUid) {
                 actualizarCabecera(userActual.displayName, userActual.photoURL, true);
@@ -251,7 +244,6 @@
             };
         }
 
-        // --- FEED ---
         function cargarPostsUsuario() {
             onValue(ref(db, 'posts'), snap => {
                 const feed = document.getElementById('perfil-feed');
@@ -261,7 +253,7 @@
                 posts.forEach(p => {
                     const hasLike = p.likes && userActual && p.likes[userActual.uid];
                     feed.innerHTML += `
-                        <div class="glass rounded-[2.5rem] p-6 shadow-xl border-white/5">
+                        <div class="glass rounded-[2.5rem] p-6 shadow-xl border-white/5 mb-4 text-white">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-3">
                                     <img src="${p.uPic}" class="w-10 h-10 rounded-full border border-primary/20">
@@ -316,7 +308,7 @@
             if(!b.classList.contains('hidden')) {
                 onValue(ref(db, `posts/${id}/comentarios`), snap => {
                     const l = document.getElementById(`list-${id}`); l.innerHTML = "";
-                    snap.forEach(c => { l.innerHTML += `<div class="p-1 text-white"><b class="text-primary">${c.val().uName}:</b> <span class="text-slate-300">${c.val().texto}</span></div>`; });
+                    snap.forEach(c => { l.innerHTML += `<div class="p-1"><b class="text-primary">${c.val().uName}:</b> <span class="text-slate-300">${c.val().texto}</span></div>`; });
                 });
             }
         };
