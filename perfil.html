@@ -1,209 +1,273 @@
 <!DOCTYPE html>
-<html class="dark" lang="es">
+<html lang="es">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - BLIP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: { extend: { colors: { "primary": "#7b2cbf", "accent": "#ff0055", "background-dark": "#050010" } } }
-        }
-    </script>
     <style>
-        body { background-color: #050010; color: white; font-family: 'Spline Sans', sans-serif; min-height: 100vh; }
+        :root { --primary: #7b2cbf; --accent: #ff0055; --bg: #050010; }
+        body { background-color: var(--bg); color: white; font-family: 'Spline Sans', sans-serif; min-height: 100vh; margin: 0; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(123, 44, 191, 0.2); }
+        .hashtag-link { color: var(--accent); font-weight: bold; text-shadow: 0 0 8px rgba(255, 0, 85, 0.3); }
+        .mention-link { color: var(--primary); font-weight: bold; }
+        .fill-1 { font-variation-settings: 'FILL' 1, 'wght' 400; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #7b2cbf; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-8 custom-scrollbar">
 
-    <div class="max-w-4xl mx-auto flex justify-between items-center mb-10">
-        <button onclick="window.location.href='index.html'" class="glass px-6 py-2 rounded-full flex items-center gap-2 hover:bg-white/10 transition-all text-sm">
+    <div class="max-w-4xl mx-auto">
+        <a href="index.html" class="mb-8 inline-flex items-center gap-2 text-slate-400 hover:text-white transition-all">
             <span class="material-symbols-outlined">arrow_back</span> Volver al Muro
-        </button>
-        <span class="text-xl font-black italic text-primary uppercase tracking-tighter">BLIP</span>
-    </div>
+        </a>
 
-    <main class="max-w-4xl mx-auto space-y-8">
-        
-        <div class="glass rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
-            <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
-                <div class="relative">
-                    <img id="user-avatar" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-44 md:h-44 rounded-[2.5rem] object-cover border-4 border-primary/30 shadow-2xl shadow-primary/20">
-                    <div id="status-dot" class="absolute bottom-2 right-2 w-6 h-6 bg-slate-500 border-4 border-background-dark rounded-full"></div>
+        <div class="glass rounded-[3rem] p-8 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+            <div class="relative">
+                <img id="perf-pic" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-primary object-cover shadow-primary/20 shadow-2xl">
+                <div id="status-dot" class="absolute bottom-2 right-2 w-6 h-6 bg-slate-500 border-4 border-[#050010] rounded-full"></div>
+            </div>
+            <div class="flex-1 text-center md:text-left">
+                <h1 id="perf-name" class="text-4xl font-black tracking-tighter mb-2 italic uppercase">Cargando...</h1>
+                <div class="flex justify-center md:justify-start gap-6 my-4 text-slate-300">
+                    <span><b id="count-obras" class="text-white text-xl">0</b> Obras</span>
+                    <span><b id="count-seguidores" class="text-white text-xl">0</b> Seguidores</span>
                 </div>
-
-                <div class="flex-1 text-center md:text-left space-y-4">
-                    <h1 id="user-name" class="text-4xl md:text-6xl font-black tracking-tighter italic uppercase">CARGANDO...</h1>
-                    
-                    <div class="flex flex-wrap justify-center md:justify-start gap-6 text-sm font-medium text-slate-400">
-                        <div class="flex flex-col"><span id="count-obras" class="text-white text-xl font-bold">0</span> <span class="text-[10px] uppercase tracking-widest">Obras</span></div>
-                        <div class="flex flex-col"><span id="count-seguidores" class="text-white text-xl font-bold">0</span> <span class="text-[10px] uppercase tracking-widest">Seguidores</span></div>
-                    </div>
-
-                    <div id="actions" class="flex flex-wrap justify-center md:justify-start gap-3 pt-4">
-                        <button id="btn-seguir" onclick="toggleSeguir()" class="bg-white text-black px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform">Seguir</button>
-                        <button id="btn-mensaje" onclick="irAlChat()" class="glass px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Mensaje</button>
-                    </div>
-                </div>
+                <div id="actions-container" class="flex flex-wrap justify-center md:justify-start gap-4 mt-4"></div>
             </div>
         </div>
 
-        <div class="space-y-6">
-            <h3 class="text-xs font-bold text-primary uppercase tracking-[0.3em] pl-4">Colección de Blips</h3>
-            <div id="user-feed" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                </div>
+        <div id="publish-area" class="hidden glass rounded-[2.5rem] p-6 mb-8 border-dashed border-primary/40">
+            <textarea id="post-text" class="w-full bg-transparent border-none focus:ring-0 text-lg resize-none text-white" placeholder="¿Qué vas a publicar hoy?" rows="2"></textarea>
+            <div id="preview-box" class="hidden mt-4"><img id="img-preview" class="rounded-3xl w-full max-h-80 object-cover border border-primary/20"></div>
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+                <label class="cursor-pointer text-primary hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-3xl">image</span>
+                    <input type="file" id="file-input" class="hidden" accept="image/*">
+                </label>
+                <button id="btn-post" class="bg-primary hover:bg-white hover:text-primary text-white px-10 py-2 rounded-2xl font-black transition-all shadow-lg shadow-primary/20">BLIP!</button>
+            </div>
         </div>
 
-    </main>
+        <div id="perfil-feed" class="flex flex-col gap-6"></div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-        import { getDatabase, ref, onValue, set, remove, get, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, remove, get, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg",
-            authDomain: "almacenamiento-redsocial.firebaseapp.com",
-            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com",
-            projectId: "almacenamiento-redsocial"
+        const firebaseConfig = { 
+            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", 
+            authDomain: "almacenamiento-redsocial.firebaseapp.com", 
+            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", 
+            projectId: "almacenamiento-redsocial" 
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
         const auth = getAuth(app);
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const perfilUid = urlParams.get('uid');
+        const db = getDatabase(app);
+        
+        const params = new URLSearchParams(window.location.search);
+        const perfilUid = params.get('uid');
         let userActual = null;
-        let nombreParaChat = "";
-        let fotoParaChat = "";
+        let selectedFile = null;
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                userActual = user;
-                if (user.uid === perfilUid) {
-                    document.getElementById('actions').innerHTML = `<button onclick="window.location.href='index.html'" class="bg-primary/20 text-primary border border-primary/50 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Mi Perfil</button>`;
-                }
-                checarSiSigo();
+        function procesarTexto(texto) {
+            if (!texto) return "";
+            return texto.replace(/@(\w+)/g, '<span class="mention-link">@$1</span>')
+                        .replace(/#(\w+)/g, '<span class="hashtag-link">#$1</span>');
+        }
+
+        onAuthStateChanged(auth, user => {
+            userActual = user;
+            if(perfilUid) {
+                cargarDatosPerfil();
+                escucharSeguidores();
+                if(user && user.uid === perfilUid) document.getElementById('publish-area').classList.remove('hidden');
             }
-            cargarPerfil();
-            cargarPostsUsuario();
-            contarSeguidores();
         });
 
-        // --- SISTEMA DE NOTIFICACIONES ---
-        function enviarNotificacion(destinoUid, mensaje) {
-            if (!userActual || destinoUid === userActual.uid) return;
-            push(ref(db, `notificaciones/${destinoUid}`), {
-                fromName: userActual.displayName,
-                fromPic: userActual.photoURL,
-                texto: mensaje,
-                visto: false,
-                time: serverTimestamp()
-            });
-        }
-
-        // --- CARGA DE DATOS CON RESPALDO (FIX "CARGANDO") ---
-        function cargarPerfil() {
-            // Intentar primero en usuarios online
-            onValue(ref(db, `online_users/${perfilUid}`), (snap) => {
-                if (snap.exists()) {
-                    actualizarUI(snap.val().n, snap.val().p, true);
-                } else {
-                    // Si no está online, buscar en el historial de posts
-                    get(ref(db, 'posts')).then(postsSnap => {
-                        let hallado = false;
-                        postsSnap.forEach(p => {
-                            if (p.val().uid === perfilUid && !hallado) {
-                                actualizarUI(p.val().uName, p.val().uPic, false);
-                                hallado = true;
-                            }
-                        });
-                        if (!hallado) actualizarUI("Usuario de BLIP", "https://via.placeholder.com/150", false);
-                    });
-                }
-            });
-        }
-
-        function actualizarUI(nombre, foto, online) {
-            document.getElementById('user-name').innerText = nombre;
-            document.getElementById('user-avatar').src = foto;
-            document.getElementById('status-dot').className = `absolute bottom-2 right-2 w-6 h-6 border-4 border-background-dark rounded-full ${online ? 'bg-green-500' : 'bg-slate-600'}`;
-            nombreParaChat = nombre;
-            fotoParaChat = foto;
-        }
-
-        function cargarPostsUsuario() {
-            onValue(ref(db, 'posts'), (snap) => {
-                const container = document.getElementById('user-feed');
-                container.innerHTML = "";
-                let count = 0;
+        function cargarDatosPerfil() {
+            // 1. Obtener Info del Usuario (desde cualquier post suyo)
+            onValue(ref(db, 'posts'), snap => {
                 snap.forEach(p => {
-                    if (p.val().uid === perfilUid) {
-                        count++;
-                        const post = p.val();
-                        container.innerHTML += `
-                            <div class="glass rounded-[2rem] overflow-hidden">
-                                ${post.image ? `<img src="${post.image}" class="w-full h-64 object-cover border-b border-white/5">` : ''}
-                                <div class="p-6">
-                                    <p class="text-slate-300 text-sm italic">"${post.content || 'Sin descripción'}"</p>
-                                </div>
-                            </div>`;
+                    if(p.val().uid === perfilUid) {
+                        document.getElementById('perf-name').innerText = p.val().uName;
+                        document.getElementById('perf-pic').src = p.val().uPic;
                     }
+                });
+                renderBotones(); // Renderizar botones después de tener el nombre y foto
+            }, { onlyOnce: true });
+
+            // 2. Cargar sus publicaciones
+            onValue(ref(db, 'posts'), snap => {
+                const feed = document.getElementById('perfil-feed');
+                feed.innerHTML = "";
+                let count = 0;
+                let postsArray = [];
+                
+                snap.forEach(p => {
+                    if(p.val().uid === perfilUid) {
+                        postsArray.unshift({id: p.key, ...p.val()});
+                        count++;
+                    }
+                });
+
+                postsArray.forEach(p => {
+                    const hasLike = p.likes && userActual && p.likes[userActual.uid];
+                    const esMio = userActual && userActual.uid === p.uid;
+
+                    feed.innerHTML += `
+                        <div class="glass rounded-[2.5rem] p-6 shadow-xl border-white/5">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="${p.uPic}" class="w-10 h-10 rounded-full border border-primary/20">
+                                    <h4 class="font-bold text-sm">${p.uName}</h4>
+                                </div>
+                                ${esMio ? `<button onclick="window.borrarPost('${p.id}')" class="text-slate-600 hover:text-accent transition-colors"><span class="material-symbols-outlined">delete</span></button>` : ''}
+                            </div>
+                            <p class="text-slate-300 mb-4">${procesarTexto(p.content || p.desc)}</p>
+                            ${(p.image || p.url) ? `<img src="${p.image || p.url}" class="rounded-3xl w-full mb-4 border border-white/5 shadow-2xl">` : ""}
+                            
+                            <div class="flex gap-6 border-t border-white/5 pt-4">
+                                <button onclick="window.darLike('${p.id}')" class="flex items-center gap-2 ${hasLike ? 'text-accent' : 'text-slate-400'}">
+                                    <span class="material-symbols-outlined ${hasLike ? 'fill-1' : ''}">favorite</span>
+                                    <span class="text-xs font-bold">${p.likes ? Object.keys(p.likes).length : 0}</span>
+                                </button>
+                                <button onclick="window.toggleComentarios('${p.id}')" class="flex items-center gap-2 text-slate-400">
+                                    <span class="material-symbols-outlined">chat_bubble</span>
+                                    <span class="text-xs font-bold">Comentar</span>
+                                </button>
+                            </div>
+
+                            <div id="box-${p.id}" class="hidden mt-4 bg-black/20 p-4 rounded-2xl border border-white/5">
+                                <div id="list-${p.id}" class="space-y-2 mb-3 max-h-32 overflow-y-auto custom-scrollbar text-xs text-slate-300"></div>
+                                <div class="flex gap-2">
+                                    <input id="in-${p.id}" type="text" class="flex-1 bg-white/5 border-none rounded-xl text-xs text-white placeholder:text-slate-500" placeholder="Escribe un comentario...">
+                                    <button onclick="window.enviarComentario('${p.id}')" class="bg-primary p-2 rounded-xl text-white"><span class="material-symbols-outlined text-sm">send</span></button>
+                                </div>
+                            </div>
+                        </div>`;
                 });
                 document.getElementById('count-obras').innerText = count;
             });
         }
 
-        // --- LÓGICA DE SEGUIMIENTO ---
-        window.toggleSeguir = () => {
-            if(!userActual) return alert("Inicia sesión para seguir");
-            const r = ref(db, `seguidores/${perfilUid}/${userActual.uid}`);
-            get(r).then(s => {
-                if (s.exists()) {
-                    remove(r);
-                } else {
-                    set(r, true);
-                    enviarNotificacion(perfilUid, "empezó a seguirte");
+        function renderBotones() {
+            const container = document.getElementById('actions-container');
+            // Si el perfil es mío, no muestro botones de Seguir/Mensaje
+            if(!userActual || userActual.uid === perfilUid) return;
+            
+            container.innerHTML = `
+                <button id="btn-follow" class="bg-white text-black px-8 py-2 rounded-full font-bold hover:bg-primary hover:text-white transition-all">SEGUIR</button>
+                <button id="btn-chat" class="border border-white/20 px-8 py-2 rounded-full font-bold hover:bg-white/10 transition-all">MENSAJE</button>
+            `;
+
+            // Lógica de Seguir
+            onValue(ref(db, `seguidores/${perfilUid}/${userActual.uid}`), s => {
+                const b = document.getElementById('btn-follow');
+                if(b) {
+                    b.innerText = s.exists() ? "SIGUIENDO" : "SEGUIR";
+                    b.className = s.exists() ? "bg-primary text-white px-8 py-2 rounded-full font-bold" : "bg-white text-black px-8 py-2 rounded-full font-bold hover:bg-primary hover:text-white transition-all";
                 }
             });
+
+            document.getElementById('btn-follow').onclick = () => {
+                const r = ref(db, `seguidores/${perfilUid}/${userActual.uid}`);
+                get(r).then(s => s.exists() ? remove(r) : set(r, { n: userActual.displayName, p: userActual.photoURL }));
+            };
+
+            // LÓGICA DE MENSAJE (RECUPERADA)
+            document.getElementById('btn-chat').onclick = () => {
+                localStorage.setItem('abrirChatCon', perfilUid);
+                localStorage.setItem('nombreChatCon', document.getElementById('perf-name').innerText);
+                localStorage.setItem('fotoChatCon', document.getElementById('perf-pic').src);
+                window.location.href = 'index.html'; // Redirige al muro para abrir el chat
+            };
+        }
+
+        function escucharSeguidores() {
+            onValue(ref(db, `seguidores/${perfilUid}`), snap => {
+                let total = 0; snap.forEach(() => total++);
+                document.getElementById('count-seguidores').innerText = total;
+            });
+        }
+
+        // --- FUNCIONES GLOBALES (LIKE, COMENTAR, BORRAR) ---
+        window.darLike = (id) => {
+            const r = ref(db, `posts/${id}/likes/${userActual.uid}`);
+            get(r).then(s => s.exists() ? remove(r) : set(r, true));
         };
 
-        function checarSiSigo() {
-            if(!userActual) return;
-            onValue(ref(db, `seguidores/${perfilUid}/${userActual.uid}`), snap => {
-                const btn = document.getElementById('btn-seguir');
-                if (btn) {
-                    if (snap.exists()) {
-                        btn.innerText = "SIGUIENDO";
-                        btn.classList.replace('bg-white', 'bg-primary');
-                        btn.classList.replace('text-black', 'text-white');
-                    } else {
-                        btn.innerText = "SEGUIR";
-                        btn.classList.replace('bg-primary', 'bg-white');
-                        btn.classList.replace('text-white', 'text-black');
-                    }
-                }
-            });
-        }
+        window.toggleComentarios = (id) => {
+            const b = document.getElementById(`box-${id}`);
+            b.classList.toggle('hidden');
+            if(!b.classList.contains('hidden')) {
+                onValue(ref(db, `posts/${id}/comentarios`), snap => {
+                    const list = document.getElementById(`list-${id}`);
+                    list.innerHTML = "";
+                    snap.forEach(c => {
+                        list.innerHTML += `<div class="p-1"><b class="text-primary">${c.val().uName}:</b> <span>${c.val().texto}</span></div>`;
+                    });
+                });
+            }
+        };
 
-        function contarSeguidores() {
-            onValue(ref(db, `seguidores/${perfilUid}`), snap => {
-                document.getElementById('count-seguidores').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
-            });
-        }
+        window.enviarComentario = (id) => {
+            const input = document.getElementById(`in-${id}`);
+            if(!input.value.trim()) return;
+            push(ref(db, `posts/${id}/comentarios`), { uName: userActual.displayName, texto: input.value });
+            input.value = "";
+        };
 
-        window.irAlChat = () => {
-            localStorage.setItem('abrirChatCon', perfilUid);
-            localStorage.setItem('nombreChatCon', nombreParaChat);
-            localStorage.setItem('fotoChatCon', fotoParaChat);
-            window.location.href = 'index.html';
+        window.borrarPost = (id) => {
+            if(confirm("¿Estás seguro de eliminar esta obra?")) remove(ref(db, `posts/${id}`));
+        };
+
+        // --- SUBIR IMAGEN DESDE PERFIL ---
+        document.getElementById('file-input').onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if(selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (f) => {
+                    document.getElementById('img-preview').src = f.target.result;
+                    document.getElementById('preview-box').classList.remove('hidden');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        };
+
+        document.getElementById('btn-post').onclick = async () => {
+            const text = document.getElementById('post-text').value.trim();
+            if(!text && !selectedFile) return;
+            const btn = document.getElementById('btn-post');
+            btn.innerText = "SUBIENDO...";
+            btn.disabled = true;
+
+            let url = "";
+            if(selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('upload_preset', 'blip_unsigned');
+                const res = await fetch('https://api.cloudinary.com/v1_1/dz9s37bk0/image/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                url = data.secure_url;
+            }
+
+            await push(ref(db, 'posts'), {
+                uid: userActual.uid, uName: userActual.displayName, uPic: userActual.photoURL,
+                content: text, image: url, timestamp: serverTimestamp()
+            });
+
+            document.getElementById('post-text').value = "";
+            document.getElementById('preview-box').classList.add('hidden');
+            selectedFile = null;
+            btn.innerText = "BLIP!";
+            btn.disabled = false;
         };
     </script>
 </body>
