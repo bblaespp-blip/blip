@@ -4,182 +4,271 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - BLIP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <style>
-        :root { --bg: #050010; --accent: #7b2cbf; --card-bg: #ffffff; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        nav { background: #0a0020; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(123, 44, 191, 0.3); position: sticky; top: 0; z-index: 1000; }
-        .btn { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; transition: 0.3s; }
-        .btn:hover { opacity: 0.8; transform: scale(1.05); }
-        .header { text-align: center; padding: 60px 20px; background: linear-gradient(to bottom, #0a0020, #050010); }
-        #perf-pic { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent); object-fit: cover; box-shadow: 0 0 20px rgba(123, 44, 191, 0.5); background: #000; }
-        .gallery { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1100px; margin: auto; }
-        .gallery img { width: 100%; height: 250px; object-fit: cover; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer; }
-        .gallery img:hover { transform: translateY(-5px); border-color: var(--accent); }
-        #comment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:8000; justify-content:center; align-items:center; }
-        .modal-container { background: #fff; width: 90%; max-width: 900px; height: 80vh; border-radius: 20px; display: flex; overflow: hidden; color: #000; }
-        #modal-img-container { flex: 1.2; background: #000; display: flex; align-items: center; justify-content: center; }
-        #modal-img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .modal-side { flex: 1; display: flex; flex-direction: column; background: white; position: relative; }
-        #comments-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .comment-item { position: relative; padding: 10px; border-radius: 10px; background: #f8f9fa; margin-bottom: 8px; color: #333; padding-right: 30px; }
-        .comment-options-btn { position: absolute; right: 10px; top: 10px; cursor: pointer; color: #999; font-size: 18px; font-weight: bold; }
-        .options-menu { display: none; position: absolute; right: 10px; top: 30px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 9999; min-width: 120px; border: 1px solid #eee; }
-        .options-menu button { display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer; font-size: 12px; }
-        .btn-delete { color: #ff0055 !important; border-top: 1px solid #eee !important; }
-        .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; flex-direction: column; gap: 10px; }
-        .hidden { display: none !important; }
+        :root { --primary: #7b2cbf; --accent: #ff0055; --bg: #050010; }
+        body { background-color: var(--bg); color: white; font-family: 'Spline Sans', sans-serif; min-height: 100vh; margin: 0; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(123, 44, 191, 0.2); }
+        .hashtag-link { color: var(--accent); font-weight: bold; text-shadow: 0 0 8px rgba(255, 0, 85, 0.3); }
+        .mention-link { color: var(--primary); font-weight: bold; }
+        .fill-1 { font-variation-settings: 'FILL' 1, 'wght' 400; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-8 custom-scrollbar">
 
-<nav>
-    <div style="font-weight: 900; font-size: 26px; cursor: pointer; color: white; letter-spacing: 2px;" onclick="location.href='index.html'">BLIP</div>
-    <a href="index.html" class="btn">VOLVER</a>
-</nav>
+    <div class="max-w-4xl mx-auto">
+        <a href="index.html" class="mb-8 inline-flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+            <span class="material-symbols-outlined">arrow_back</span> Volver al Muro
+        </a>
 
-<div class="header">
-    <img id="perf-pic" src="">
-    <h1 id="perf-name">Cargando...</h1>
-    <div id="perf-stats">
-        <span id="count-obras">0</span> Obras | <span id="count-followers">0</span> Seguidores
-    </div>
-    <div id="actions-perfil" class="hidden" style="margin-top: 25px; display: flex; gap: 10px; justify-content: center;">
-        <button id="btn-follow" class="btn" style="background: transparent; border: 2px solid white;">SEGUIR</button>
-        <button id="btn-msj" class="btn">ENVIAR MENSAJE</button>
-    </div>
-</div>
-
-<div class="gallery" id="perf-gallery"></div>
-
-<div id="comment-modal">
-    <div class="modal-container">
-        <div id="modal-img-container"><img id="modal-img" src=""></div>
-        <div class="modal-side">
-            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; font-weight:bold;">
-                INTERACCIONES <span onclick="cerrarComentarios()" style="cursor:pointer; font-size:24px;">&times;</span>
+        <div class="glass rounded-[3rem] p-8 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl">
+            <div class="relative">
+                <img id="perf-pic" src="https://via.placeholder.com/150" class="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-primary object-cover shadow-primary/20 shadow-2xl">
+                <div id="status-dot" class="absolute bottom-2 right-2 w-6 h-6 bg-slate-500 border-4 border-[#050010] rounded-full"></div>
             </div>
-            <div id="comments-list"></div>
-            <div class="modal-footer">
-                <div id="modal-likes-count" style="color: #e91e63; font-weight:bold; cursor:pointer;">❤️ 0 likes</div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="comm-in" style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd;" placeholder="Comentar...">
-                    <button id="comm-btn" class="btn">🚀</button>
+            <div class="flex-1 text-center md:text-left">
+                <h1 id="perf-name" class="text-4xl font-black tracking-tighter mb-2 italic uppercase">Cargando...</h1>
+                <div class="flex justify-center md:justify-start gap-6 my-4 text-slate-300">
+                    <span><b id="count-obras" class="text-white text-xl">0</b> Obras</span>
+                    <span><b id="count-seguidores" class="text-white text-xl">0</b> Seguidores</span>
                 </div>
+                <div id="actions-container" class="flex flex-wrap justify-center md:justify-start gap-4 mt-4"></div>
             </div>
         </div>
+
+        <div id="publish-area" class="hidden glass rounded-[2.5rem] p-6 mb-8 border-dashed border-primary/40">
+            <textarea id="post-text" class="w-full bg-transparent border-none focus:ring-0 text-lg resize-none text-white" placeholder="¿Qué vas a publicar hoy?" rows="2"></textarea>
+            <div id="preview-box" class="hidden mt-4"><img id="img-preview" class="rounded-3xl w-full max-h-80 object-cover border border-primary/20"></div>
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+                <label class="cursor-pointer text-primary hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-3xl">image</span>
+                    <input type="file" id="file-input" class="hidden" accept="image/*">
+                </label>
+                <button id="btn-post" class="bg-primary hover:bg-white hover:text-primary text-white px-10 py-2 rounded-2xl font-black transition-all shadow-lg shadow-primary/20">BLIP!</button>
+            </div>
+        </div>
+
+        <div id="perfil-feed" class="flex flex-col gap-6"></div>
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-    import { getDatabase, ref, onValue, push, set, get, remove, update } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, remove, get, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", authDomain: "almacenamiento-redsocial.firebaseapp.com", databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", projectId: "almacenamiento-redsocial" };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+        const firebaseConfig = { 
+            apiKey: "AIzaSyA5yh8J7Mgij3iZCOEZ2N8r1yhDkLcXsTg", 
+            authDomain: "almacenamiento-redsocial.firebaseapp.com", 
+            databaseURL: "https://almacenamiento-redsocial-default-rtdb.firebaseio.com", 
+            projectId: "almacenamiento-redsocial" 
+        };
 
-    let userActual = null, postActivoId = null;
-
-    onAuthStateChanged(auth, user => {
-        userActual = user;
-        const params = new URLSearchParams(window.location.search);
-        const finalUid = params.get('uid') || (user ? user.uid : null);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
         
-        if(!finalUid) return location.href = 'index.html';
+        const params = new URLSearchParams(window.location.search);
+        const perfilUid = params.get('uid');
+        let userActual = null;
+        let selectedFile = null;
 
-        if(user && user.uid !== finalUid) {
-            document.getElementById('actions-perfil').classList.remove('hidden');
+        function procesarTexto(texto) {
+            if (!texto) return "";
+            return texto.replace(/@(\w+)/g, '<span class="mention-link">@$1</span>')
+                        .replace(/#(\w+)/g, '<span class="hashtag-link">#$1</span>');
         }
 
-        onValue(ref(db, 'online_users/' + finalUid), snap => {
-            if(snap.exists()) {
-                const data = snap.val();
-                document.getElementById('perf-name').innerText = data.n;
-                document.getElementById('perf-pic').src = data.p;
-                
-                document.getElementById('btn-msj').onclick = () => {
-                    localStorage.setItem('openChat', `${finalUid}|${data.n}`);
-                    location.href = 'index.html';
-                };
+        onAuthStateChanged(auth, user => {
+            userActual = user;
+            if(perfilUid) {
+                cargarDatosPerfil();
+                escucharSeguidores();
+                if(user && user.uid === perfilUid) document.getElementById('publish-area').classList.remove('hidden');
             }
         });
 
-        onValue(ref(db, 'posts'), snap => {
-            const gallery = document.getElementById('perf-gallery'); 
-            gallery.innerHTML = "";
-            let obras = 0;
-            snap.forEach(p => {
-                if(p.val().uid === finalUid) {
-                    obras++;
-                    const img = document.createElement('img');
-                    img.src = p.val().url;
-                    img.onclick = () => abrirModalInteraccion(p.key, p.val().url);
-                    gallery.appendChild(img);
-                }
+        function cargarDatosPerfil() {
+            // 1. Obtener Info del Usuario (desde cualquier post suyo)
+            onValue(ref(db, 'posts'), snap => {
+                snap.forEach(p => {
+                    if(p.val().uid === perfilUid) {
+                        document.getElementById('perf-name').innerText = p.val().uName;
+                        document.getElementById('perf-pic').src = p.val().uPic;
+                    }
+                });
+                renderBotones(); // Renderizar botones después de tener el nombre y foto
+            }, { onlyOnce: true });
+
+            // 2. Cargar sus publicaciones
+            onValue(ref(db, 'posts'), snap => {
+                const feed = document.getElementById('perfil-feed');
+                feed.innerHTML = "";
+                let count = 0;
+                let postsArray = [];
+                
+                snap.forEach(p => {
+                    if(p.val().uid === perfilUid) {
+                        postsArray.unshift({id: p.key, ...p.val()});
+                        count++;
+                    }
+                });
+
+                postsArray.forEach(p => {
+                    const hasLike = p.likes && userActual && p.likes[userActual.uid];
+                    const esMio = userActual && userActual.uid === p.uid;
+
+                    feed.innerHTML += `
+                        <div class="glass rounded-[2.5rem] p-6 shadow-xl border-white/5">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="${p.uPic}" class="w-10 h-10 rounded-full border border-primary/20">
+                                    <h4 class="font-bold text-sm">${p.uName}</h4>
+                                </div>
+                                ${esMio ? `<button onclick="window.borrarPost('${p.id}')" class="text-slate-600 hover:text-accent transition-colors"><span class="material-symbols-outlined">delete</span></button>` : ''}
+                            </div>
+                            <p class="text-slate-300 mb-4">${procesarTexto(p.content || p.desc)}</p>
+                            ${(p.image || p.url) ? `<img src="${p.image || p.url}" class="rounded-3xl w-full mb-4 border border-white/5 shadow-2xl">` : ""}
+                            
+                            <div class="flex gap-6 border-t border-white/5 pt-4">
+                                <button onclick="window.darLike('${p.id}')" class="flex items-center gap-2 ${hasLike ? 'text-accent' : 'text-slate-400'}">
+                                    <span class="material-symbols-outlined ${hasLike ? 'fill-1' : ''}">favorite</span>
+                                    <span class="text-xs font-bold">${p.likes ? Object.keys(p.likes).length : 0}</span>
+                                </button>
+                                <button onclick="window.toggleComentarios('${p.id}')" class="flex items-center gap-2 text-slate-400">
+                                    <span class="material-symbols-outlined">chat_bubble</span>
+                                    <span class="text-xs font-bold">Comentar</span>
+                                </button>
+                            </div>
+
+                            <div id="box-${p.id}" class="hidden mt-4 bg-black/20 p-4 rounded-2xl border border-white/5">
+                                <div id="list-${p.id}" class="space-y-2 mb-3 max-h-32 overflow-y-auto custom-scrollbar text-xs text-slate-300"></div>
+                                <div class="flex gap-2">
+                                    <input id="in-${p.id}" type="text" class="flex-1 bg-white/5 border-none rounded-xl text-xs text-white placeholder:text-slate-500" placeholder="Escribe un comentario...">
+                                    <button onclick="window.enviarComentario('${p.id}')" class="bg-primary p-2 rounded-xl text-white"><span class="material-symbols-outlined text-sm">send</span></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('count-obras').innerText = count;
             });
-            document.getElementById('count-obras').innerText = obras;
-        });
-    });
-
-    window.abrirModalInteraccion = (postId, url) => {
-        postActivoId = postId;
-        document.getElementById('modal-img').src = url;
-        document.getElementById('comment-modal').style.display = 'flex';
-        
-        onValue(ref(db, 'comments/' + postId), snap => {
-            const list = document.getElementById('comments-list'); 
-            list.innerHTML = "";
-            snap.forEach(c => {
-                const d = c.val(), cid = c.key;
-                const esMio = userActual && (userActual.displayName === d.u);
-                const item = document.createElement('div');
-                item.className = "comment-item";
-                item.innerHTML = `
-                    <b>${d.u}:</b> <span>${d.m}</span>
-                    <div class="comment-options-btn" onclick="event.stopPropagation(); toggleMenu('${cid}')">⋮</div>
-                    <div id="menu-${cid}" class="options-menu">
-                        ${esMio ? `<button onclick="editarComentario('${postId}','${cid}','${d.m}')">✏️ Editar</button>` : ''}
-                        ${esMio ? `<button class="btn-delete" onclick="borrarComentario('${postId}','${cid}')">🗑️ Borrar</button>` : `<button onclick="alert('Reportado')">🚩 Reportar</button>`}
-                    </div>`;
-                list.appendChild(item);
-            });
-        });
-
-        onValue(ref(db, `posts/${postId}/likes`), snap => {
-            document.getElementById('modal-likes-count').innerText = `❤️ ${snap.size || 0} likes`;
-        });
-    };
-
-    window.toggleMenu = (id) => {
-        const m = document.getElementById('menu-'+id);
-        const open = m.style.display === 'block';
-        document.querySelectorAll('.options-menu').forEach(x => x.style.display = 'none');
-        if(!open) m.style.display = 'block';
-    };
-
-    window.borrarComentario = (pid, cid) => { if(confirm("¿Borrar comentario?")) remove(ref(db, `comments/${pid}/${cid}`)); };
-    window.editarComentario = (pid, cid, txt) => {
-        const n = prompt("Editar comentario:", txt);
-        if(n && n.trim()) update(ref(db, `comments/${pid}/${cid}`), {m: n.trim()});
-    };
-    window.cerrarComentarios = () => document.getElementById('comment-modal').style.display = 'none';
-
-    document.getElementById('comm-btn').onclick = () => {
-        const i = document.getElementById('comm-in');
-        if(userActual && i.value.trim() && postActivoId) {
-            push(ref(db, 'comments/' + postActivoId), { u: userActual.displayName, m: i.value.trim() });
-            
-            get(ref(db, `posts/${postActivoId}/uid`)).then(s => {
-                if(s.exists() && s.val() !== userActual.uid) {
-                    push(ref(db, 'notis/' + s.val()), { from: userActual.displayName, msg: "comentó tu obra", read: false });
-                }
-            });
-            i.value = "";
         }
-    };
-    document.addEventListener('click', () => document.querySelectorAll('.options-menu').forEach(m => m.style.display = 'none'));
-</script>
+
+        function renderBotones() {
+            const container = document.getElementById('actions-container');
+            // Si el perfil es mío, no muestro botones de Seguir/Mensaje
+            if(!userActual || userActual.uid === perfilUid) return;
+            
+            container.innerHTML = `
+                <button id="btn-follow" class="bg-white text-black px-8 py-2 rounded-full font-bold hover:bg-primary hover:text-white transition-all">SEGUIR</button>
+                <button id="btn-chat" class="border border-white/20 px-8 py-2 rounded-full font-bold hover:bg-white/10 transition-all">MENSAJE</button>
+            `;
+
+            // Lógica de Seguir
+            onValue(ref(db, `seguidores/${perfilUid}/${userActual.uid}`), s => {
+                const b = document.getElementById('btn-follow');
+                if(b) {
+                    b.innerText = s.exists() ? "SIGUIENDO" : "SEGUIR";
+                    b.className = s.exists() ? "bg-primary text-white px-8 py-2 rounded-full font-bold" : "bg-white text-black px-8 py-2 rounded-full font-bold hover:bg-primary hover:text-white transition-all";
+                }
+            });
+
+            document.getElementById('btn-follow').onclick = () => {
+                const r = ref(db, `seguidores/${perfilUid}/${userActual.uid}`);
+                get(r).then(s => s.exists() ? remove(r) : set(r, { n: userActual.displayName, p: userActual.photoURL }));
+            };
+
+            // LÓGICA DE MENSAJE (RECUPERADA)
+            document.getElementById('btn-chat').onclick = () => {
+                localStorage.setItem('abrirChatCon', perfilUid);
+                localStorage.setItem('nombreChatCon', document.getElementById('perf-name').innerText);
+                localStorage.setItem('fotoChatCon', document.getElementById('perf-pic').src);
+                window.location.href = 'index.html'; // Redirige al muro para abrir el chat
+            };
+        }
+
+        function escucharSeguidores() {
+            onValue(ref(db, `seguidores/${perfilUid}`), snap => {
+                let total = 0; snap.forEach(() => total++);
+                document.getElementById('count-seguidores').innerText = total;
+            });
+        }
+
+        // --- FUNCIONES GLOBALES (LIKE, COMENTAR, BORRAR) ---
+        window.darLike = (id) => {
+            const r = ref(db, `posts/${id}/likes/${userActual.uid}`);
+            get(r).then(s => s.exists() ? remove(r) : set(r, true));
+        };
+
+        window.toggleComentarios = (id) => {
+            const b = document.getElementById(`box-${id}`);
+            b.classList.toggle('hidden');
+            if(!b.classList.contains('hidden')) {
+                onValue(ref(db, `posts/${id}/comentarios`), snap => {
+                    const list = document.getElementById(`list-${id}`);
+                    list.innerHTML = "";
+                    snap.forEach(c => {
+                        list.innerHTML += `<div class="p-1"><b class="text-primary">${c.val().uName}:</b> <span>${c.val().texto}</span></div>`;
+                    });
+                });
+            }
+        };
+
+        window.enviarComentario = (id) => {
+            const input = document.getElementById(`in-${id}`);
+            if(!input.value.trim()) return;
+            push(ref(db, `posts/${id}/comentarios`), { uName: userActual.displayName, texto: input.value });
+            input.value = "";
+        };
+
+        window.borrarPost = (id) => {
+            if(confirm("¿Estás seguro de eliminar esta obra?")) remove(ref(db, `posts/${id}`));
+        };
+
+        // --- SUBIR IMAGEN DESDE PERFIL ---
+        document.getElementById('file-input').onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if(selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (f) => {
+                    document.getElementById('img-preview').src = f.target.result;
+                    document.getElementById('preview-box').classList.remove('hidden');
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        };
+
+        document.getElementById('btn-post').onclick = async () => {
+            const text = document.getElementById('post-text').value.trim();
+            if(!text && !selectedFile) return;
+            const btn = document.getElementById('btn-post');
+            btn.innerText = "SUBIENDO...";
+            btn.disabled = true;
+
+            let url = "";
+            if(selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('upload_preset', 'blip_unsigned');
+                const res = await fetch('https://api.cloudinary.com/v1_1/dz9s37bk0/image/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                url = data.secure_url;
+            }
+
+            await push(ref(db, 'posts'), {
+                uid: userActual.uid, uName: userActual.displayName, uPic: userActual.photoURL,
+                content: text, image: url, timestamp: serverTimestamp()
+            });
+
+            document.getElementById('post-text').value = "";
+            document.getElementById('preview-box').classList.add('hidden');
+            selectedFile = null;
+            btn.innerText = "BLIP!";
+            btn.disabled = false;
+        };
+    </script>
 </body>
 </html>
